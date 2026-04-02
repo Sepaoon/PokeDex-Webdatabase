@@ -131,6 +131,24 @@
         }
         .nav-search-btn:active { background: rgba(0,123,255,0.15); }
         .nav-search-sep { color: #3a3a3a; flex-shrink: 0; }
+        .search-clear-btn {
+            background: none; border: none; color: #555; font-size: 14px; font-weight: bold;
+            cursor: pointer; padding: 2px 4px; border-radius: 4px; line-height: 1;
+            display: none; align-items: center; justify-content: center;
+            min-height: 24px; min-width: 24px; flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent; transition: color 0.15s;
+        }
+        .search-clear-btn:hover { color: #bbb; }
+
+        /* ── Value field wrapper (for $ prefix) ── */
+        .value-wrapper {
+            position: relative; flex-shrink: 0; width: 76px;
+            display: inline-flex; align-items: center;
+        }
+        .value-prefix {
+            position: absolute; left: 9px; color: #aaa; font-size: 16px;
+            pointer-events: none; user-select: none;
+        }
 
         .nav-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .nav-btn {
@@ -255,17 +273,17 @@
 
         .input-group { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
         .item-name, .item-set {
-            flex: 0.5; min-width: 40px; padding: 9px 10px;
+            flex: 0.38; min-width: 40px; padding: 9px 10px;
             border: 1px solid #444; border-radius: 6px;
             background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
         }
         .item-set-number {
-            flex: 0.25; min-width: 30px; padding: 9px 8px;
+            flex: 0.22; min-width: 30px; padding: 9px 8px;
             border: 1px solid #444; border-radius: 6px;
             background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
         }
         .item-value {
-            width: 76px; flex-shrink: 0; padding: 9px 8px;
+            width: 76px; flex-shrink: 0; padding: 9px 8px 9px 20px;
             border: 1px solid #444; border-radius: 6px;
             background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
         }
@@ -303,9 +321,15 @@
         .toggle-label {
             font-size: 0.75em; font-weight: bold; letter-spacing: 0.04em;
             min-width: 56px; text-align: center; padding: 3px 7px; border-radius: 4px;
+            border: 1px solid transparent; transition: color 0.25s, border-color 0.25s, background 0.25s;
         }
-        .toggle-label.wanted-lbl    { color: #e57373; background: rgba(229,115,115,0.12); }
-        .toggle-label.collected-lbl { color: #66bb6a; background: rgba(102,187,106,0.12); }
+        /* Default (wanted active): WANTED outlined, COLLECTED dim */
+        .toggle-label.wanted-lbl    { color: #e57373; border-color: #e57373; background: rgba(229,115,115,0.08); }
+        .toggle-label.collected-lbl { color: #444; background: transparent; border-color: transparent; }
+        /* When collected: flip which label is outlined */
+        .is-collected ~ .toggle-label.collected-lbl,
+        .status-toggle:has(.is-collected) .toggle-label.collected-lbl { color: #66bb6a; border-color: #66bb6a; background: rgba(102,187,106,0.08); }
+        .status-toggle:has(.is-collected) .toggle-label.wanted-lbl    { color: #444; border-color: transparent; background: transparent; }
         .toggle-track {
             position: relative; width: 48px; height: 26px; border-radius: 13px;
             background: #e53935; cursor: pointer; flex-shrink: 0;
@@ -378,8 +402,10 @@
 
             <div class="nav-search">
                 <span class="nav-search-sep">🔍</span>
-                <input type="text" id="searchInput" placeholder="Search name, variant, #…"
-                       inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false">
+                <input type="text" id="searchInput" placeholder="Search name, set, #…"
+                       inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false"
+                       oninput="document.getElementById('search-clear-btn').style.display=this.value?'flex':'none'">
+                <button id="search-clear-btn" class="search-clear-btn" onclick="clearSearch()" title="Clear search" style="display:none;">✕</button>
                 <button class="nav-search-btn" onclick="findItem()">Find</button>
                 <span class="nav-search-sep">|</span>
                 <button class="nav-search-btn" onclick="globalTCGSearch()" style="color:#20c997;">TCG</button>
@@ -714,6 +740,8 @@
             const valueEl     = document.getElementById(`value-${id}`);
             const track       = document.getElementById(`toggle-${id}`);
             const faEl        = document.getElementById(`cbFA-${id}`);
+            const holoEl      = document.getElementById(`cbHolo-${id}`);
+            const revHoloEl   = document.getElementById(`cbRevHolo-${id}`);
             if (!nameEl) return;
             const collected = track ? track.classList.contains('is-collected') : false;
             const item = {
@@ -722,7 +750,9 @@
                 setNumber: setNumberEl ? setNumberEl.value : '',
                 value:     parseFloat(valueEl ? valueEl.value : 0) || 0,
                 collected,
-                fullArt:   faEl ? faEl.checked : false,
+                fullArt:   faEl      ? faEl.checked      : false,
+                holo:      holoEl    ? holoEl.checked    : false,
+                revHolo:   revHoloEl ? revHoloEl.checked : false,
                 wanted:    !collected,
             };
             localStorage.setItem(`item-${id}`, JSON.stringify(item));
@@ -914,7 +944,7 @@
 
         /* ── JSON Save / Import ── */
         function saveJSON() {
-            const blank = { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
+            const blank = { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, holo:false, revHolo:false, wanted:true };
             const data  = { config, items: {} };
             for (let i = 1; i <= config.total; i++) {
                 data.items[i] = JSON.parse(localStorage.getItem(`item-${i}`)) || { ...blank };
@@ -1080,7 +1110,10 @@
                         <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
                         <input type="text"   id="set-${i}"        class="item-set"        placeholder="Set"        value="${safeSet}"       autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
                         <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                        <input type="number" id="value-${i}"   class="item-value"   placeholder="$0.00"   value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
+                        <div class="value-wrapper">
+                            <span class="value-prefix">$</span>
+                            <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
+                        </div>
                         <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
                         <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
                         <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
@@ -1094,6 +1127,12 @@
                             </div>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})"> Full Art
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})"> Holo
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})"> Rev-Holo
                             </label>
                         </div>
                     </div>`;
@@ -1142,9 +1181,17 @@
             }
         }
 
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('search-clear-btn').style.display = 'none';
+            input.focus();
+        }
+
         /* ── Keyboard ── */
         document.getElementById('searchInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); findItem(); }
+            if (e.key === 'Escape') { e.preventDefault(); clearSearch(); }
         });
         document.getElementById('gotoPage').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); skipToPage(); }

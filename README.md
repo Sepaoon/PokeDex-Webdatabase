@@ -1,0 +1,2 @@
+
+this project is 100% vibe coded and i just wanted a way to track the collection in a 4x4 grid that actually made sense and then it kind of evolved lol into a pokedex so if you think you can improve the logic or the layout you are more than welcome to mess with it and it is as open source as i can make it since it was mostly generated and i just want it to work for whoever needs a simple checklist.

@@ -765,9 +765,10 @@
             if (!win) alert('Please allow popups to open TCGPlayer.');
         }
         function searchTCGForItem(id) {
-            const name  = (document.getElementById(`name-${id}`)?.value || '').trim();
-            const set   = (document.getElementById(`set-${id}`)?.value  || '').trim();
-            const query = [name, set].filter(Boolean).join(' ');
+            const name      = (document.getElementById(`name-${id}`)?.value      || '').trim();
+            const set       = (document.getElementById(`set-${id}`)?.value       || '').trim();
+            const setNumber = (document.getElementById(`setNumber-${id}`)?.value || '').trim();
+            const query = [name, set, setNumber].filter(Boolean).join(' ');
             if (!query) { alert('Add a name or variant to this entry first.'); return; }
             const win = window.open(TCG_URL + encodeURIComponent(query), '_blank');
             if (!win) alert('Please allow popups to open TCGPlayer.');

@@ -174,7 +174,10 @@
             width: 60px; padding: 7px 8px; border-radius: 6px;
             border: 1px solid #3a3a3a; background: #252525; color: #fff;
             font-size: 16px; min-height: 38px;
+            -moz-appearance: textfield;
         }
+        .nav-settings-bar input[type="number"]::-webkit-outer-spin-button,
+        .nav-settings-bar input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .settings-label { font-size: 0.68em; color: #666; text-transform: uppercase; font-weight: bold; letter-spacing: 0.07em; }
         .settings-apply {
             padding: 7px 14px; background: #007bff; color: #fff; border: none;
@@ -186,7 +189,10 @@
             width: 56px; padding: 7px 8px; border-radius: 6px;
             border: 1px solid #3a3a3a; background: #252525; color: #fff;
             font-size: 16px; min-height: 38px;
+            -moz-appearance: textfield;
         }
+        .nav-page-group input::-webkit-outer-spin-button,
+        .nav-page-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .nav-page-group button {
             padding: 7px 13px; background: #2a2a2a; color: #ccc;
             border: 1px solid #3a3a3a; border-radius: 6px;
@@ -400,6 +406,8 @@
             <span class="settings-label">Slots</span>
             <input type="number" id="gridCols" value="4" min="1" inputmode="numeric">
             <button class="settings-apply" onclick="applySettings()">Apply</button>
+            <button class="settings-apply" style="background:#333;color:#aaa;" onclick="collapseAll()">⊖ Collapse All</button>
+            <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
             <div class="nav-page-group">
                 <span class="settings-label">Page</span>
                 <input type="number" id="gotoPage" min="1" value="1" inputmode="numeric">
@@ -866,6 +874,38 @@
             header.setAttribute('aria-expanded', open ? 'true' : 'false');
             const collapsed = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
             collapsed[page] = !open;
+            localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
+        }
+
+        function collapseAll() {
+            const pageSize   = config.rows * config.cols;
+            const totalPages = Math.ceil(config.total / pageSize);
+            const collapsed  = {};
+            for (let p = 1; p <= totalPages; p++) {
+                const header = document.getElementById(`page-header-${p}`);
+                const body   = document.getElementById(`page-body-${p}`);
+                if (!header || !body) continue;
+                header.classList.remove('open');
+                body.classList.remove('open');
+                header.setAttribute('aria-expanded', 'false');
+                collapsed[p] = true;
+            }
+            localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
+        }
+
+        function expandAll() {
+            const pageSize   = config.rows * config.cols;
+            const totalPages = Math.ceil(config.total / pageSize);
+            const collapsed  = {};
+            for (let p = 1; p <= totalPages; p++) {
+                const header = document.getElementById(`page-header-${p}`);
+                const body   = document.getElementById(`page-body-${p}`);
+                if (!header || !body) continue;
+                header.classList.add('open');
+                body.classList.add('open');
+                header.setAttribute('aria-expanded', 'true');
+                collapsed[p] = false;
+            }
             localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
         }
 

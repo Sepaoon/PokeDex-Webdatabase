@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collection Organizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ── Banner ── */
+        #banner-container {
+            width: 100%;
+            height: 250px;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-bottom: 2px solid #007bff;
+            position: relative;
+            cursor: pointer;
+        }
+        #banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: filter 0.2s;
+        }
+        #banner-container:hover #banner-img { filter: brightness(0.5); }
+        #banner-hint {
+            position: absolute;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #fff;
+            font-size: 1em;
+            font-weight: bold;
+            text-shadow: 0 1px 6px #000;
+        }
+        #banner-hint svg { width: 36px; height: 36px; }
+        #banner-container:hover #banner-hint { opacity: 1; }
+
+        /* ── Banner Modal ── */
+        #banner-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.78);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        #banner-modal-overlay.open { display: flex; }
+        #banner-modal {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 28px 32px;
+            width: 430px;
+            max-width: 95vw;
+            box-shadow: 0 8px 36px rgba(0,0,0,0.65);
+        }
+        #banner-modal h2 { margin: 0 0 4px; font-size: 1.1em; color: #fff; }
+        #banner-modal p  { margin: 0 0 22px; font-size: 0.82em; color: #999; }
+        .bm-choices { display: flex; gap: 12px; margin-bottom: 22px; }
+        .bm-choice {
+            flex: 1;
+            padding: 16px 10px;
+            border: 2px solid #444;
+            border-radius: 10px;
+            background: #2a2a2a;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+        .bm-choice:hover    { border-color: #007bff; background: #1a2a3a; color: #fff; }
+        .bm-choice.selected { border-color: #007bff; background: #1a2a3a; color: #fff; }
+        .bm-choice .bm-icon { font-size: 2em; display: block; margin-bottom: 8px; }
+        #bm-input-area { margin-bottom: 20px; min-height: 42px; }
+        #bm-input-area input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #2a2a2a;
+            color: #fff;
+            font-size: 14px;
+        }
+        #bm-input-area input[type="file"] { color: #ccc; font-size: 13px; margin-top: 4px; }
+        .bm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .bm-actions button {
+            padding: 9px 22px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #bm-cancel { background: #333; color: #bbb; }
+        #bm-apply  { background: #007bff; color: #fff; }
+
+        /* ── Sticky header ── */
+        .header {
+            position: sticky;
+            top: 0;
+            background-color: #1e1e1e;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .search-row, .settings-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header input, .header button {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #fff;
+        }
+        .header input[type="text"]   { flex-grow: 1; min-width: 180px; }
+        .header input[type="number"] { width: 60px; }
+        .btn-blue    { background: #007bff; cursor: pointer; border: none; font-weight: bold; }
+        .btn-green   { background: #28a745; cursor: pointer; border: none; font-weight: bold; }
+        .btn-save    { background: #6f42c1; cursor: pointer; border: none; font-weight: bold; color: #fff; }
+        .btn-load    { background: #fd7e14; cursor: pointer; border: none; font-weight: bold; color: #fff; }
+        .btn-gallery { background: #20c997; cursor: pointer; border: none; font-weight: bold; color: #000; }
+        .btn-print   { background: #e53935; cursor: pointer; border: none; font-weight: bold; color: #fff; }
+        .label-text  { font-size: 0.7em; color: #aaa; text-transform: uppercase; font-weight: bold; }
+
+        /* ── List ── */
+        #collection-list { padding: 10px; padding-bottom: 100px; }
+        .item-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            background-color: #1e1e1e;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #555;
+            gap: 12px;
+            transition: background-color 0.3s, border-left-color 0.3s;
+        }
+        .item-row.highlight { border-left-color: #ffaa00; background-color: #332b1a; }
+        .item-number   { font-size: 1.1em; font-weight: bold; width: 45px; }
+        .item-location { font-size: 0.75em; color: #aaa; width: 120px; line-height: 1.4; }
+        .input-group   { display: flex; flex-grow: 2; gap: 8px; min-width: 300px; align-items: center; }
+        .item-name, .item-variant {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #2a2a2a;
+            color: white;
+            font-size: 14px;
+        }
+        .item-name    { flex: 2; }
+        .item-variant { flex: 1; }
+        .item-value   { flex: 0 0 80px; width: 80px; }
+        .photo-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .photo-btn.has-photo {
+            color: #28a745;
+            border-color: #28a745;
+        }
+        .page-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 12px;
+            padding: 0 4px;
+        }
+        .page-divider-label {
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+        .page-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, #444, transparent);
+        }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85em; }
+        .checkbox-label input { width: 18px; height: 18px; accent-color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <!-- Hidden camera input -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment"
+           style="display:none" onchange="handlePhotoCapture(event)">
+
+    <!-- Clickable Banner -->
+    <div id="banner-container" onclick="openBannerModal()">
+        <img id="banner-img"
+             src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80"
+             alt="Banner">
+        <div id="banner-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Click to change banner
+        </div>
+    </div>
+
+    <!-- Banner Modal -->
+    <div id="banner-modal-overlay">
+        <div id="banner-modal">
+            <h2>Change Banner Image</h2>
+            <p>How would you like to set the banner?</p>
+            <div class="bm-choices">
+                <div class="bm-choice" id="choice-local" onclick="selectBannerMode('local')">
+                    <span class="bm-icon">🖼️</span>Local File
+                </div>
+                <div class="bm-choice" id="choice-link" onclick="selectBannerMode('link')">
+                    <span class="bm-icon">🔗</span>Image Link
+                </div>
+            </div>
+            <div id="bm-input-area"></div>
+            <div class="bm-actions">
+                <button id="bm-cancel" onclick="closeBannerModal()">Cancel</button>
+                <button id="bm-apply"  onclick="applyBannerFromModal()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Controls -->
+    <div class="header">
+        <div class="settings-row">
+            <span class="label-text">Total:</span>
+            <input type="number" id="totalItems" value="1025" min="1">
+            <span class="label-text">Rows:</span>
+            <input type="number" id="gridRows" value="4" min="1">
+            <span class="label-text">Slots:</span>
+            <input type="number" id="gridCols" value="4" min="1">
+            <button class="btn-blue"    onclick="applySettings()">Apply Settings</button>
+            <button class="btn-save"    onclick="saveJSON()">⬇ Save Dex</button>
+            <button class="btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import Dex</button>
+            <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadJSON(event)">
+            <button class="btn-gallery" onclick="openGallery()">📸 Card Photos</button>
+            <button class="btn-print"   onclick="printWanted()">🖨 Wanted List</button>
+            <div id="total-value-display" style="padding:10px 14px; background:#2a2a2a; border:1px solid #444; border-radius:6px; font-size:14px; white-space:nowrap;">
+                💰 Total: <strong id="total-value-amt">$0.00</strong>
+            </div>
+        </div>
+        <div class="search-row">
+            <input type="text" id="searchInput" placeholder="Search list...">
+            <button class="btn-blue"  onclick="findItem()">Find in List</button>
+            <button class="btn-green" onclick="globalTCGSearch()">Search TCGPlayer</button>
+            <span class="label-text" style="margin-left:6px;">Page:</span>
+            <input type="number" id="gotoPage" min="1" value="1" style="width:60px;" placeholder="1">
+            <button class="btn-blue" onclick="skipToPage()">Go</button>
+        </div>
+    </div>
+
+    <div id="collection-list"></div>
+
+    <script>
+        const TCG_URL        = "https://www.tcgplayer.com/search/all/product?q=";
+        const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80";
+        const DB_NAME        = 'CardCollectionDB';
+        const PHOTO_STORE    = 'photos';
+
+        let config = JSON.parse(localStorage.getItem('appConfig')) || {
+            total: 1025, rows: 4, cols: 4, bannerUrl: DEFAULT_BANNER
+        };
+
+        document.getElementById('totalItems').value = config.total;
+        document.getElementById('gridRows').value   = config.rows;
+        document.getElementById('gridCols').value   = config.cols;
+        applyBanner(config.bannerUrl);
+
+        /* ── IndexedDB ── */
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = (e) => e.target.result.createObjectStore(PHOTO_STORE);
+                req.onsuccess  = (e) => resolve(e.target.result);
+                req.onerror    = (e) => reject(e.target.error);
+            });
+        }
+        function savePhoto(id, dataUrl) {
+            return openDB().then(db => new Promise((res, rej) => {
+                const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                tx.objectStore(PHOTO_STORE).put(dataUrl, id);
+                tx.oncomplete = res;
+                tx.onerror    = (e) => rej(e.target.error);
+            }));
+        }
+        function getPhoto(id) {
+            return openDB().then(db => new Promise((res, rej) => {
+                const req = db.transaction(PHOTO_STORE, 'readonly').objectStore(PHOTO_STORE).get(id);
+                req.onsuccess = (e) => res(e.target.result || null);
+                req.onerror   = (e) => rej(e.target.error);
+            }));
+        }
+        function getAllPhotos() {
+            return openDB().then(db => new Promise((res, rej) => {
+                const results = {};
+                const req = db.transaction(PHOTO_STORE, 'readonly').objectStore(PHOTO_STORE).openCursor();
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) { results[cursor.key] = cursor.value; cursor.continue(); }
+                    else res(results);
+                };
+                req.onerror = (e) => rej(e.target.error);
+            }));
+        }
+
+        /* ── Photo capture ── */
+        let captureTargetId = null;
+
+        function openCamera(id) {
+            captureTargetId = id;
+            document.getElementById('camera-input').click();
+        }
+
+        async function handlePhotoCapture(event) {
+            const file = event.target.files[0];
+            if (!file || captureTargetId === null) return;
+            const dataUrl = await compressImage(file, 900, 0.78);
+            await savePhoto(captureTargetId, dataUrl);
+            setPhotoBtn(captureTargetId, true);
+            event.target.value = '';
+        }
+
+        function compressImage(file, maxPx, quality) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    let w = img.width, h = img.height;
+                    if (w > maxPx || h > maxPx) {
+                        if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+                        else        { w = Math.round(w * maxPx / h); h = maxPx; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.src = url;
+            });
+        }
+
+        function setPhotoBtn(id, hasPhoto) {
+            const btn = document.getElementById(`photo-btn-${id}`);
+            if (!btn) return;
+            btn.textContent = hasPhoto ? '📸' : '📷';
+            btn.title       = hasPhoto ? 'Photo saved — tap to replace' : 'Take card photo';
+            btn.classList.toggle('has-photo', hasPhoto);
+        }
+
+        // Mark buttons green for entries that already have photos on load
+        async function initPhotoButtons() {
+            const photos = await getAllPhotos().catch(() => ({}));
+            for (const id of Object.keys(photos)) {
+                setPhotoBtn(parseInt(id), true);
+            }
+        }
+
+        /* ── Gallery ── */
+        async function openGallery() {
+            const photos  = await getAllPhotos().catch(() => ({}));
+            const entries = Object.keys(photos);
+
+            if (!entries.length) {
+                alert('No card photos yet — tap 📷 on any entry to add one.');
+                return;
+            }
+
+            // Build list of cards with their data
+            const cards = entries.map(id => {
+                const saved = JSON.parse(localStorage.getItem(`item-${id}`)) || {};
+                return { id, name: saved.name || '', variant: saved.variant || '', photo: photos[id] };
+            }).sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            const cardHTML = cards.map(c => `
+                <div class="card">
+                    <img src="${c.photo}" alt="Card #${c.id}">
+                    <div class="card-info">
+                        <span class="card-num">#${c.id}</span>
+                        <span class="card-name">${c.name || '(unnamed)'}</span>
+                        ${c.variant ? `<span class="card-variant">${c.variant}</span>` : ''}
+                    </div>
+                </div>`).join('');
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Photo Gallery</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #121212; color: #e0e0e0; font-family: Arial, sans-serif; padding: 16px; }
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  .top-bar h1 { font-size: 1.2em; }
+  .back-btn {
+    background: #007bff; color: #fff; border: none; padding: 9px 18px;
+    border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer;
+  }
+  .count { font-size: 0.8em; color: #999; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .card:hover { transform: scale(1.03); border-color: #007bff; }
+  .card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+  .card-info {
+    padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .card-num     { font-size: 0.7em; color: #888; }
+  .card-name    { font-size: 0.88em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-variant { font-size: 0.75em; color: #aaa; }
+
+  /* Lightbox */
+  #lightbox {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92); z-index: 999;
+    justify-content: center; align-items: center;
+    flex-direction: column; gap: 12px; padding: 20px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img  { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; }
+  #lightbox-label { font-size: 0.95em; color: #ccc; text-align: center; }
+  #lightbox-close {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none; color: #fff; font-size: 2em; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>📸 Card Photos</h1>
+  <span class="count">${cards.length} photo${cards.length !== 1 ? 's' : ''}</span>
+  <button class="back-btn" onclick="window.close()">✕ Close</button>
+</div>
+<div class="grid">${cardHTML}</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="">
+  <div id="lightbox-label"></div>
+</div>
+
+<script>
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => {
+      const img   = card.querySelector('img');
+      const name  = card.querySelector('.card-name').textContent;
+      const num   = card.querySelector('.card-num').textContent;
+      document.getElementById('lightbox-img').src   = img.src;
+      document.getElementById('lightbox-label').textContent = num + ' ' + name;
+      document.getElementById('lightbox').classList.add('open');
+    });
+  });
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+<\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url  = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+
+        /* ── Settings ── */
+        function applySettings() {
+            config.total = parseInt(document.getElementById('totalItems').value) || 1;
+            config.rows  = parseInt(document.getElementById('gridRows').value)   || 1;
+            config.cols  = parseInt(document.getElementById('gridCols').value)   || 1;
+            localStorage.setItem('appConfig', JSON.stringify(config));
+            renderList();
+        }
+
+        function applyBanner(url) {
+            const img = document.getElementById('banner-img');
+            img.src = url;
+            img.onerror = () => { img.src = DEFAULT_BANNER; };
+        }
+
+        /* ── Banner Modal ── */
+        let bannerMode = null;
+        function openBannerModal() {
+            bannerMode = null;
+            document.getElementById('choice-local').classList.remove('selected');
+            document.getElementById('choice-link').classList.remove('selected');
+            document.getElementById('bm-input-area').innerHTML = '';
+            document.getElementById('banner-modal-overlay').classList.add('open');
+        }
+        function closeBannerModal() {
+            document.getElementById('banner-modal-overlay').classList.remove('open');
+        }
+        function selectBannerMode(mode) {
+            bannerMode = mode;
+            document.getElementById('choice-local').classList.toggle('selected', mode === 'local');
+            document.getElementById('choice-link').classList.toggle('selected', mode === 'link');
+            const area = document.getElementById('bm-input-area');
+            area.innerHTML = mode === 'local'
+                ? `<input type="file" id="bm-file-input" accept="image/*">`
+                : `<input type="text" id="bm-url-input" placeholder="Paste image URL here...">`;
+        }
+        function applyBannerFromModal() {
+            if (!bannerMode) { alert('Please choose Local File or Image Link first.'); return; }
+            if (bannerMode === 'link') {
+                const url = document.getElementById('bm-url-input').value.trim();
+                if (!url) { alert('Please enter a URL.'); return; }
+                config.bannerUrl = url;
+                localStorage.setItem('appConfig', JSON.stringify(config));
+                applyBanner(url); closeBannerModal();
+            } else {
+                const fi = document.getElementById('bm-file-input');
+                if (!fi.files || !fi.files[0]) { alert('Please select a file.'); return; }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    config.bannerUrl = e.target.result;
+                    localStorage.setItem('appConfig', JSON.stringify(config));
+                    applyBanner(e.target.result); closeBannerModal();
+                };
+                reader.readAsDataURL(fi.files[0]);
+            }
+        }
+        document.getElementById('banner-modal-overlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('banner-modal-overlay')) closeBannerModal();
+        });
+
+        /* ── Rarity color by value ──
+           Common     #555    no price / $0
+           Uncommon   green   $0.01 – $9.99
+           Rare       blue    $10 – $29.99
+           Epic       purple  $30 – $99.99
+           Legendary  gold    $100 – $299.99
+           Mythic     red     $300+
+        */
+        const RARITY = [
+            { min: 300,  color: '#e53935', label: 'Mythic'    },
+            { min: 100,  color: '#ff8f00', label: 'Legendary' },
+            { min: 30,   color: '#9c27b0', label: 'Epic'      },
+            { min: 10,   color: '#1e88e5', label: 'Rare'      },
+            { min: 1,    color: '#43a047', label: 'Uncommon'  },
+            { min: 0,    color: '#555555', label: 'Common'    },
+        ];
+        function getRarityColor(value) {
+            const v = parseFloat(value) || 0;
+            for (const r of RARITY) { if (v >= r.min) return r.color; }
+            return '#555555';
+        }
+        function applyRarityBorder(id, value) {
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.style.borderLeftColor = getRarityColor(value);
+        }
+
+        /* ── Data ── */
+        function saveData(id) {
+            const name      = document.getElementById(`name-${id}`).value;
+            const variant   = document.getElementById(`variant-${id}`).value;
+            const value     = parseFloat(document.getElementById(`value-${id}`).value) || 0;
+            const collected = document.getElementById(`cbCol-${id}`).checked;
+            const fullArt   = document.getElementById(`cbFA-${id}`).checked;
+            const wanted    = document.getElementById(`cbWant-${id}`).checked;
+            localStorage.setItem(`item-${id}`, JSON.stringify({ name, variant, value, collected, fullArt, wanted }));
+            applyRarityBorder(id, value);
+            updateTotalValue();
+        }
+        function updateTotalValue() {
+            let total = 0;
+            for (let i = 1; i <= config.total; i++) {
+                const el = document.getElementById(`value-${i}`);
+                if (el) total += parseFloat(el.value) || 0;
+            }
+            document.getElementById('total-value-amt').textContent = '$' + total.toFixed(2);
+        }
+        function globalTCGSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) { alert('Enter a search term first.'); return; }
+            window.open(TCG_URL + encodeURIComponent(query), '_blank');
+        }
+
+        function printWanted() {
+            const wanted = [];
+            for (let i = 1; i <= config.total; i++) {
+                const saved = JSON.parse(localStorage.getItem(`item-${i}`));
+                if (saved && saved.wanted) wanted.push({ id: i, ...saved });
+            }
+            if (!wanted.length) { alert('No entries marked as Wanted.'); return; }
+
+            const pageSize   = config.rows * config.cols;
+            const rows = wanted.map(c => {
+                const page   = Math.floor((c.id - 1) / pageSize) + 1;
+                const pos    = (c.id - 1) % pageSize;
+                const rowNum = Math.floor(pos / config.cols) + 1;
+                const colNum = (pos % config.cols) + 1;
+                const value  = c.value ? `$${parseFloat(c.value).toFixed(2)}` : '—';
+                return `<tr>
+                    <td>${c.id}</td>
+                    <td>${c.name || '—'}</td>
+                    <td>${c.variant || '—'}</td>
+                    <td>${value}</td>
+                    <td>Pg ${page}, R${rowNum} S${colNum}</td>
+                    <td class="fa">${c.fullArt ? '✓' : ''}</td>
+                </tr>`;
+            }).join('');
+
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Wanted List</title>
+<style>
+  @media print { body { margin: 0; } .no-print { display: none; } }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 24px; }
+  h1   { font-size: 18px; margin: 0 0 4px; }
+  p    { font-size: 12px; color: #666; margin: 0 0 18px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #111; color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+  tr:nth-child(even) td { background: #f7f7f7; }
+  .fa { text-align: center; color: #555; }
+  .actions { margin-bottom: 16px; display: flex; gap: 10px; }
+  button { padding: 8px 18px; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; font-weight: bold; }
+  .print-btn { background: #111; color: #fff; }
+  .close-btn { background: #eee; color: #333; }
+</style>
+</head>
+<body>
+  <div class="actions no-print">
+    <button class="print-btn" onclick="window.print()">🖨 Print</button>
+    <button class="close-btn" onclick="window.close()">✕ Close</button>
+  </div>
+  <h1>Wanted List</h1>
+  <p>${wanted.length} item${wanted.length !== 1 ? 's' : ''} &mdash; printed ${new Date().toLocaleDateString()}</p>
+  <table>
+    <thead><tr><th>#</th><th>Name</th><th>Variant</th><th>Value</th><th>Location</th><th>FA</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url  = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+
+        /* ── JSON Save / Import ── */
+        function saveJSON() {
+            const data  = { config, items: {} };
+            const blank = { name: "", variant: "", value: 0, collected: false, fullArt: false, wanted: false };
+            for (let i = 1; i <= config.total; i++) {
+                data.items[i] = JSON.parse(localStorage.getItem(`item-${i}`)) || { ...blank };
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a    = document.createElement('a');
+            a.href     = URL.createObjectURL(blob);
+            a.download = 'collection.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        function loadJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.items) throw new Error('Invalid format — missing items key');
+                    if (data.config) {
+                        config = { ...config, ...data.config };
+                        document.getElementById('totalItems').value = config.total;
+                        document.getElementById('gridRows').value   = config.rows;
+                        document.getElementById('gridCols').value   = config.cols;
+                        localStorage.setItem('appConfig', JSON.stringify(config));
+                        applyBanner(config.bannerUrl);
+                    }
+                    for (const [id, item] of Object.entries(data.items)) {
+                        localStorage.setItem(`item-${id}`, JSON.stringify(item));
+                    }
+                    renderList();
+                    alert(`Imported ${Object.keys(data.items).length} items successfully.`);
+                } catch (err) { alert('Failed to import: ' + err.message); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        /* ── Render ── */
+        function renderList() {
+            const container = document.getElementById('collection-list');
+            container.innerHTML = '';
+            const pageSize  = config.rows * config.cols;
+            const totalPages = Math.ceil(config.total / pageSize);
+
+            // Update the page input max
+            document.getElementById('gotoPage').max = totalPages;
+
+            let currentPage = 0;
+            for (let i = 1; i <= config.total; i++) {
+                const page      = Math.floor((i - 1) / pageSize) + 1;
+                const posInPage = (i - 1) % pageSize;
+                const rowNum    = Math.floor(posInPage / config.cols) + 1;
+                const colNum    = (posInPage % config.cols) + 1;
+
+                // Insert divider at the start of each new page
+                if (page !== currentPage) {
+                    currentPage = page;
+                    const divider = document.createElement('div');
+                    divider.className = 'page-divider';
+                    divider.id = `page-${page}`;
+                    divider.innerHTML = `<span class="page-divider-label">Page ${page}</span><div class="page-divider-line"></div>`;
+                    container.appendChild(divider);
+                }
+
+                const saved     = JSON.parse(localStorage.getItem(`item-${i}`)) || { name: "", variant: "", value: 0, collected: false, fullArt: false, wanted: false };
+                const safeName    = saved.name.replace(/"/g, '&quot;');
+                const safeVariant = (saved.variant || '').replace(/"/g, '&quot;');
+                const safeValue   = parseFloat(saved.value) || 0;
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.id = `row-${i}`;
+                row.style.borderLeftColor = getRarityColor(safeValue);
+                row.innerHTML = `
+                    <div class="item-number">#${i}</div>
+                    <div class="item-location">Page ${page}<br>Row ${rowNum} | Slot ${colNum}</div>
+                    <div class="input-group">
+                        <input type="text"   id="name-${i}"    class="item-name"    placeholder="Name"    value="${safeName}"    oninput="saveData(${i})">
+                        <input type="text"   id="variant-${i}" class="item-variant" placeholder="Variant" value="${safeVariant}" oninput="saveData(${i})">
+                        <input type="number" id="value-${i}"   class="item-value"   placeholder="$0.00"   value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" oninput="saveData(${i})">
+                        <button id="photo-btn-${i}" class="photo-btn" onclick="openCamera(${i})" title="Take card photo">📷</button>
+                    </div>
+                    <div class="checkbox-container">
+                        <label class="checkbox-label"><input type="checkbox" id="cbCol-${i}"  ${saved.collected ? 'checked' : ''} onchange="saveData(${i})"> Collected</label>
+                        <label class="checkbox-label"><input type="checkbox" id="cbFA-${i}"   ${saved.fullArt  ? 'checked' : ''} onchange="saveData(${i})"> Full Art</label>
+                        <label class="checkbox-label" style="color:#e57373;"><input type="checkbox" id="cbWant-${i}" ${saved.wanted   ? 'checked' : ''} onchange="saveData(${i})" style="accent-color:#e53935;"> Wanted</label>
+                    </div>`;
+                container.appendChild(row);
+            }
+            updateTotalValue();
+            initPhotoButtons();
+        }
+
+        function skipToPage() {
+            const pageSize   = config.rows * config.cols;
+            const totalPages = Math.ceil(config.total / pageSize);
+            const page       = Math.max(1, Math.min(parseInt(document.getElementById('gotoPage').value) || 1, totalPages));
+            document.getElementById('gotoPage').value = page;
+            const el = document.getElementById(`page-${page}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function findItem() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!query) return;
+            const num = parseInt(query);
+            if (!isNaN(num) && num >= 1 && num <= config.total && query === num.toString()) {
+                scrollToRow(num); return;
+            }
+            for (let i = 1; i <= config.total; i++) {
+                const n = document.getElementById(`name-${i}`).value.toLowerCase();
+                const v = document.getElementById(`variant-${i}`).value.toLowerCase();
+                if (n.includes(query) || v.includes(query)) { scrollToRow(i); return; }
+            }
+            alert(`"${query}" not found in the list.`);
+        }
+        function scrollToRow(id) {
+            const el = document.getElementById(`row-${id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('highlight');
+                setTimeout(() => el.classList.remove('highlight'), 2000);
+            }
+        }
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') findItem();
+        });
+        document.getElementById('gotoPage').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') skipToPage();
+        });
+
+        renderList();
+    </script>
+</body>
+</html>

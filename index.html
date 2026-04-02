@@ -254,8 +254,13 @@
         }
 
         .input-group { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
-        .item-name, .item-variant {
+        .item-name, .item-set {
             flex: 0.5; min-width: 40px; padding: 9px 10px;
+            border: 1px solid #444; border-radius: 6px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
+        }
+        .item-set-number {
+            flex: 0.25; min-width: 30px; padding: 9px 8px;
             border: 1px solid #444; border-radius: 6px;
             background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
         }
@@ -703,16 +708,18 @@
             saveData(id);
         }
         function saveData(id) {
-            const nameEl    = document.getElementById(`name-${id}`);
-            const variantEl = document.getElementById(`variant-${id}`);
-            const valueEl   = document.getElementById(`value-${id}`);
-            const track     = document.getElementById(`toggle-${id}`);
-            const faEl      = document.getElementById(`cbFA-${id}`);
+            const nameEl      = document.getElementById(`name-${id}`);
+            const setEl       = document.getElementById(`set-${id}`);
+            const setNumberEl = document.getElementById(`setNumber-${id}`);
+            const valueEl     = document.getElementById(`value-${id}`);
+            const track       = document.getElementById(`toggle-${id}`);
+            const faEl        = document.getElementById(`cbFA-${id}`);
             if (!nameEl) return;
             const collected = track ? track.classList.contains('is-collected') : false;
             const item = {
                 name:      nameEl.value,
-                variant:   variantEl ? variantEl.value : '',
+                set:       setEl       ? setEl.value       : '',
+                setNumber: setNumberEl ? setNumberEl.value : '',
                 value:     parseFloat(valueEl ? valueEl.value : 0) || 0,
                 collected,
                 fullArt:   faEl ? faEl.checked : false,
@@ -758,9 +765,9 @@
             if (!win) alert('Please allow popups to open TCGPlayer.');
         }
         function searchTCGForItem(id) {
-            const name    = (document.getElementById(`name-${id}`)?.value    || '').trim();
-            const variant = (document.getElementById(`variant-${id}`)?.value || '').trim();
-            const query   = [name, variant].filter(Boolean).join(' ');
+            const name  = (document.getElementById(`name-${id}`)?.value || '').trim();
+            const set   = (document.getElementById(`set-${id}`)?.value  || '').trim();
+            const query = [name, set].filter(Boolean).join(' ');
             if (!query) { alert('Add a name or variant to this entry first.'); return; }
             const win = window.open(TCG_URL + encodeURIComponent(query), '_blank');
             if (!win) alert('Please allow popups to open TCGPlayer.');
@@ -789,39 +796,124 @@
                 .catch(err => console.error('Photo delete failed:', err));
         }
 
-        /* ── Wanted / Print ── */
+        /* ── Wanted / PDF ── */
         function printWanted() {
             const wanted = [];
             for (let i = 1; i <= config.total; i++) {
                 const saved = JSON.parse(localStorage.getItem(`item-${i}`));
-                if (saved && saved.wanted) wanted.push({ id: i, ...saved });
+                if (saved && !saved.collected) wanted.push({ id: i, ...saved });
             }
             if (!wanted.length) { alert('No entries marked as Wanted.'); return; }
-            const pageSize = config.rows * config.cols;
-            const rows = wanted.map(c => {
-                const pg     = Math.floor((c.id - 1) / pageSize) + 1;
-                const pos    = (c.id - 1) % pageSize;
-                const rowNum = Math.floor(pos / config.cols) + 1;
-                const colNum = (pos % config.cols) + 1;
-                const value  = c.value ? `$${parseFloat(c.value).toFixed(2)}` : '—';
-                return `<tr><td>${c.id}</td><td>${c.name||'—'}</td><td>${c.variant||'—'}</td><td>${value}</td><td>Pg ${pg}, R${rowNum} S${colNum}</td><td class="fa">${c.fullArt?'✓':''}</td></tr>`;
-            }).join('');
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Wanted List</title>
-<style>@media print{body{margin:0}.no-print{display:none}}body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:24px}h1{font-size:18px;margin:0 0 4px}p{font-size:12px;color:#666;margin:0 0 18px}table{width:100%;border-collapse:collapse}th{background:#111;color:#fff;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em}td{padding:6px 10px;border-bottom:1px solid #e0e0e0;vertical-align:middle}tr:nth-child(even) td{background:#f7f7f7}.fa{text-align:center;color:#555}.actions{margin-bottom:16px;display:flex;gap:10px}button{padding:8px 18px;border:none;border-radius:5px;font-size:13px;cursor:pointer;font-weight:bold;min-height:44px}.print-btn{background:#111;color:#fff}.close-btn{background:#eee;color:#333}</style>
-</head><body><div class="actions no-print"><button class="print-btn" onclick="window.print()">🖨 Print</button><button class="close-btn" onclick="window.close()">✕ Close</button></div>
-<h1>Wanted List</h1><p>${wanted.length} item${wanted.length!==1?'s':''} &mdash; ${new Date().toLocaleDateString()}</p>
-<table><thead><tr><th>#</th><th>Name</th><th>Variant</th><th>Value</th><th>Location</th><th>FA</th></tr></thead><tbody>${rows}</tbody></table>
-</body></html>`;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url  = URL.createObjectURL(blob);
-            const win  = window.open(url, '_blank');
-            if (!win) alert('Please allow popups to view the Wanted List.');
-            setTimeout(() => URL.revokeObjectURL(url), 15000);
+
+            // Dynamically load jsPDF + autoTable then generate
+            function doGenerate() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageW = doc.internal.pageSize.getWidth();
+                const pageSize = config.rows * config.cols;
+                const dateStr = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+                // ── Header bar ──
+                doc.setFillColor(20, 20, 20);
+                doc.rect(0, 0, pageW, 22, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.setTextColor(255, 255, 255);
+                doc.text('PokeDexCheck', 14, 13);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                doc.setTextColor(160, 160, 160);
+                doc.text('Wanted List', 14, 19);
+
+                // Date top-right
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(dateStr, pageW - 14, 13, { align: 'right' });
+                doc.text(`${wanted.length} item${wanted.length !== 1 ? 's' : ''}`, pageW - 14, 19, { align: 'right' });
+
+                // ── Summary stats ──
+                const totalValue = wanted.reduce((s, c) => s + (parseFloat(c.value) || 0), 0);
+                const fullArtCount = wanted.filter(c => c.fullArt).length;
+
+                doc.setFillColor(245, 245, 245);
+                doc.rect(0, 22, pageW, 14, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`TOTAL ITEMS: ${wanted.length}`, 14, 30);
+                doc.text(`FULL ART: ${fullArtCount}`, 70, 30);
+                doc.text(`EST. VALUE: $${totalValue.toFixed(2)}`, 110, 30);
+
+                // ── Table ──
+                const tableRows = wanted.map(c => {
+                    const pg     = Math.floor((c.id - 1) / pageSize) + 1;
+                    const pos    = (c.id - 1) % pageSize;
+                    const rowNum = Math.floor(pos / config.cols) + 1;
+                    const colNum = (pos % config.cols) + 1;
+                    return [
+                        String(c.id),
+                        c.name || '—',
+                        c.set || '—',
+                        c.setNumber || '—',
+                        c.value ? `$${parseFloat(c.value).toFixed(2)}` : '—',
+                        `Pg ${pg}  R${rowNum} S${colNum}`,
+                        c.fullArt ? '✓' : ''
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: 38,
+                    head: [['#', 'Name', 'Set', 'Set #', 'Value', 'Location', 'FA']],
+                    body: tableRows,
+                    styles: {
+                        font: 'helvetica', fontSize: 9, cellPadding: 3,
+                        textColor: [30, 30, 30], lineColor: [220, 220, 220], lineWidth: 0.2
+                    },
+                    headStyles: {
+                        fillColor: [30, 30, 30], textColor: [255, 255, 255],
+                        fontStyle: 'bold', fontSize: 8, halign: 'left'
+                    },
+                    alternateRowStyles: { fillColor: [250, 250, 250] },
+                    columnStyles: {
+                        0: { cellWidth: 12, halign: 'center' },
+                        4: { cellWidth: 22, halign: 'right' },
+                        5: { cellWidth: 30 },
+                        6: { cellWidth: 10, halign: 'center' }
+                    },
+                    margin: { left: 14, right: 14 },
+                    didDrawPage: (data) => {
+                        // Footer on each page
+                        const pCount = doc.internal.getNumberOfPages();
+                        const pNum   = data.pageNumber;
+                        doc.setFontSize(7);
+                        doc.setTextColor(180, 180, 180);
+                        doc.text(`PokeDexCheck — Wanted List`, 14, doc.internal.pageSize.getHeight() - 6);
+                        doc.text(`Page ${pNum} of ${pCount}`, pageW - 14, doc.internal.pageSize.getHeight() - 6, { align: 'right' });
+                    }
+                });
+
+                doc.save(`PokeDexCheck_Wanted_${new Date().toISOString().slice(0,10)}.pdf`);
+            }
+
+            // Load libs if not already present
+            if (window.jspdf && window.jspdf.jsPDF) {
+                doGenerate();
+            } else {
+                const s1 = document.createElement('script');
+                s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                s1.onload = () => {
+                    const s2 = document.createElement('script');
+                    s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+                    s2.onload = doGenerate;
+                    document.head.appendChild(s2);
+                };
+                document.head.appendChild(s1);
+            }
         }
 
         /* ── JSON Save / Import ── */
         function saveJSON() {
-            const blank = { name:'', variant:'', value:0, collected:false, fullArt:false, wanted:true };
+            const blank = { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
             const data  = { config, items: {} };
             for (let i = 1; i <= config.total; i++) {
                 data.items[i] = JSON.parse(localStorage.getItem(`item-${i}`)) || { ...blank };
@@ -970,9 +1062,10 @@
                     currentBody = body;
                 }
 
-                const saved       = JSON.parse(localStorage.getItem(`item-${i}`)) || { name:'', variant:'', value:0, collected:false, fullArt:false, wanted:true };
-                const safeName    = (saved.name    || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-                const safeVariant = (saved.variant || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+                const saved       = JSON.parse(localStorage.getItem(`item-${i}`)) || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
+                const safeName      = (saved.name      || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+                const safeSet       = (saved.set       || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+                const safeSetNumber = (saved.setNumber || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
                 const safeValue   = parseFloat(saved.value) || 0;
 
                 const row = document.createElement('div');
@@ -983,8 +1076,9 @@
                     <div class="item-number">#${i}</div>
                     <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
                     <div class="input-group">
-                        <input type="text"   id="name-${i}"    class="item-name"    placeholder="Name"    value="${safeName}"    autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                        <input type="text"   id="variant-${i}" class="item-variant" placeholder="Variant" value="${safeVariant}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <input type="text"   id="set-${i}"        class="item-set"        placeholder="Set"        value="${safeSet}"       autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
                         <input type="number" id="value-${i}"   class="item-value"   placeholder="$0.00"   value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
                         <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
                         <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
@@ -1025,9 +1119,10 @@
             const num = parseInt(query);
             if (!isNaN(num) && num >= 1 && num <= config.total && query === String(num)) { scrollToRow(num); return; }
             for (let i = 1; i <= config.total; i++) {
-                const n = (document.getElementById(`name-${i}`)?.value    || '').toLowerCase();
-                const v = (document.getElementById(`variant-${i}`)?.value || '').toLowerCase();
-                if (n.includes(query) || v.includes(query)) { scrollToRow(i); return; }
+                const n  = (document.getElementById(`name-${i}`)?.value      || '').toLowerCase();
+                const s  = (document.getElementById(`set-${i}`)?.value       || '').toLowerCase();
+                const sn = (document.getElementById(`setNumber-${i}`)?.value || '').toLowerCase();
+                if (n.includes(query) || s.includes(query) || sn.includes(query)) { scrollToRow(i); return; }
             }
             alert(`"${query}" not found.`);
         }

@@ -2,21 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collection Organizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PokeDexCheck</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             background-color: #121212;
             color: #e0e0e0;
             margin: 0;
             padding: 0;
+            -webkit-text-size-adjust: 100%;
         }
 
         /* ── Banner ── */
         #banner-container {
             width: 100%;
-            height: 250px;
+            height: clamp(120px, 25vw, 250px);
             background-color: #1a1a1a;
             display: flex;
             justify-content: center;
@@ -25,208 +31,296 @@
             border-bottom: 2px solid #007bff;
             position: relative;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
         #banner-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
             transition: filter 0.2s;
         }
-        #banner-container:hover #banner-img { filter: brightness(0.5); }
+        #banner-container:hover #banner-img,
+        #banner-container:active #banner-img { filter: brightness(0.5); }
         #banner-hint {
-            position: absolute;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            color: #fff;
-            font-size: 1em;
-            font-weight: bold;
-            text-shadow: 0 1px 6px #000;
+            position: absolute; pointer-events: none;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            opacity: 0; transition: opacity 0.2s;
+            color: #fff; font-size: 1em; font-weight: bold; text-shadow: 0 1px 6px #000;
         }
         #banner-hint svg { width: 36px; height: 36px; }
-        #banner-container:hover #banner-hint { opacity: 1; }
+        #banner-container:hover #banner-hint,
+        #banner-container:active #banner-hint { opacity: 1; }
 
         /* ── Banner Modal ── */
         #banner-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.78);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.78); z-index: 200;
+            justify-content: center; align-items: center; padding: 16px;
         }
         #banner-modal-overlay.open { display: flex; }
         #banner-modal {
-            background: #1e1e1e;
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 28px 32px;
-            width: 430px;
-            max-width: 95vw;
+            background: #1e1e1e; border: 1px solid #444; border-radius: 12px;
+            padding: 24px 20px; width: 100%; max-width: 430px;
             box-shadow: 0 8px 36px rgba(0,0,0,0.65);
         }
         #banner-modal h2 { margin: 0 0 4px; font-size: 1.1em; color: #fff; }
-        #banner-modal p  { margin: 0 0 22px; font-size: 0.82em; color: #999; }
-        .bm-choices { display: flex; gap: 12px; margin-bottom: 22px; }
+        #banner-modal p  { margin: 0 0 18px; font-size: 0.82em; color: #999; }
+        .bm-choices { display: flex; gap: 12px; margin-bottom: 18px; }
         .bm-choice {
-            flex: 1;
-            padding: 16px 10px;
-            border: 2px solid #444;
-            border-radius: 10px;
-            background: #2a2a2a;
-            color: #ccc;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9em;
-            font-weight: bold;
+            flex: 1; padding: 16px 10px; border: 2px solid #444; border-radius: 10px;
+            background: #2a2a2a; color: #ccc; cursor: pointer; text-align: center;
+            font-size: 0.9em; font-weight: bold;
             transition: border-color 0.15s, background 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent;
         }
-        .bm-choice:hover    { border-color: #007bff; background: #1a2a3a; color: #fff; }
-        .bm-choice.selected { border-color: #007bff; background: #1a2a3a; color: #fff; }
+        .bm-choice:active, .bm-choice.selected { border-color: #007bff; background: #1a2a3a; color: #fff; }
         .bm-choice .bm-icon { font-size: 2em; display: block; margin-bottom: 8px; }
-        #bm-input-area { margin-bottom: 20px; min-height: 42px; }
+        #bm-input-area { margin-bottom: 18px; min-height: 42px; }
         #bm-input-area input[type="text"] {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #555;
-            background: #2a2a2a;
-            color: #fff;
-            font-size: 14px;
+            width: 100%; padding: 10px; border-radius: 6px;
+            border: 1px solid #555; background: #2a2a2a; color: #fff;
+            font-size: 16px; /* prevents iOS zoom */
         }
         #bm-input-area input[type="file"] { color: #ccc; font-size: 13px; margin-top: 4px; }
         .bm-actions { display: flex; gap: 10px; justify-content: flex-end; }
         .bm-actions button {
-            padding: 9px 22px;
-            border-radius: 6px;
-            border: none;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
+            padding: 10px 22px; border-radius: 6px; border: none;
+            font-size: 15px; font-weight: bold; cursor: pointer; min-height: 44px;
         }
         #bm-cancel { background: #333; color: #bbb; }
         #bm-apply  { background: #007bff; color: #fff; }
 
-        /* ── Sticky header ── */
-        .header {
-            position: sticky;
-            top: 0;
-            background-color: #1e1e1e;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 100;
+        /* ── Last Updated ── */
+        #last-updated-bar {
+            background: #161616; border-bottom: 1px solid #2a2a2a;
+            padding: 5px 14px; font-size: 0.72em; color: #555;
+            text-align: right; letter-spacing: 0.02em;
         }
-        .search-row, .settings-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .header input, .header button {
-            padding: 10px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: #fff;
-        }
-        .header input[type="text"]   { flex-grow: 1; min-width: 180px; }
-        .header input[type="number"] { width: 60px; }
-        .btn-blue    { background: #007bff; cursor: pointer; border: none; font-weight: bold; }
-        .btn-green   { background: #28a745; cursor: pointer; border: none; font-weight: bold; }
-        .btn-save    { background: #6f42c1; cursor: pointer; border: none; font-weight: bold; color: #fff; }
-        .btn-load    { background: #fd7e14; cursor: pointer; border: none; font-weight: bold; color: #fff; }
-        .btn-gallery { background: #20c997; cursor: pointer; border: none; font-weight: bold; color: #000; }
-        .btn-print   { background: #e53935; cursor: pointer; border: none; font-weight: bold; color: #fff; }
-        .label-text  { font-size: 0.7em; color: #aaa; text-transform: uppercase; font-weight: bold; }
+        #last-updated-bar span { color: #777; font-weight: bold; }
 
-        /* ── List ── */
-        #collection-list { padding: 10px; padding-bottom: 100px; }
+        /* ── Sticky Navbar ── */
+        .header {
+            position: sticky; top: 0;
+            background-color: #1a1a1a;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+            z-index: 100; border-bottom: 1px solid #2a2a2a;
+        }
+        .nav-main {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px; flex-wrap: nowrap; min-height: 54px;
+        }
+        .nav-brand { display: flex; flex-direction: column; line-height: 1.15; flex-shrink: 0; }
+        .nav-brand .brand-name { font-size: 1.05em; font-weight: 800; color: #fff; white-space: nowrap; }
+        .nav-brand .brand-sub  { font-size: 0.6em; color: #555; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+        .nav-divider { width: 1px; height: 28px; background: #333; flex-shrink: 0; }
+
+        .nav-search {
+            display: flex; align-items: center; flex: 1; min-width: 0; gap: 4px;
+            background: #252525; border: 1px solid #3a3a3a; border-radius: 8px;
+            padding: 0 8px; transition: border-color 0.2s;
+        }
+        .nav-search:focus-within { border-color: #007bff; }
+        .nav-search input {
+            flex: 1; min-width: 0; background: transparent; border: none; outline: none;
+            color: #fff; font-size: 16px; /* no iOS zoom */ padding: 8px 2px;
+        }
+        .nav-search input::placeholder { color: #555; }
+        .nav-search-btn {
+            background: none; border: none; color: #007bff; font-size: 13px; font-weight: bold;
+            cursor: pointer; padding: 4px 5px; border-radius: 4px; white-space: nowrap;
+            min-height: 36px; -webkit-tap-highlight-color: transparent;
+        }
+        .nav-search-btn:active { background: rgba(0,123,255,0.15); }
+        .nav-search-sep { color: #3a3a3a; flex-shrink: 0; }
+
+        .nav-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .nav-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 7px 11px; border-radius: 7px; border: none;
+            font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap;
+            min-height: 36px; -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .nav-btn:active { filter: brightness(0.85); }
+        .btn-save    { background: #000; color: #aaa; }
+        .btn-load    { background: #000; color: #aaa; }
+        .btn-gallery { background: #000; color: #aaa; }
+        .btn-print   { background: #000; color: #aaa; }
+
+        #total-value-display {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 11px; background: #252525; border: 1px solid #3a3a3a;
+            border-radius: 7px; font-size: 13px; white-space: nowrap; color: #ccc;
+        }
+        #total-value-display strong { color: #fff; }
+
+        .settings-toggle-btn {
+            background: none; border: 1px solid #333; border-radius: 6px;
+            color: #666; padding: 6px 9px; cursor: pointer; font-size: 18px; line-height: 1;
+            min-height: 36px; min-width: 36px;
+            display: flex; align-items: center; justify-content: center;
+            transition: color 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .settings-toggle-btn:active { color: #fff; border-color: #555; }
+
+        /* Settings drawer */
+        .nav-settings-bar {
+            display: none; flex-wrap: wrap; align-items: center; gap: 8px;
+            padding: 8px 12px 10px; border-top: 1px solid #252525;
+        }
+        .nav-settings-bar.open { display: flex; }
+        #mobile-actions { display: none; gap: 6px; flex-wrap: wrap; width: 100%; margin-bottom: 4px; }
+        .nav-settings-bar input[type="number"] {
+            width: 60px; padding: 7px 8px; border-radius: 6px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; min-height: 38px;
+        }
+        .settings-label { font-size: 0.68em; color: #666; text-transform: uppercase; font-weight: bold; letter-spacing: 0.07em; }
+        .settings-apply {
+            padding: 7px 14px; background: #007bff; color: #fff; border: none;
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; min-height: 38px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .nav-page-group { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+        .nav-page-group input {
+            width: 56px; padding: 7px 8px; border-radius: 6px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; min-height: 38px;
+        }
+        .nav-page-group button {
+            padding: 7px 13px; background: #2a2a2a; color: #ccc;
+            border: 1px solid #3a3a3a; border-radius: 6px;
+            font-size: 14px; font-weight: bold; cursor: pointer; min-height: 38px;
+        }
+        .nav-page-group button:active { background: #3a3a3a; color: #fff; }
+
+        /* Hide some navbar items on small screens */
+        @media (max-width: 600px) {
+            .nav-brand .brand-sub { display: none; }
+            .nav-divider           { display: none; }
+            .hide-mobile           { display: none !important; }
+            #mobile-actions        { display: flex; }
+        }
+
+        /* ── Collection list ── */
+        #collection-list { padding: 8px 8px 120px; }
+
+        /* ── Collapsible page sections ── */
+        .page-section { margin-bottom: 6px; }
+        .page-header {
+            display: flex; align-items: center; gap: 10px;
+            margin: 16px 0 0; padding: 9px 12px;
+            background: #1a1a1a; border: 1px solid #2e2e2e; border-radius: 8px;
+            cursor: pointer; user-select: none; min-height: 44px;
+            transition: background 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .page-header:active { background: #222; border-color: #3a3a3a; }
+        .page-header.open   { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom-color: transparent; }
+        .page-caret { font-size: 0.65em; color: #555; transition: transform 0.2s; flex-shrink: 0; }
+        .page-header.open .page-caret { transform: rotate(90deg); }
+        .page-header-label { font-size: 0.78em; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 0.09em; white-space: nowrap; }
+        .page-header-line  { flex: 1; height: 1px; background: linear-gradient(to right, #2e2e2e, transparent); }
+        .page-header-stats { font-size: 0.7em; color: #555; white-space: nowrap; display: flex; gap: 8px; }
+        .page-header-stats .stat-collected { color: #43a047; }
+        .page-header-stats .stat-wanted    { color: #e57373; }
+        .page-body {
+            overflow: hidden; max-height: 0; transition: max-height 0.3s ease;
+            border: 1px solid #2e2e2e; border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        .page-body.open { max-height: 9999999px; padding-bottom: 4px; }
+
+        /* ── Item rows ── */
         .item-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            background-color: #1e1e1e;
-            margin-bottom: 10px;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #555;
-            gap: 12px;
+            display: flex; flex-wrap: wrap; align-items: center;
+            background-color: #1e1e1e; margin: 6px 4px; padding: 10px;
+            border-radius: 8px; border-left: 4px solid #555; gap: 8px;
             transition: background-color 0.3s, border-left-color 0.3s;
         }
         .item-row.highlight { border-left-color: #ffaa00; background-color: #332b1a; }
-        .item-number   { font-size: 1.1em; font-weight: bold; width: 45px; }
-        .item-location { font-size: 0.75em; color: #aaa; width: 120px; line-height: 1.4; }
-        .input-group   { display: flex; flex-grow: 2; gap: 8px; min-width: 300px; align-items: center; }
+        .item-number  { font-size: 1em; font-weight: bold; width: 38px; flex-shrink: 0; color: #aaa; }
+        .item-location { font-size: 0.7em; color: #666; width: 80px; flex-shrink: 0; line-height: 1.4; }
+
+        @media (max-width: 500px) {
+            .item-location { display: none; }
+            .item-number   { width: 30px; font-size: 0.9em; }
+        }
+
+        .input-group { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
         .item-name, .item-variant {
-            padding: 10px;
-            border: 1px solid #444;
-            border-radius: 6px;
-            background: #2a2a2a;
-            color: white;
-            font-size: 14px;
+            flex: 0.5; min-width: 40px; padding: 9px 10px;
+            border: 1px solid #444; border-radius: 6px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
         }
-        .item-name    { flex: 2; }
-        .item-variant { flex: 1; }
-        .item-value   { flex: 0 0 80px; width: 80px; }
+        .item-value {
+            width: 76px; flex-shrink: 0; padding: 9px 8px;
+            border: 1px solid #444; border-radius: 6px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
+        }
+        /* Remove spinner arrows from value field */
+        .item-value::-webkit-outer-spin-button,
+        .item-value::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .item-value { -moz-appearance: textfield; }
+        .tcg-btn {
+            background: #1a73e8; border: 1px solid #1558b0; color: #fff;
+            padding: 8px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            font-weight: bold; white-space: nowrap; min-height: 40px; min-width: 44px;
+            transition: background 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .tcg-btn:active { background: #1558b0; }
         .photo-btn {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #aaa;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            line-height: 1;
+            background: #2a2a2a; border: 1px solid #444; color: #aaa;
+            padding: 8px 10px; border-radius: 6px; font-size: 16px; cursor: pointer;
+            min-height: 40px; min-width: 44px;
+            display: inline-flex; align-items: center; justify-content: center;
             transition: color 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
-        .photo-btn.has-photo {
-            color: #28a745;
-            border-color: #28a745;
+        .photo-btn.has-photo { color: #28a745; border-color: #28a745; }
+
+        /* Checkbox row — now inline, not full-width */
+        .checkbox-container { display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; flex-shrink: 0; }
+        .checkbox-label {
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+            font-size: 0.85em; min-height: 32px; -webkit-tap-highlight-color: transparent;
         }
-        .page-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0 12px;
-            padding: 0 4px;
+        .checkbox-label input { width: 20px; height: 20px; accent-color: #007bff; cursor: pointer; }
+
+        /* ── Wanted / Collected toggle ── */
+        .status-toggle { display: flex; align-items: center; gap: 8px; user-select: none; }
+        .toggle-label {
+            font-size: 0.75em; font-weight: bold; letter-spacing: 0.04em;
+            min-width: 56px; text-align: center; padding: 3px 7px; border-radius: 4px;
         }
-        .page-divider-label {
-            font-size: 0.75em;
-            font-weight: bold;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            white-space: nowrap;
+        .toggle-label.wanted-lbl    { color: #e57373; background: rgba(229,115,115,0.12); }
+        .toggle-label.collected-lbl { color: #66bb6a; background: rgba(102,187,106,0.12); }
+        .toggle-track {
+            position: relative; width: 48px; height: 26px; border-radius: 13px;
+            background: #e53935; cursor: pointer; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.08); transition: background 0.25s;
+            -webkit-tap-highlight-color: transparent;
         }
-        .page-divider-line {
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(to right, #444, transparent);
+        .toggle-track.is-collected { background: #43a047; }
+        .toggle-track::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 16px; height: 16px; border-radius: 50%; background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4); transition: transform 0.25s;
         }
-        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85em; }
-        .checkbox-label input { width: 18px; height: 18px; accent-color: #007bff; }
+        .toggle-track.is-collected::after { transform: translateX(22px); }
     </style>
 </head>
 <body>
 
-    <!-- Hidden camera input -->
-    <input type="file" id="camera-input" accept="image/*" capture="environment"
+    <!-- Hidden file input for photos -->
+    <input type="file" id="camera-input" accept="image/*"
            style="display:none" onchange="handlePhotoCapture(event)">
 
-    <!-- Clickable Banner -->
+    <!-- Banner -->
     <div id="banner-container" onclick="openBannerModal()">
         <img id="banner-img"
-             src="Gemini_Generated_Image_s19yios19yios19y.png"
-             alt="Banner">
+             src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80"
+             alt="Banner" loading="lazy">
         <div id="banner-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -234,7 +328,7 @@
                 <circle cx="8.5" cy="8.5" r="1.5"/>
                 <polyline points="21 15 16 10 5 21"/>
             </svg>
-            Click to change banner
+            Tap to change banner
         </div>
     </div>
 
@@ -259,40 +353,68 @@
         </div>
     </div>
 
-    <!-- Sticky Controls -->
+    <!-- Last Updated Bar -->
+    <div id="last-updated-bar">Last updated: <span id="last-updated-text">never</span></div>
+
+    <!-- Sticky Navbar -->
     <div class="header">
-        <div class="settings-row">
-            <span class="label-text">Total:</span>
-            <input type="number" id="totalItems" value="1025" min="1">
-            <span class="label-text">Rows:</span>
-            <input type="number" id="gridRows" value="4" min="1">
-            <span class="label-text">Slots:</span>
-            <input type="number" id="gridCols" value="4" min="1">
-            <button class="btn-blue"    onclick="applySettings()">Apply Settings</button>
-            <button class="btn-save"    onclick="saveJSON()">⬇ Save Dex</button>
-            <button class="btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import Dex</button>
-            <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadJSON(event)">
-            <button class="btn-gallery" onclick="openGallery()">📸 Card Photos</button>
-            <button class="btn-print"   onclick="printWanted()">🖨 Wanted List</button>
-            <div id="total-value-display" style="padding:10px 14px; background:#2a2a2a; border:1px solid #444; border-radius:6px; font-size:14px; white-space:nowrap;">
-                💰 Total: <strong id="total-value-amt">$0.00</strong>
+        <div class="nav-main">
+            <div class="nav-brand">
+                <span class="brand-name">🔴 PokeDexCheck</span>
+                <span class="brand-sub">Card Collection Tracker</span>
+            </div>
+            <div class="nav-divider"></div>
+
+            <div class="nav-search">
+                <span class="nav-search-sep">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search name, variant, #…"
+                       inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false">
+                <button class="nav-search-btn" onclick="findItem()">Find</button>
+                <span class="nav-search-sep">|</span>
+                <button class="nav-search-btn" onclick="globalTCGSearch()" style="color:#20c997;">TCG</button>
+            </div>
+
+            <div class="nav-actions">
+                <div id="total-value-display">💰 <strong id="total-value-amt">$0.00</strong></div>
+                <button class="nav-btn btn-gallery hide-mobile" onclick="openGallery()">📸 Gallery</button>
+                <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
+                <button class="nav-btn btn-save    hide-mobile" onclick="saveJSON()">⬇ Save</button>
+                <button class="nav-btn btn-load    hide-mobile" onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
+                <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadJSON(event)">
+                <button class="settings-toggle-btn" onclick="toggleSettings()" id="settings-toggle-btn" title="Settings">⚙</button>
             </div>
         </div>
-        <div class="search-row">
-            <input type="text" id="searchInput" placeholder="Search list...">
-            <button class="btn-blue"  onclick="findItem()">Find in List</button>
-            <button class="btn-green" onclick="globalTCGSearch()">Search TCGPlayer</button>
-            <span class="label-text" style="margin-left:6px;">Page:</span>
-            <input type="number" id="gotoPage" min="1" value="1" style="width:60px;" placeholder="1">
-            <button class="btn-blue" onclick="skipToPage()">Go</button>
+
+        <!-- Settings + mobile actions drawer -->
+        <div class="nav-settings-bar" id="nav-settings-bar">
+            <div id="mobile-actions">
+                <button class="nav-btn btn-gallery" onclick="openGallery()">📸 Gallery</button>
+                <button class="nav-btn btn-print"   onclick="printWanted()">🖨 Wanted</button>
+                <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save</button>
+                <button class="nav-btn btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
+            </div>
+            <span class="settings-label">Total</span>
+            <input type="number" id="totalItems" value="1025" min="1" inputmode="numeric">
+            <span class="settings-label">Rows</span>
+            <input type="number" id="gridRows" value="4" min="1" inputmode="numeric">
+            <span class="settings-label">Slots</span>
+            <input type="number" id="gridCols" value="4" min="1" inputmode="numeric">
+            <button class="settings-apply" onclick="applySettings()">Apply</button>
+            <div class="nav-page-group">
+                <span class="settings-label">Page</span>
+                <input type="number" id="gotoPage" min="1" value="1" inputmode="numeric">
+                <button onclick="skipToPage()">Go</button>
+            </div>
         </div>
     </div>
 
     <div id="collection-list"></div>
 
     <script>
-        const TCG_URL        = "https://www.tcgplayer.com/search/all/product?q=";
-        const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80";
+        'use strict';
+
+        const TCG_URL        = 'https://www.tcgplayer.com/search/all/product?q=';
+        const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80';
         const DB_NAME        = 'CardCollectionDB';
         const PHOTO_STORE    = 'photos';
 
@@ -305,12 +427,14 @@
         document.getElementById('gridCols').value   = config.cols;
         applyBanner(config.bannerUrl);
 
-        /* ── IndexedDB ── */
+        /* ── IndexedDB (cached connection) ── */
+        let _db = null;
         function openDB() {
+            if (_db) return Promise.resolve(_db);
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NAME, 1);
                 req.onupgradeneeded = (e) => e.target.result.createObjectStore(PHOTO_STORE);
-                req.onsuccess  = (e) => resolve(e.target.result);
+                req.onsuccess  = (e) => { _db = e.target.result; resolve(_db); };
                 req.onerror    = (e) => reject(e.target.error);
             });
         }
@@ -320,13 +444,6 @@
                 tx.objectStore(PHOTO_STORE).put(dataUrl, id);
                 tx.oncomplete = res;
                 tx.onerror    = (e) => rej(e.target.error);
-            }));
-        }
-        function getPhoto(id) {
-            return openDB().then(db => new Promise((res, rej) => {
-                const req = db.transaction(PHOTO_STORE, 'readonly').objectStore(PHOTO_STORE).get(id);
-                req.onsuccess = (e) => res(e.target.result || null);
-                req.onerror   = (e) => rej(e.target.error);
             }));
         }
         function getAllPhotos() {
@@ -341,26 +458,33 @@
                 req.onerror = (e) => rej(e.target.error);
             }));
         }
+        function deletePhotoFromDB(id) {
+            return openDB().then(db => new Promise((res, rej) => {
+                const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                tx.objectStore(PHOTO_STORE).delete(id);
+                tx.oncomplete = res;
+                tx.onerror    = (e) => rej(e.target.error);
+            }));
+        }
 
         /* ── Photo capture ── */
         let captureTargetId = null;
-
         function openCamera(id) {
             captureTargetId = id;
             document.getElementById('camera-input').click();
         }
-
         async function handlePhotoCapture(event) {
             const file = event.target.files[0];
             if (!file || captureTargetId === null) return;
-            const dataUrl = await compressImage(file, 900, 0.78);
-            await savePhoto(captureTargetId, dataUrl);
-            setPhotoBtn(captureTargetId, true);
+            try {
+                const dataUrl = await compressImage(file, 900, 0.78);
+                await savePhoto(captureTargetId, dataUrl);
+                setPhotoBtn(captureTargetId, true);
+            } catch (err) { console.error('Photo save failed:', err); }
             event.target.value = '';
         }
-
         function compressImage(file, maxPx, quality) {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const img = new Image();
                 const url = URL.createObjectURL(file);
                 img.onload = () => {
@@ -375,45 +499,42 @@
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                     resolve(canvas.toDataURL('image/jpeg', quality));
                 };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
                 img.src = url;
             });
         }
-
         function setPhotoBtn(id, hasPhoto) {
-            const btn = document.getElementById(`photo-btn-${id}`);
+            const btn    = document.getElementById(`photo-btn-${id}`);
+            const delBtn = document.getElementById(`del-photo-btn-${id}`);
             if (!btn) return;
             btn.textContent = hasPhoto ? '📸' : '📷';
-            btn.title       = hasPhoto ? 'Photo saved — tap to replace' : 'Take card photo';
+            btn.title       = hasPhoto ? 'Tap to replace photo' : 'Take / add photo';
             btn.classList.toggle('has-photo', hasPhoto);
+            if (delBtn) delBtn.style.display = hasPhoto ? '' : 'none';
         }
-
-        // Mark buttons green for entries that already have photos on load
         async function initPhotoButtons() {
-            const photos = await getAllPhotos().catch(() => ({}));
-            for (const id of Object.keys(photos)) {
-                setPhotoBtn(parseInt(id), true);
-            }
+            try {
+                const photos = await getAllPhotos();
+                for (const id of Object.keys(photos)) setPhotoBtn(parseInt(id), true);
+            } catch (e) { /* silently skip if IndexedDB unavailable */ }
         }
 
         /* ── Gallery ── */
         async function openGallery() {
-            const photos  = await getAllPhotos().catch(() => ({}));
+            let photos;
+            try { photos = await getAllPhotos(); }
+            catch(e) { alert('Unable to access photo storage.'); return; }
             const entries = Object.keys(photos);
+            if (!entries.length) { alert('No card photos yet — tap 📷 on any entry to add one.'); return; }
 
-            if (!entries.length) {
-                alert('No card photos yet — tap 📷 on any entry to add one.');
-                return;
-            }
-
-            // Build list of cards with their data
             const cards = entries.map(id => {
                 const saved = JSON.parse(localStorage.getItem(`item-${id}`)) || {};
                 return { id, name: saved.name || '', variant: saved.variant || '', photo: photos[id] };
             }).sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
             const cardHTML = cards.map(c => `
-                <div class="card">
-                    <img src="${c.photo}" alt="Card #${c.id}">
+                <div class="card" data-src="${c.photo}" data-label="#${c.id} ${c.name || ''}">
+                    <img src="${c.photo}" alt="Card #${c.id}" loading="lazy">
                     <div class="card-info">
                         <span class="card-num">#${c.id}</span>
                         <span class="card-name">${c.name || '(unnamed)'}</span>
@@ -428,55 +549,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card Photo Gallery</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #121212; color: #e0e0e0; font-family: Arial, sans-serif; padding: 16px; }
-  .top-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
-  }
-  .top-bar h1 { font-size: 1.2em; }
-  .back-btn {
-    background: #007bff; color: #fff; border: none; padding: 9px 18px;
-    border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer;
-  }
-  .count { font-size: 0.8em; color: #999; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 14px;
-  }
-  .card {
-    background: #1e1e1e;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid #333;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
-  }
-  .card:hover { transform: scale(1.03); border-color: #007bff; }
-  .card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
-  .card-info {
-    padding: 8px 10px;
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .card-num     { font-size: 0.7em; color: #888; }
-  .card-name    { font-size: 0.88em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-variant { font-size: 0.75em; color: #aaa; }
-
-  /* Lightbox */
-  #lightbox {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.92); z-index: 999;
-    justify-content: center; align-items: center;
-    flex-direction: column; gap: 12px; padding: 20px;
-  }
-  #lightbox.open { display: flex; }
-  #lightbox img  { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; }
-  #lightbox-label { font-size: 0.95em; color: #ccc; text-align: center; }
-  #lightbox-close {
-    position: absolute; top: 14px; right: 18px;
-    background: none; border: none; color: #fff; font-size: 2em; cursor: pointer;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { background:#121212; color:#e0e0e0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; margin:0; padding:16px; }
+  .top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+  .top-bar h1 { font-size:1.2em; margin:0; }
+  .back-btn { background:#007bff; color:#fff; border:none; padding:10px 18px; border-radius:6px; font-size:15px; font-weight:bold; cursor:pointer; min-height:44px; }
+  .count { font-size:0.8em; color:#999; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
+  .card { background:#1e1e1e; border-radius:10px; overflow:hidden; border:1px solid #333; cursor:pointer; transition:transform 0.15s,border-color 0.15s; }
+  .card:active { transform:scale(0.97); border-color:#007bff; }
+  .card img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
+  .card-info { padding:8px 10px; display:flex; flex-direction:column; gap:2px; }
+  .card-num { font-size:0.7em; color:#888; }
+  .card-name { font-size:0.88em; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-variant { font-size:0.75em; color:#aaa; }
+  #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999; justify-content:center; align-items:center; flex-direction:column; gap:12px; padding:20px; }
+  #lightbox.open { display:flex; }
+  #lightbox img { max-width:100%; max-height:80vh; border-radius:8px; object-fit:contain; }
+  #lightbox-label { font-size:0.95em; color:#ccc; text-align:center; }
+  #lightbox-close { position:absolute; top:14px; right:18px; background:none; border:none; color:#fff; font-size:2.2em; cursor:pointer; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
 </style>
 </head>
 <body>
@@ -486,53 +577,53 @@
   <button class="back-btn" onclick="window.close()">✕ Close</button>
 </div>
 <div class="grid">${cardHTML}</div>
-
-<div id="lightbox" onclick="closeLightbox()">
+<div id="lightbox">
   <button id="lightbox-close" onclick="closeLightbox()">×</button>
   <img id="lightbox-img" src="" alt="">
   <div id="lightbox-label"></div>
 </div>
-
 <script>
   document.querySelectorAll('.card').forEach(card => {
     card.addEventListener('click', () => {
-      const img   = card.querySelector('img');
-      const name  = card.querySelector('.card-name').textContent;
-      const num   = card.querySelector('.card-num').textContent;
-      document.getElementById('lightbox-img').src   = img.src;
-      document.getElementById('lightbox-label').textContent = num + ' ' + name;
+      document.getElementById('lightbox-img').src = card.dataset.src;
+      document.getElementById('lightbox-label').textContent = card.dataset.label;
       document.getElementById('lightbox').classList.add('open');
     });
   });
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
-  }
+  function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+  document.getElementById('lightbox').addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
 <\/script>
 </body>
 </html>`;
-
             const blob = new Blob([html], { type: 'text/html' });
             const url  = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            const win  = window.open(url, '_blank');
+            if (!win) alert('Please allow popups to view the gallery.');
+            setTimeout(() => URL.revokeObjectURL(url), 15000);
         }
 
         /* ── Settings ── */
+        function toggleSettings() {
+            const bar  = document.getElementById('nav-settings-bar');
+            const btn  = document.getElementById('settings-toggle-btn');
+            const open = bar.classList.toggle('open');
+            btn.textContent = open ? '✕' : '⚙';
+            btn.title       = open ? 'Close settings' : 'Settings';
+        }
         function applySettings() {
-            config.total = parseInt(document.getElementById('totalItems').value) || 1;
-            config.rows  = parseInt(document.getElementById('gridRows').value)   || 1;
-            config.cols  = parseInt(document.getElementById('gridCols').value)   || 1;
+            config.total = Math.max(1, parseInt(document.getElementById('totalItems').value) || 1);
+            config.rows  = Math.max(1, parseInt(document.getElementById('gridRows').value)   || 1);
+            config.cols  = Math.max(1, parseInt(document.getElementById('gridCols').value)   || 1);
             localStorage.setItem('appConfig', JSON.stringify(config));
             renderList();
         }
 
+        /* ── Banner ── */
         function applyBanner(url) {
             const img = document.getElementById('banner-img');
-            img.src = url;
+            img.src = url || DEFAULT_BANNER;
             img.onerror = () => { img.src = DEFAULT_BANNER; };
         }
-
-        /* ── Banner Modal ── */
         let bannerMode = null;
         function openBannerModal() {
             bannerMode = null;
@@ -551,12 +642,12 @@
             const area = document.getElementById('bm-input-area');
             area.innerHTML = mode === 'local'
                 ? `<input type="file" id="bm-file-input" accept="image/*">`
-                : `<input type="text" id="bm-url-input" placeholder="Paste image URL here...">`;
+                : `<input type="text" id="bm-url-input" placeholder="Paste image URL here…">`;
         }
         function applyBannerFromModal() {
             if (!bannerMode) { alert('Please choose Local File or Image Link first.'); return; }
             if (bannerMode === 'link') {
-                const url = document.getElementById('bm-url-input').value.trim();
+                const url = (document.getElementById('bm-url-input').value || '').trim();
                 if (!url) { alert('Please enter a URL.'); return; }
                 config.bannerUrl = url;
                 localStorage.setItem('appConfig', JSON.stringify(config));
@@ -577,21 +668,14 @@
             if (e.target === document.getElementById('banner-modal-overlay')) closeBannerModal();
         });
 
-        /* ── Rarity color by value ──
-           Common     #555    no price / $0
-           Uncommon   green   $0.01 – $9.99
-           Rare       blue    $10 – $29.99
-           Epic       purple  $30 – $99.99
-           Legendary  gold    $100 – $299.99
-           Mythic     red     $300+
-        */
+        /* ── Rarity colors ── */
         const RARITY = [
-            { min: 300,  color: '#e53935', label: 'Mythic'    },
-            { min: 100,  color: '#ff8f00', label: 'Legendary' },
-            { min: 30,   color: '#9c27b0', label: 'Epic'      },
-            { min: 10,   color: '#1e88e5', label: 'Rare'      },
-            { min: 1,    color: '#43a047', label: 'Uncommon'  },
-            { min: 0,    color: '#555555', label: 'Common'    },
+            { min: 300, color: '#e53935' },
+            { min: 100, color: '#ff8f00' },
+            { min: 30,  color: '#9c27b0' },
+            { min: 10,  color: '#1e88e5' },
+            { min: 1,   color: '#43a047' },
+            { min: 0,   color: '#555555' },
         ];
         function getRarityColor(value) {
             const v = parseFloat(value) || 0;
@@ -604,16 +688,50 @@
         }
 
         /* ── Data ── */
+        function toggleCollected(id) {
+            const track = document.getElementById(`toggle-${id}`);
+            if (!track) return;
+            track.classList.toggle('is-collected');
+            saveData(id);
+        }
         function saveData(id) {
-            const name      = document.getElementById(`name-${id}`).value;
-            const variant   = document.getElementById(`variant-${id}`).value;
-            const value     = parseFloat(document.getElementById(`value-${id}`).value) || 0;
-            const collected = document.getElementById(`cbCol-${id}`).checked;
-            const fullArt   = document.getElementById(`cbFA-${id}`).checked;
-            const wanted    = document.getElementById(`cbWant-${id}`).checked;
-            localStorage.setItem(`item-${id}`, JSON.stringify({ name, variant, value, collected, fullArt, wanted }));
-            applyRarityBorder(id, value);
+            const nameEl    = document.getElementById(`name-${id}`);
+            const variantEl = document.getElementById(`variant-${id}`);
+            const valueEl   = document.getElementById(`value-${id}`);
+            const track     = document.getElementById(`toggle-${id}`);
+            const faEl      = document.getElementById(`cbFA-${id}`);
+            if (!nameEl) return;
+            const collected = track ? track.classList.contains('is-collected') : false;
+            const item = {
+                name:      nameEl.value,
+                variant:   variantEl ? variantEl.value : '',
+                value:     parseFloat(valueEl ? valueEl.value : 0) || 0,
+                collected,
+                fullArt:   faEl ? faEl.checked : false,
+                wanted:    !collected,
+            };
+            localStorage.setItem(`item-${id}`, JSON.stringify(item));
+            applyRarityBorder(id, item.value);
             updateTotalValue();
+            touchLastUpdated();
+            updatePageStats(id);
+        }
+        function updatePageStats(id) {
+            const pageSize = config.rows * config.cols;
+            const page     = Math.floor((id - 1) / pageSize) + 1;
+            const start    = (page - 1) * pageSize + 1;
+            const end      = Math.min(page * pageSize, config.total);
+            let collected = 0, wanted = 0, total = 0;
+            for (let i = start; i <= end; i++) {
+                const s = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                total++;
+                if (s.collected) collected++; else wanted++;
+            }
+            const statsEl = document.querySelector(`#page-header-${page} .page-header-stats`);
+            if (statsEl) statsEl.innerHTML = `
+                <span class="stat-collected">✓ ${collected}</span>
+                <span class="stat-wanted">♥ ${wanted}</span>
+                <span>${total} cards</span>`;
         }
         function updateTotalValue() {
             let total = 0;
@@ -623,12 +741,47 @@
             }
             document.getElementById('total-value-amt').textContent = '$' + total.toFixed(2);
         }
+
+        /* ── TCG Search ── */
         function globalTCGSearch() {
-            const query = document.getElementById('searchInput').value.trim();
+            const query = (document.getElementById('searchInput').value || '').trim();
             if (!query) { alert('Enter a search term first.'); return; }
-            window.open(TCG_URL + encodeURIComponent(query), '_blank');
+            const win = window.open(TCG_URL + encodeURIComponent(query), '_blank');
+            if (!win) alert('Please allow popups to open TCGPlayer.');
+        }
+        function searchTCGForItem(id) {
+            const name    = (document.getElementById(`name-${id}`)?.value    || '').trim();
+            const variant = (document.getElementById(`variant-${id}`)?.value || '').trim();
+            const query   = [name, variant].filter(Boolean).join(' ');
+            if (!query) { alert('Add a name or variant to this entry first.'); return; }
+            const win = window.open(TCG_URL + encodeURIComponent(query), '_blank');
+            if (!win) alert('Please allow popups to open TCGPlayer.');
         }
 
+        /* ── Last Updated ── */
+        function touchLastUpdated() {
+            const now = new Date();
+            const str = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                      + ' at ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            localStorage.setItem('lastUpdated', str);
+            const el = document.getElementById('last-updated-text');
+            if (el) el.textContent = str;
+        }
+        function loadLastUpdated() {
+            const saved = localStorage.getItem('lastUpdated');
+            const el = document.getElementById('last-updated-text');
+            if (el && saved) el.textContent = saved;
+        }
+
+        /* ── Delete photo ── */
+        function deletePhoto(id) {
+            if (!confirm(`Delete the photo for entry #${id}?`)) return;
+            deletePhotoFromDB(id)
+                .then(() => setPhotoBtn(id, false))
+                .catch(err => console.error('Photo delete failed:', err));
+        }
+
+        /* ── Wanted / Print ── */
         function printWanted() {
             const wanted = [];
             for (let i = 1; i <= config.total; i++) {
@@ -636,78 +789,44 @@
                 if (saved && saved.wanted) wanted.push({ id: i, ...saved });
             }
             if (!wanted.length) { alert('No entries marked as Wanted.'); return; }
-
-            const pageSize   = config.rows * config.cols;
+            const pageSize = config.rows * config.cols;
             const rows = wanted.map(c => {
-                const page   = Math.floor((c.id - 1) / pageSize) + 1;
+                const pg     = Math.floor((c.id - 1) / pageSize) + 1;
                 const pos    = (c.id - 1) % pageSize;
                 const rowNum = Math.floor(pos / config.cols) + 1;
                 const colNum = (pos % config.cols) + 1;
                 const value  = c.value ? `$${parseFloat(c.value).toFixed(2)}` : '—';
-                return `<tr>
-                    <td>${c.id}</td>
-                    <td>${c.name || '—'}</td>
-                    <td>${c.variant || '—'}</td>
-                    <td>${value}</td>
-                    <td>Pg ${page}, R${rowNum} S${colNum}</td>
-                    <td class="fa">${c.fullArt ? '✓' : ''}</td>
-                </tr>`;
+                return `<tr><td>${c.id}</td><td>${c.name||'—'}</td><td>${c.variant||'—'}</td><td>${value}</td><td>Pg ${pg}, R${rowNum} S${colNum}</td><td class="fa">${c.fullArt?'✓':''}</td></tr>`;
             }).join('');
-
-            const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Wanted List</title>
-<style>
-  @media print { body { margin: 0; } .no-print { display: none; } }
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 24px; }
-  h1   { font-size: 18px; margin: 0 0 4px; }
-  p    { font-size: 12px; color: #666; margin: 0 0 18px; }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: #111; color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-  td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
-  tr:nth-child(even) td { background: #f7f7f7; }
-  .fa { text-align: center; color: #555; }
-  .actions { margin-bottom: 16px; display: flex; gap: 10px; }
-  button { padding: 8px 18px; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; font-weight: bold; }
-  .print-btn { background: #111; color: #fff; }
-  .close-btn { background: #eee; color: #333; }
-</style>
-</head>
-<body>
-  <div class="actions no-print">
-    <button class="print-btn" onclick="window.print()">🖨 Print</button>
-    <button class="close-btn" onclick="window.close()">✕ Close</button>
-  </div>
-  <h1>Wanted List</h1>
-  <p>${wanted.length} item${wanted.length !== 1 ? 's' : ''} &mdash; printed ${new Date().toLocaleDateString()}</p>
-  <table>
-    <thead><tr><th>#</th><th>Name</th><th>Variant</th><th>Value</th><th>Location</th><th>FA</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-</body>
-</html>`;
-
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Wanted List</title>
+<style>@media print{body{margin:0}.no-print{display:none}}body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:24px}h1{font-size:18px;margin:0 0 4px}p{font-size:12px;color:#666;margin:0 0 18px}table{width:100%;border-collapse:collapse}th{background:#111;color:#fff;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em}td{padding:6px 10px;border-bottom:1px solid #e0e0e0;vertical-align:middle}tr:nth-child(even) td{background:#f7f7f7}.fa{text-align:center;color:#555}.actions{margin-bottom:16px;display:flex;gap:10px}button{padding:8px 18px;border:none;border-radius:5px;font-size:13px;cursor:pointer;font-weight:bold;min-height:44px}.print-btn{background:#111;color:#fff}.close-btn{background:#eee;color:#333}</style>
+</head><body><div class="actions no-print"><button class="print-btn" onclick="window.print()">🖨 Print</button><button class="close-btn" onclick="window.close()">✕ Close</button></div>
+<h1>Wanted List</h1><p>${wanted.length} item${wanted.length!==1?'s':''} &mdash; ${new Date().toLocaleDateString()}</p>
+<table><thead><tr><th>#</th><th>Name</th><th>Variant</th><th>Value</th><th>Location</th><th>FA</th></tr></thead><tbody>${rows}</tbody></table>
+</body></html>`;
             const blob = new Blob([html], { type: 'text/html' });
             const url  = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            const win  = window.open(url, '_blank');
+            if (!win) alert('Please allow popups to view the Wanted List.');
+            setTimeout(() => URL.revokeObjectURL(url), 15000);
         }
 
         /* ── JSON Save / Import ── */
         function saveJSON() {
+            const blank = { name:'', variant:'', value:0, collected:false, fullArt:false, wanted:true };
             const data  = { config, items: {} };
-            const blank = { name: "", variant: "", value: 0, collected: false, fullArt: false, wanted: false };
             for (let i = 1; i <= config.total; i++) {
                 data.items[i] = JSON.parse(localStorage.getItem(`item-${i}`)) || { ...blank };
             }
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a    = document.createElement('a');
             a.href     = URL.createObjectURL(blob);
-            a.download = 'collection.json';
+            a.download = 'pokédexcheck.json';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(a.href);
+            touchLastUpdated();
         }
         function loadJSON(event) {
             const file = event.target.files[0];
@@ -729,6 +848,7 @@
                         localStorage.setItem(`item-${id}`, JSON.stringify(item));
                     }
                     renderList();
+                    touchLastUpdated();
                     alert(`Imported ${Object.keys(data.items).length} items successfully.`);
                 } catch (err) { alert('Failed to import: ' + err.message); }
             };
@@ -736,100 +856,167 @@
             event.target.value = '';
         }
 
+        /* ── Collapsible pages ── */
+        function togglePage(page) {
+            const header = document.getElementById(`page-header-${page}`);
+            const body   = document.getElementById(`page-body-${page}`);
+            if (!header || !body) return;
+            const open = header.classList.toggle('open');
+            body.classList.toggle('open', open);
+            header.setAttribute('aria-expanded', open ? 'true' : 'false');
+            const collapsed = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
+            collapsed[page] = !open;
+            localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
+        }
+
         /* ── Render ── */
         function renderList() {
-            const container = document.getElementById('collection-list');
+            const container  = document.getElementById('collection-list');
             container.innerHTML = '';
-            const pageSize  = config.rows * config.cols;
+            const pageSize   = config.rows * config.cols;
             const totalPages = Math.ceil(config.total / pageSize);
-
-            // Update the page input max
+            const collapsed  = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
             document.getElementById('gotoPage').max = totalPages;
 
-            let currentPage = 0;
+            // Pre-scan stats
+            const pageStats = {};
+            for (let i = 1; i <= config.total; i++) {
+                const pg    = Math.floor((i - 1) / pageSize) + 1;
+                const saved = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                if (!pageStats[pg]) pageStats[pg] = { total:0, collected:0, wanted:0 };
+                pageStats[pg].total++;
+                if (saved.collected) pageStats[pg].collected++; else pageStats[pg].wanted++;
+            }
+
+            let currentPage = 0, currentBody = null;
+
             for (let i = 1; i <= config.total; i++) {
                 const page      = Math.floor((i - 1) / pageSize) + 1;
                 const posInPage = (i - 1) % pageSize;
                 const rowNum    = Math.floor(posInPage / config.cols) + 1;
                 const colNum    = (posInPage % config.cols) + 1;
 
-                // Insert divider at the start of each new page
                 if (page !== currentPage) {
                     currentPage = page;
-                    const divider = document.createElement('div');
-                    divider.className = 'page-divider';
-                    divider.id = `page-${page}`;
-                    divider.innerHTML = `<span class="page-divider-label">Page ${page}</span><div class="page-divider-line"></div>`;
-                    container.appendChild(divider);
+                    const isOpen = !collapsed[page];
+                    const stats  = pageStats[page] || { total:0, collected:0, wanted:0 };
+
+                    const section = document.createElement('div');
+                    section.className = 'page-section';
+
+                    const header = document.createElement('div');
+                    header.className = 'page-header' + (isOpen ? ' open' : '');
+                    header.id        = `page-header-${page}`;
+                    header.setAttribute('role', 'button');
+                    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    header.onclick   = () => togglePage(page);
+                    header.innerHTML = `
+                        <span class="page-caret" aria-hidden="true">▶</span>
+                        <span class="page-header-label">Page ${page}</span>
+                        <div class="page-header-line"></div>
+                        <div class="page-header-stats">
+                            <span class="stat-collected">✓ ${stats.collected}</span>
+                            <span class="stat-wanted">♥ ${stats.wanted}</span>
+                            <span>${stats.total} cards</span>
+                        </div>`;
+
+                    const body = document.createElement('div');
+                    body.className = 'page-body' + (isOpen ? ' open' : '');
+                    body.id        = `page-body-${page}`;
+
+                    section.appendChild(header);
+                    section.appendChild(body);
+                    container.appendChild(section);
+                    currentBody = body;
                 }
 
-                const saved     = JSON.parse(localStorage.getItem(`item-${i}`)) || { name: "", variant: "", value: 0, collected: false, fullArt: false, wanted: false };
-                const safeName    = saved.name.replace(/"/g, '&quot;');
-                const safeVariant = (saved.variant || '').replace(/"/g, '&quot;');
+                const saved       = JSON.parse(localStorage.getItem(`item-${i}`)) || { name:'', variant:'', value:0, collected:false, fullArt:false, wanted:true };
+                const safeName    = (saved.name    || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+                const safeVariant = (saved.variant || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
                 const safeValue   = parseFloat(saved.value) || 0;
+
                 const row = document.createElement('div');
                 row.className = 'item-row';
-                row.id = `row-${i}`;
+                row.id        = `row-${i}`;
                 row.style.borderLeftColor = getRarityColor(safeValue);
                 row.innerHTML = `
                     <div class="item-number">#${i}</div>
-                    <div class="item-location">Page ${page}<br>Row ${rowNum} | Slot ${colNum}</div>
+                    <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
                     <div class="input-group">
-                        <input type="text"   id="name-${i}"    class="item-name"    placeholder="Name"    value="${safeName}"    oninput="saveData(${i})">
-                        <input type="text"   id="variant-${i}" class="item-variant" placeholder="Variant" value="${safeVariant}" oninput="saveData(${i})">
-                        <input type="number" id="value-${i}"   class="item-value"   placeholder="$0.00"   value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" oninput="saveData(${i})">
-                        <button id="photo-btn-${i}" class="photo-btn" onclick="openCamera(${i})" title="Take card photo">📷</button>
-                    </div>
-                    <div class="checkbox-container">
-                        <label class="checkbox-label"><input type="checkbox" id="cbCol-${i}"  ${saved.collected ? 'checked' : ''} onchange="saveData(${i})"> Collected</label>
-                        <label class="checkbox-label"><input type="checkbox" id="cbFA-${i}"   ${saved.fullArt  ? 'checked' : ''} onchange="saveData(${i})"> Full Art</label>
-                        <label class="checkbox-label" style="color:#e57373;"><input type="checkbox" id="cbWant-${i}" ${saved.wanted   ? 'checked' : ''} onchange="saveData(${i})" style="accent-color:#e53935;"> Wanted</label>
+                        <input type="text"   id="name-${i}"    class="item-name"    placeholder="Name"    value="${safeName}"    autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <input type="text"   id="variant-${i}" class="item-variant" placeholder="Variant" value="${safeVariant}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <input type="number" id="value-${i}"   class="item-value"   placeholder="$0.00"   value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
+                        <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
+                        <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
+                        <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
+                        <div class="checkbox-container">
+                            <div class="status-toggle">
+                                <span class="toggle-label wanted-lbl">WANTED</span>
+                                <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
+                                     onclick="toggleCollected(${i})" role="switch" aria-checked="${saved.collected}"
+                                     title="Toggle Wanted / Collected"></div>
+                                <span class="toggle-label collected-lbl">COLLECTED</span>
+                            </div>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})"> Full Art
+                            </label>
+                        </div>
                     </div>`;
-                container.appendChild(row);
+                currentBody.appendChild(row);
             }
             updateTotalValue();
             initPhotoButtons();
         }
 
+        /* ── Navigation ── */
         function skipToPage() {
             const pageSize   = config.rows * config.cols;
             const totalPages = Math.ceil(config.total / pageSize);
             const page       = Math.max(1, Math.min(parseInt(document.getElementById('gotoPage').value) || 1, totalPages));
             document.getElementById('gotoPage').value = page;
-            const el = document.getElementById(`page-${page}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const body   = document.getElementById(`page-body-${page}`);
+            const header = document.getElementById(`page-header-${page}`);
+            if (body && !body.classList.contains('open')) togglePage(page);
+            if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
         function findItem() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
             if (!query) return;
             const num = parseInt(query);
-            if (!isNaN(num) && num >= 1 && num <= config.total && query === num.toString()) {
-                scrollToRow(num); return;
-            }
+            if (!isNaN(num) && num >= 1 && num <= config.total && query === String(num)) { scrollToRow(num); return; }
             for (let i = 1; i <= config.total; i++) {
-                const n = document.getElementById(`name-${i}`).value.toLowerCase();
-                const v = document.getElementById(`variant-${i}`).value.toLowerCase();
+                const n = (document.getElementById(`name-${i}`)?.value    || '').toLowerCase();
+                const v = (document.getElementById(`variant-${i}`)?.value || '').toLowerCase();
                 if (n.includes(query) || v.includes(query)) { scrollToRow(i); return; }
             }
-            alert(`"${query}" not found in the list.`);
+            alert(`"${query}" not found.`);
         }
         function scrollToRow(id) {
+            const pageSize = config.rows * config.cols;
+            const page     = Math.floor((id - 1) / pageSize) + 1;
+            const body     = document.getElementById(`page-body-${page}`);
+            if (body && !body.classList.contains('open')) togglePage(page);
             const el = document.getElementById(`row-${id}`);
             if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.classList.add('highlight');
-                setTimeout(() => el.classList.remove('highlight'), 2000);
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('highlight');
+                    setTimeout(() => el.classList.remove('highlight'), 2000);
+                }, 50);
             }
         }
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') findItem();
+
+        /* ── Keyboard ── */
+        document.getElementById('searchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); findItem(); }
         });
-        document.getElementById('gotoPage').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') skipToPage();
+        document.getElementById('gotoPage').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); skipToPage(); }
         });
 
+        /* ── Init ── */
         renderList();
+        loadLastUpdated();
     </script>
 </body>
 </html>

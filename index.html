@@ -343,6 +343,15 @@
         }
 
         .input-group { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
+        .input-fields { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
+        .input-actions { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; flex-shrink: 0; }
+
+        @media (max-width: 640px) {
+            .input-group   { flex-wrap: wrap; }
+            .input-fields  { width: 100%; flex: unset; }
+            .input-actions { width: 100%; flex-wrap: wrap; }
+        }
+
         .item-name, .item-set {
             flex: 0.38; min-width: 40px; padding: 9px 10px;
             border: 1px solid #444; border-radius: 6px;
@@ -1546,38 +1555,42 @@
                     <div class="item-number">#${i}</div>
                     <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
                     <div class="input-group">
-                        <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                        <div class="set-autocomplete-wrapper">
-                            <input type="text" id="set-${i}" class="item-set" placeholder="Set" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
-                                oninput="onSetInput(${i})" onkeydown="onSetKeydown(event,${i})" onblur="closeSetDropdown(${i})">
-                            <div class="set-dropdown" id="set-dd-${i}"></div>
-                        </div>
-                        <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                        <div class="value-wrapper">
-                            <span class="value-prefix">$</span>
-                            <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
-                        </div>
-                        <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
-                        <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
-                        <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
-                        <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
-                        <div class="checkbox-container">
-                            <div class="status-toggle">
-                                <span class="toggle-label wanted-lbl">WANTED</span>
-                                <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
-                                     onclick="toggleCollected(${i})" role="switch" aria-checked="${saved.collected}"
-                                     title="Toggle Wanted / Collected"></div>
-                                <span class="toggle-label collected-lbl">COLLECTED</span>
+                        <div class="input-fields">
+                            <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                            <div class="set-autocomplete-wrapper">
+                                <input type="text" id="set-${i}" class="item-set" placeholder="Set" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
+                                    oninput="onSetInput(${i})" onkeydown="onSetKeydown(event,${i})" onblur="closeSetDropdown(${i})">
+                                <div class="set-dropdown" id="set-dd-${i}"></div>
                             </div>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})"> Full Art
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})"> Holo
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})"> Rev-Holo
-                            </label>
+                            <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                            <div class="value-wrapper">
+                                <span class="value-prefix">$</span>
+                                <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
+                            </div>
+                        </div>
+                        <div class="input-actions">
+                            <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
+                            <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
+                            <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
+                            <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
+                            <div class="checkbox-container">
+                                <div class="status-toggle">
+                                    <span class="toggle-label wanted-lbl">WANTED</span>
+                                    <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
+                                         onclick="toggleCollected(${i})" role="switch" aria-checked="${saved.collected}"
+                                         title="Toggle Wanted / Collected"></div>
+                                    <span class="toggle-label collected-lbl">COLLECTED</span>
+                                </div>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})"> Full Art
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})"> Holo
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})"> Rev-Holo
+                                </label>
+                            </div>
                         </div>
                     </div>`;
                 currentBody.appendChild(row);

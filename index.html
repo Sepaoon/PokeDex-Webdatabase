@@ -347,9 +347,15 @@
         .input-actions { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; flex-shrink: 0; }
 
         @media (max-width: 640px) {
-            .input-group   { flex-wrap: wrap; }
-            .input-fields  { width: 100%; flex: unset; }
-            .input-actions { width: 100%; flex-wrap: wrap; }
+            /* Force inputs onto their own full-width row */
+            .input-group        { flex-wrap: wrap; gap: 6px; }
+            .input-fields       { flex: 0 0 100%; min-width: 0; }
+            /* Let inputs shrink below their desktop min-widths */
+            .item-name, .item-set, .item-set-number { min-width: 0; }
+            /* Buttons + checkboxes fill width below inputs and wrap internally */
+            .input-actions      { flex: 0 0 100%; flex-wrap: wrap; gap: 8px; align-items: center; }
+            /* Allow checkbox row to wrap so toggle + labels don't overflow */
+            .checkbox-container { flex-wrap: wrap; flex-shrink: 1; gap: 8px; }
         }
 
         .item-name, .item-set {

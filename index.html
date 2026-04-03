@@ -17,7 +17,63 @@
             margin: 0;
             padding: 0;
             -webkit-text-size-adjust: 100%;
+            transition: background-color 0.25s, color 0.25s;
         }
+
+        /* ── Light Mode ── */
+        body.light { background-color: #f0f2f5; color: #1a1a1a; }
+        body.light #banner-container { background-color: #e8eaed; border-bottom-color: #1a73e8; }
+        body.light #last-updated-bar { background: #e8eaed; border-bottom-color: #d0d0d0; color: #888; }
+        body.light #last-updated-bar span { color: #555; }
+        body.light .header { background-color: #ffffff; border-bottom-color: #e0e0e0; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        body.light .nav-brand .brand-name { color: #1a1a1a; }
+        body.light .nav-brand .brand-sub  { color: #999; }
+        body.light .nav-divider { background: #e0e0e0; }
+        body.light .nav-search { background: #f5f5f5; border-color: #d0d0d0; }
+        body.light .nav-search input { color: #1a1a1a; }
+        body.light .nav-search input::placeholder { color: #aaa; }
+        body.light .nav-search-sep { color: #ccc; }
+        body.light .nav-search-btn { color: #1a73e8; }
+        body.light #total-value-display { background: #f5f5f5; border-color: #d0d0d0; color: #444; }
+        body.light #total-value-display strong { color: #1a1a1a; }
+        body.light .nav-btn { background: #f0f0f0; color: #444; }
+        body.light .settings-toggle-btn { border-color: #d0d0d0; color: #888; }
+        body.light .nav-settings-bar { border-top-color: #e8e8e8; }
+        body.light .nav-settings-bar input[type="number"] { border-color: #d0d0d0; background: #f5f5f5; color: #1a1a1a; }
+        body.light .settings-label { color: #999; }
+        body.light .nav-page-group input { border-color: #d0d0d0; background: #f5f5f5; color: #1a1a1a; }
+        body.light .nav-page-group button { background: #e8e8e8; color: #444; border-color: #d0d0d0; }
+        body.light .page-header { background: #ffffff; border-color: #e0e0e0; }
+        body.light .page-header:active { background: #f5f5f5; }
+        body.light .page-header-label { color: #888; }
+        body.light .page-header-line { background: linear-gradient(to right, #e0e0e0, transparent); }
+        body.light .page-header-stats { color: #aaa; }
+        body.light .page-body { border-color: #e0e0e0; }
+        body.light .item-row { background-color: #ffffff; }
+        body.light .item-row.highlight { background-color: #fff8e1; }
+        body.light .item-number { color: #888; }
+        body.light .item-location { color: #bbb; }
+        body.light .item-name, body.light .item-set, body.light .item-set-number, body.light .item-value {
+            border-color: #d0d0d0; background: #f8f8f8; color: #1a1a1a;
+        }
+        body.light .value-prefix { color: #888; }
+        body.light .tcg-btn { background: #1a73e8; border-color: #1558b0; }
+        body.light .photo-btn { background: #f5f5f5; border-color: #d0d0d0; color: #888; }
+        body.light .checkbox-label { color: #444; }
+        body.light .set-dropdown { background: #ffffff; border-color: #1a73e8; }
+        body.light .set-dropdown-item { color: #444; border-bottom-color: #f0f0f0; }
+        body.light .set-dropdown-item:hover, body.light .set-dropdown-item.active { background: #e8f0fe; color: #1a1a1a; }
+        body.light .set-dropdown-item .set-count { color: #aaa; }
+        body.light #banner-modal-overlay { background: rgba(0,0,0,0.5); }
+        body.light #banner-modal { background: #ffffff; border-color: #e0e0e0; }
+        body.light #banner-modal h2 { color: #1a1a1a; }
+        body.light #banner-modal p { color: #888; }
+        body.light .bm-choice { background: #f5f5f5; border-color: #d0d0d0; color: #555; }
+        body.light .bm-choice:active, body.light .bm-choice.selected { border-color: #1a73e8; background: #e8f0fe; color: #1a1a1a; }
+        body.light #bm-input-area input[type="text"] { border-color: #d0d0d0; background: #f5f5f5; color: #1a1a1a; }
+        body.light #bm-cancel { background: #e8e8e8; color: #666; }
+        body.light .price-btn { background: #e8f5e9; border-color: #a5d6a7; color: #388e3c; }
+        body.light .price-btn.error { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
 
         /* ── Banner ── */
         #banner-container {
@@ -149,6 +205,18 @@
             position: absolute; left: 9px; color: #aaa; font-size: 16px;
             pointer-events: none; user-select: none;
         }
+        /* ── Price fetch button ── */
+        .price-btn {
+            background: #1a3a1a; border: 1px solid #2a5a2a; color: #66bb6a;
+            padding: 8px 9px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            font-weight: bold; white-space: nowrap; min-height: 40px; min-width: 36px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .price-btn:active  { background: #2a5a2a; }
+        .price-btn.loading { color: #555; border-color: #333; background: #1e1e1e; cursor: wait; }
+        .price-btn.error   { color: #e57373; border-color: #5a2a2a; background: #3a1a1a; }
 
         .nav-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .nav-btn {
@@ -308,6 +376,25 @@
         }
         .photo-btn.has-photo { color: #28a745; border-color: #28a745; }
 
+        /* ── Set autocomplete dropdown ── */
+        .set-autocomplete-wrapper { position: relative; flex: 0.38; min-width: 40px; }
+        .set-autocomplete-wrapper .item-set { width: 100%; flex: unset; }
+        .set-dropdown {
+            position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 50;
+            background: #1e1e1e; border: 1px solid #007bff; border-radius: 6px;
+            max-height: 180px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .set-dropdown.open { display: block; }
+        .set-dropdown-item {
+            padding: 8px 12px; font-size: 14px; color: #ccc; cursor: pointer;
+            border-bottom: 1px solid #2a2a2a;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .set-dropdown-item:last-child { border-bottom: none; }
+        .set-dropdown-item:hover, .set-dropdown-item.active { background: #1a2a3a; color: #fff; }
+        .set-dropdown-item .set-count { float: right; color: #555; font-size: 12px; margin-left: 8px; }
+
         /* Checkbox row — now inline, not full-width */
         .checkbox-container { display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; flex-shrink: 0; }
         .checkbox-label {
@@ -330,6 +417,31 @@
         .is-collected ~ .toggle-label.collected-lbl,
         .status-toggle:has(.is-collected) .toggle-label.collected-lbl { color: #66bb6a; border-color: #66bb6a; background: rgba(102,187,106,0.08); }
         .status-toggle:has(.is-collected) .toggle-label.wanted-lbl    { color: #444; border-color: transparent; background: transparent; }
+
+        /* ── Theme toggle (Dark / Light) ── */
+        .theme-toggle { display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0; }
+        .theme-toggle-label {
+            font-size: 0.72em; font-weight: bold; letter-spacing: 0.04em;
+            padding: 3px 7px; border-radius: 4px; border: 1px solid transparent;
+            transition: color 0.25s, border-color 0.25s, background 0.25s; white-space: nowrap;
+        }
+        .theme-lbl-dark  { color: #90caf9; border-color: #90caf9; background: rgba(144,202,249,0.1); }
+        .theme-lbl-light { color: #aaa; border-color: transparent; background: transparent; }
+        body.light .theme-lbl-dark  { color: #aaa; border-color: transparent; background: transparent; }
+        body.light .theme-lbl-light { color: #f9a825; border-color: #f9a825; background: rgba(249,168,37,0.1); }
+        .theme-track {
+            position: relative; width: 48px; height: 26px; border-radius: 13px;
+            background: #1e3a5f; cursor: pointer; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.08); transition: background 0.25s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body.light .theme-track { background: #f9a825; }
+        .theme-track::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 16px; height: 16px; border-radius: 50%; background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4); transition: transform 0.25s;
+        }
+        body.light .theme-track::after { transform: translateX(22px); }
         .toggle-track {
             position: relative; width: 48px; height: 26px; border-radius: 13px;
             background: #e53935; cursor: pointer; flex-shrink: 0;
@@ -413,6 +525,11 @@
 
             <div class="nav-actions">
                 <div id="total-value-display">💰 <strong id="total-value-amt">$0.00</strong></div>
+                <div class="theme-toggle" title="Toggle light/dark mode">
+                    <span class="theme-toggle-label theme-lbl-dark">🌙</span>
+                    <div class="theme-track" id="theme-track" onclick="toggleTheme()"></div>
+                    <span class="theme-toggle-label theme-lbl-light">☀️</span>
+                </div>
                 <button class="nav-btn btn-gallery hide-mobile" onclick="openGallery()">📸 Gallery</button>
                 <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
                 <button class="nav-btn btn-save    hide-mobile" onclick="saveJSON()">⬇ Save</button>
@@ -456,6 +573,19 @@
         const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80';
         const DB_NAME        = 'CardCollectionDB';
         const PHOTO_STORE    = 'photos';
+
+        /* ── Theme ── */
+        function applyTheme(theme) {
+            document.body.classList.toggle('light', theme === 'light');
+        }
+        function toggleTheme() {
+            const isLight = document.body.classList.contains('light');
+            const next = isLight ? 'dark' : 'light';
+            localStorage.setItem('theme', next);
+            applyTheme(next);
+        }
+        // Apply saved theme immediately (before render)
+        applyTheme(localStorage.getItem('theme') || 'dark');
 
         let config = JSON.parse(localStorage.getItem('appConfig')) || {
             total: 1025, rows: 4, cols: 4, bannerUrl: DEFAULT_BANNER
@@ -1032,6 +1162,309 @@
             localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
         }
 
+        /* ── Pokémon TCG Set Database (verified from Bulbapedia) ── */
+        const POKEMON_SETS = [
+            // Mega Evolution Series (2025-2026)
+            { name: 'Chaos Rising',              total: 88  }, // ME4, Apr 2026 – confirmed 88 base
+            { name: 'Perfect Order',             total: 88  }, // ME3, Mar 2026
+            { name: 'Ascended Heroes',           total: 217 }, // ME2.5, Jan 2026
+            { name: 'Phantasmal Flames',         total: 94  }, // ME2, Nov 2025
+            { name: 'Mega Evolution',            total: 132 }, // ME1, Sep 2025
+            // Scarlet & Violet Series (2023-2025)
+            { name: 'Destined Rivals',           total: 182 }, // SV10, May 2025
+            { name: 'Journey Together',          total: 159 }, // SV9, Mar 2025
+            { name: 'Prismatic Evolutions',      total: 131 }, // SV8.5, Jan 2025
+            { name: 'Surging Sparks',            total: 191 }, // SV8, Nov 2024
+            { name: 'Stellar Crown',             total: 142 }, // SV7, Sep 2024
+            { name: 'Shrouded Fable',            total: 64  }, // SV6.5, Aug 2024
+            { name: 'Twilight Masquerade',       total: 167 }, // SV6, May 2024
+            { name: 'Temporal Forces',           total: 162 }, // SV5, Mar 2024
+            { name: 'Paldean Fates',             total: 91  }, // SV4.5, Jan 2024
+            { name: 'Paradox Rift',              total: 182 }, // SV4, Nov 2023
+            { name: 'Scarlet & Violet—151',      total: 165 }, // SV3.5, Sep 2023
+            { name: 'Obsidian Flames',           total: 197 }, // SV3, Aug 2023
+            { name: 'Paldea Evolved',            total: 193 }, // SV2, Jun 2023
+            { name: 'Scarlet & Violet',          total: 198 }, // SV1, Mar 2023
+            // Sword & Shield Series (2020-2023)
+            { name: 'Crown Zenith',              total: 159 }, // SWSH12.5, Jan 2023
+            { name: 'Silver Tempest',            total: 195 }, // SWSH12, Nov 2022
+            { name: 'Lost Origin',               total: 196 }, // SWSH11, Sep 2022
+            { name: 'Pokemon GO',                total: 78  }, // PGO, Jul 2022
+            { name: 'Astral Radiance',           total: 189 }, // SWSH10, May 2022
+            { name: 'Brilliant Stars',           total: 172 }, // SWSH9, Feb 2022
+            { name: 'Fusion Strike',             total: 264 }, // SWSH8, Nov 2021
+            { name: 'Celebrations',             total: 25  }, // CEL25, Oct 2021
+            { name: 'Evolving Skies',            total: 203 }, // SWSH7, Aug 2021
+            { name: 'Chilling Reign',            total: 198 }, // SWSH6, Jun 2021
+            { name: 'Battle Styles',             total: 163 }, // SWSH5, Mar 2021
+            { name: 'Shining Fates',             total: 72  }, // SWSH4.5, Feb 2021
+            { name: 'Vivid Voltage',             total: 185 }, // SWSH4, Nov 2020
+            { name: "Champion's Path",           total: 73  }, // SWSH3.5, Sep 2020
+            { name: 'Darkness Ablaze',           total: 189 }, // SWSH3, Aug 2020
+            { name: 'Rebel Clash',               total: 192 }, // SWSH2, May 2020
+            { name: 'Sword & Shield',            total: 202 }, // SWSH1, Feb 2020
+            // Sun & Moon Series (2017-2019)
+            { name: 'Cosmic Eclipse',            total: 236 }, // SM12
+            { name: 'Hidden Fates',              total: 68  }, // SM11.5
+            { name: 'Unified Minds',             total: 236 }, // SM11
+            { name: 'Unbroken Bonds',            total: 214 }, // SM10
+            { name: 'Detective Pikachu',         total: 18  }, // DET
+            { name: 'Team Up',                   total: 181 }, // SM9
+            { name: 'Lost Thunder',              total: 214 }, // SM8
+            { name: 'Dragon Majesty',            total: 70  }, // SM7.5
+            { name: 'Celestial Storm',           total: 168 }, // SM7
+            { name: 'Forbidden Light',           total: 131 }, // SM6
+            { name: 'Ultra Prism',               total: 156 }, // SM5
+            { name: 'Crimson Invasion',          total: 111 }, // SM4
+            { name: 'Shining Legends',           total: 73  }, // SM3.5
+            { name: 'Burning Shadows',           total: 147 }, // SM3
+            { name: 'Guardians Rising',          total: 145 }, // SM2
+            { name: 'Sun & Moon',                total: 149 }, // SM1
+            // XY Series (2014-2016)
+            { name: 'Evolutions',                total: 108 }, // XY12
+            { name: 'Steam Siege',               total: 114 }, // XY11
+            { name: 'Fates Collide',             total: 124 }, // XY10
+            { name: 'Generations',               total: 83  }, // G1
+            { name: 'BREAKpoint',                total: 122 }, // XY9
+            { name: 'BREAKthrough',              total: 162 }, // XY8
+            { name: 'Ancient Origins',           total: 98  }, // XY7
+            { name: 'Roaring Skies',             total: 108 }, // XY6
+            { name: 'Double Crisis',             total: 34  }, // DC1
+            { name: 'Primal Clash',              total: 160 }, // XY5
+            { name: 'Phantom Forces',            total: 119 }, // XY4
+            { name: 'Furious Fists',             total: 111 }, // XY3
+            { name: 'Flashfire',                 total: 106 }, // XY2
+            { name: 'XY',                        total: 146 }, // XY1
+            { name: 'Kalos Starter Set',         total: 39  }, // XY0
+            // Black & White Series (2011-2013)
+            { name: 'Legendary Treasures',       total: 113 }, // BW11
+            { name: 'Plasma Blast',              total: 101 }, // BW10
+            { name: 'Plasma Freeze',             total: 116 }, // BW9
+            { name: 'Plasma Storm',              total: 135 }, // BW8
+            { name: 'Boundaries Crossed',        total: 149 }, // BW7
+            { name: 'Dragon Vault',              total: 20  }, // DV1
+            { name: 'Dragons Exalted',           total: 124 }, // BW6
+            { name: 'Dark Explorers',            total: 108 }, // BW5
+            { name: 'Next Destinies',            total: 99  }, // BW4
+            { name: 'Noble Victories',           total: 101 }, // BW3
+            { name: 'Emerging Powers',           total: 98  }, // BW2
+            { name: 'Black & White',             total: 114 }, // BW1
+            // HeartGold & SoulSilver Series (2010-2011)
+            { name: 'Call of Legends',           total: 95  }, // COL1
+            { name: 'Triumphant',                total: 102 }, // HGSS4
+            { name: 'Undaunted',                 total: 90  }, // HGSS3
+            { name: 'Unleashed',                 total: 95  }, // HGSS2
+            { name: 'HeartGold & SoulSilver',    total: 123 }, // HGSS1
+            // Platinum Series (2009-2010)
+            { name: 'Arceus',                    total: 99  }, // PL4
+            { name: 'Supreme Victors',           total: 147 }, // PL3
+            { name: 'Rising Rivals',             total: 111 }, // PL2
+            { name: 'Platinum',                  total: 127 }, // PL1
+            // Diamond & Pearl Series (2007-2009)
+            { name: 'Stormfront',                total: 100 }, // DP7
+            { name: 'Legends Awakened',          total: 146 }, // DP6
+            { name: 'Majestic Dawn',             total: 100 }, // DP5
+            { name: 'Great Encounters',          total: 106 }, // DP4
+            { name: 'Secret Wonders',            total: 132 }, // DP3
+            { name: 'Mysterious Treasures',      total: 123 }, // DP2
+            { name: 'Diamond & Pearl',           total: 130 }, // DP1
+            // EX Series (2003-2007)
+            { name: 'EX Power Keepers',          total: 108 },
+            { name: 'EX Dragon Frontiers',       total: 101 },
+            { name: 'EX Crystal Guardians',      total: 100 },
+            { name: 'EX Holon Phantoms',         total: 110 },
+            { name: 'EX Legend Maker',           total: 92  },
+            { name: 'EX Delta Species',          total: 113 },
+            { name: 'EX Unseen Forces',          total: 115 },
+            { name: 'EX Emerald',                total: 106 },
+            { name: 'EX Deoxys',                 total: 107 },
+            { name: 'EX Team Rocket Returns',    total: 109 },
+            { name: 'EX FireRed & LeafGreen',    total: 112 },
+            { name: 'EX Hidden Legends',         total: 101 },
+            { name: 'EX Team Magma vs Team Aqua',total: 95  },
+            { name: 'EX Dragon',                 total: 97  },
+            { name: 'EX Sandstorm',              total: 100 },
+            { name: 'EX Ruby & Sapphire',        total: 109 },
+            // e-Card / Original Series (1999-2003)
+            { name: 'Skyridge',                  total: 144 },
+            { name: 'Aquapolis',                 total: 147 },
+            { name: 'Expedition Base Set',       total: 165 },
+            { name: 'Legendary Collection',      total: 110 },
+            { name: 'Neo Destiny',               total: 105 },
+            { name: 'Neo Revelation',            total: 64  },
+            { name: 'Neo Discovery',             total: 75  },
+            { name: 'Neo Genesis',               total: 111 },
+            { name: 'Gym Challenge',             total: 132 },
+            { name: 'Gym Heroes',                total: 132 },
+            { name: 'Team Rocket',               total: 82  },
+            { name: 'Base Set 2',                total: 130 },
+            { name: 'Fossil',                    total: 62  },
+            { name: 'Jungle',                    total: 64  },
+            { name: 'Base Set',                  total: 102 },
+        ];
+
+        /* ── Set Autocomplete ── */
+        const _setAC = {}; // per-row state: { activeIdx }
+
+        function onSetInput(id) {
+            saveData(id);
+            const val = (document.getElementById(`set-${id}`)?.value || '').trim().toLowerCase();
+            const dd  = document.getElementById(`set-dd-${id}`);
+            if (!dd) return;
+            if (!val) { dd.classList.remove('open'); dd.innerHTML = ''; return; }
+            const matches = POKEMON_SETS.filter(s => s.name.toLowerCase().includes(val)).slice(0, 10);
+            if (!matches.length) { dd.classList.remove('open'); dd.innerHTML = ''; return; }
+            _setAC[id] = { activeIdx: -1, matches };
+            dd.innerHTML = matches.map((s, idx) =>
+                `<div class="set-dropdown-item" data-idx="${idx}" onmousedown="selectSet(${id},${idx})">${s.name}<span class="set-count">/${s.total}</span></div>`
+            ).join('');
+            dd.classList.add('open');
+        }
+
+        function onSetKeydown(e, id) {
+            const dd = document.getElementById(`set-dd-${id}`);
+            if (!dd || !dd.classList.contains('open')) return;
+            const state = _setAC[id];
+            if (!state) return;
+            const items = dd.querySelectorAll('.set-dropdown-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                state.activeIdx = Math.min(state.activeIdx + 1, items.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                state.activeIdx = Math.max(state.activeIdx - 1, 0);
+            } else if (e.key === 'Enter' && state.activeIdx >= 0) {
+                e.preventDefault();
+                selectSet(id, state.activeIdx);
+                return;
+            } else if (e.key === 'Escape') {
+                closeSetDropdown(id); return;
+            } else { return; }
+            items.forEach((el, i) => el.classList.toggle('active', i === state.activeIdx));
+        }
+
+        function selectSet(id, idx) {
+            const state = _setAC[id];
+            if (!state) return;
+            const set = state.matches[idx];
+            if (!set) return;
+            const input = document.getElementById(`set-${id}`);
+            if (input) input.value = set.name;
+            // Auto-fill set number total if field is empty or only has a number prefix
+            const snInput = document.getElementById(`setNumber-${id}`);
+            if (snInput) {
+                const cur = snInput.value.trim();
+                const total = String(set.total).padStart(3, '0');
+                if (!cur) {
+                    snInput.value = `/${total}`;
+                } else if (/^\d+$/.test(cur)) {
+                    // user typed just "013" — append the total
+                    snInput.value = `${cur.padStart(3,'0')}/${total}`;
+                } else if (/^\//.test(cur) || cur === '') {
+                    snInput.value = `/${total}`;
+                }
+                // Otherwise leave what they typed
+            }
+            closeSetDropdown(id);
+            saveData(id);
+        }
+
+        function closeSetDropdown(id) {
+            const dd = document.getElementById(`set-dd-${id}`);
+            if (dd) { dd.classList.remove('open'); }
+        }
+
+        /* ── Price Fetch (Pokemon TCG API) ── */
+        async function fetchPrice(id) {
+            const btn       = document.getElementById(`price-btn-${id}`);
+            const nameEl    = document.getElementById(`name-${id}`);
+            const snEl      = document.getElementById(`setNumber-${id}`);
+            const valueEl   = document.getElementById(`value-${id}`);
+            const holoEl    = document.getElementById(`cbHolo-${id}`);
+            const revHoloEl = document.getElementById(`cbRevHolo-${id}`);
+            const faEl      = document.getElementById(`cbFA-${id}`);
+
+            const cardName = (nameEl?.value || '').trim();
+            const snRaw    = (snEl?.value   || '').trim();
+            if (!cardName) { btn.classList.add('error'); btn.textContent = '?'; setTimeout(() => resetPriceBtn(id), 2000); return; }
+
+            // Extract card number from "013/217" or "013" or "13"
+            const cardNum = snRaw.split('/')[0].replace(/^0+/, '') || '';
+
+            btn.classList.remove('error');
+            btn.classList.add('loading');
+            btn.textContent = '…';
+
+            try {
+                // Build query: name + number if available
+                let q = `name:"${cardName.replace(/"/g, '')}"`;
+                if (cardNum) q += ` number:${cardNum}`;
+
+                const url  = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=10&select=name,number,tcgplayer,set`;
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const json = await resp.json();
+                const cards = json.data || [];
+
+                if (!cards.length) throw new Error('not found');
+
+                // If multiple results, prefer the one whose set name matches
+                const setVal = (document.getElementById(`set-${id}`)?.value || '').trim().toLowerCase();
+                let card = cards[0];
+                if (setVal && cards.length > 1) {
+                    const match = cards.find(c => c.set?.name?.toLowerCase().includes(setVal) || setVal.includes(c.set?.name?.toLowerCase()));
+                    if (match) card = match;
+                }
+
+                const prices = card?.tcgplayer?.prices;
+                if (!prices) throw new Error('no price');
+
+                // Pick the right variant based on checkboxes
+                let market = null;
+                const isFA      = faEl?.checked;
+                const isHolo    = holoEl?.checked;
+                const isRevHolo = revHoloEl?.checked;
+
+                if (isFA && prices['1stEditionHolofoil'])        market = prices['1stEditionHolofoil'].market;
+                else if (isFA && prices.holofoil)                market = prices.holofoil.market;
+                else if (isRevHolo && prices.reverseHolofoil)    market = prices.reverseHolofoil.market;
+                else if (isHolo && prices.holofoil)              market = prices.holofoil.market;
+                else if (prices.normal)                          market = prices.normal.market;
+                else if (prices.holofoil)                        market = prices.holofoil.market;
+                else if (prices.reverseHolofoil)                 market = prices.reverseHolofoil.market;
+
+                // Fallback: first available market price
+                if (market == null) {
+                    for (const v of Object.values(prices)) {
+                        if (v?.market != null) { market = v.market; break; }
+                    }
+                }
+
+                if (market == null) throw new Error('no price data');
+
+                valueEl.value = parseFloat(market).toFixed(2);
+                saveData(id);
+                btn.classList.remove('loading');
+                btn.textContent = '✓';
+                btn.style.color = '#66bb6a';
+                setTimeout(() => resetPriceBtn(id), 2000);
+
+            } catch (err) {
+                btn.classList.remove('loading');
+                btn.classList.add('error');
+                btn.textContent = '✕';
+                setTimeout(() => resetPriceBtn(id), 2500);
+            }
+        }
+
+        function resetPriceBtn(id) {
+            const btn = document.getElementById(`price-btn-${id}`);
+            if (!btn) return;
+            btn.classList.remove('loading', 'error');
+            btn.style.color = '';
+            btn.textContent = '💲';
+        }
+
         /* ── Render ── */
         function renderList() {
             const container  = document.getElementById('collection-list');
@@ -1061,7 +1494,7 @@
 
                 if (page !== currentPage) {
                     currentPage = page;
-                    const isOpen = !collapsed[page];
+                    const isOpen = collapsed[page] === false; // default: collapsed
                     const stats  = pageStats[page] || { total:0, collected:0, wanted:0 };
 
                     const section = document.createElement('div');
@@ -1108,12 +1541,17 @@
                     <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
                     <div class="input-group">
                         <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                        <input type="text"   id="set-${i}"        class="item-set"        placeholder="Set"        value="${safeSet}"       autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                        <div class="set-autocomplete-wrapper">
+                            <input type="text" id="set-${i}" class="item-set" placeholder="Set" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
+                                oninput="onSetInput(${i})" onkeydown="onSetKeydown(event,${i})" onblur="closeSetDropdown(${i})">
+                            <div class="set-dropdown" id="set-dd-${i}"></div>
+                        </div>
                         <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
                         <div class="value-wrapper">
                             <span class="value-prefix">$</span>
                             <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
                         </div>
+                        <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
                         <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
                         <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
                         <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>

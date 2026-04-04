@@ -293,12 +293,19 @@
         }
         .nav-page-group button:active { background: #3a3a3a; color: #fff; }
 
-        /* Hide some navbar items on small screens */
-        @media (max-width: 600px) {
+        /* ── Header MEDIUM: ≤1059px — hide sub-brand & divider, keep single row ── */
+        @media (max-width: 1059px) {
             .nav-brand .brand-sub { display: none; }
             .nav-divider           { display: none; }
-            .hide-mobile           { display: none !important; }
-            #mobile-actions        { display: flex; }
+        }
+
+        /* ── Header MOBILE: ≤600px — wrap search to its own row, desktop btns to drawer ── */
+        @media (max-width: 600px) {
+            .hide-mobile    { display: none !important; }
+            #mobile-actions { display: flex; }
+            .nav-main       { flex-wrap: wrap; padding-bottom: 6px; gap: 8px; }
+            .nav-brand      { flex: 1; min-width: 0; }
+            .nav-search     { order: 10; flex: 0 0 100%; } /* push to its own full-width row */
         }
 
         /* ── Collection list ── */
@@ -341,24 +348,38 @@
         .item-number  { font-size: 1em; font-weight: bold; width: 38px; flex-shrink: 0; color: #aaa; }
         .item-location { font-size: 0.7em; color: #666; width: 80px; flex-shrink: 0; line-height: 1.4; }
 
-        @media (max-width: 767px) {
-            .item-location { display: none; }
-            .item-number   { width: 30px; font-size: 0.9em; }
-        }
-
         .input-group { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
         .input-fields { display: flex; flex: 1; flex-wrap: nowrap; gap: 6px; align-items: center; min-width: 0; }
-        .input-actions { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; flex-shrink: 0; }
+        .input-actions { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; flex-shrink: 0; flex-direction: row; }
+        .action-row-1 { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; flex-shrink: 0; }
+        .action-row-2 { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; flex-shrink: 0; }
 
-        /* Mobile layout: portrait + landscape phones up to small tablets */
+        /* ── MEDIUM: 768–1059px — inputs fill top row, actions below in one horizontal row ── */
+        @media (max-width: 1059px) {
+            .input-group    { flex-wrap: wrap; }
+            .input-fields   { flex: 0 0 100%; min-width: 0; }
+            .input-actions  { flex: 0 0 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; }
+            .action-row-1   { flex-wrap: nowrap; flex: 0 0 auto; }
+            .action-row-2   { flex-wrap: nowrap; flex: 0 0 auto; }
+        }
+
+        /* ── MOBILE: ≤767px — hide location, stack action-rows vertically, short labels ── */
         @media (max-width: 767px) {
-            .input-group               { flex-wrap: wrap; gap: 6px; }
-            .input-fields              { flex: 0 0 100%; min-width: 0; }
-            .item-name, .item-set,
-            .item-set-number           { min-width: 0; }
-            .set-autocomplete-wrapper  { min-width: 0; }
-            .input-actions             { flex: 0 0 100%; flex-wrap: wrap; gap: 8px; align-items: center; }
-            .checkbox-container        { flex: 0 0 100%; flex-wrap: wrap; min-width: 0; gap: 8px; }
+            .item-location  { display: none; }
+            .item-number    { width: 30px; font-size: 0.9em; }
+            .item-name, .item-set, .item-set-number { min-width: 0; }
+            .set-autocomplete-wrapper { min-width: 0; }
+            /* Stack action rows vertically */
+            .input-actions  { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .action-row-1   { width: 100%; flex-wrap: nowrap; justify-content: flex-start; }
+            .action-row-2   { flex-wrap: nowrap; gap: 10px; }
+            /* Full checkbox labels restored — room freed by removing W/C toggle pills */
+            .checkbox-label       { font-size: 0.82em; gap: 6px; min-height: 28px; }
+            .checkbox-label input { width: 17px; height: 17px; }
+            .toggle-label         { display: none; }
+            .status-toggle        { gap: 0; } /* no gap needed without external labels */
+            /* Slightly wider track on mobile so letter + circle both fit */
+            .toggle-track         { width: 52px; }
         }
 
         .item-name, .item-set {
@@ -416,7 +437,7 @@
         .set-dropdown-item:hover, .set-dropdown-item.active { background: #1a2a3a; color: #fff; }
         .set-dropdown-item .set-count { float: right; color: #555; font-size: 12px; margin-left: 8px; }
 
-        /* Checkbox row — now inline, not full-width */
+        /* Checkbox row — now split into action-row-1 (toggle) and action-row-2 (checkboxes) */
         .checkbox-container { display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; flex-shrink: 0; }
         .checkbox-label {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
@@ -424,18 +445,6 @@
         }
         .checkbox-label input { width: 20px; height: 20px; accent-color: #007bff; cursor: pointer; }
         .cb-short { display: none; }
-
-        @media (max-width: 767px) {
-            /* swap to short labels */
-            .cb-full  { display: none; }
-            .cb-short { display: inline; }
-            /* smaller, tighter checkboxes */
-            .checkbox-label       { font-size: 0.78em; gap: 4px; min-height: 28px; }
-            .checkbox-label input { width: 16px; height: 16px; }
-            /* shrink WANTED/COLLECTED pills to just W / C */
-            .toggle-label         { min-width: 0; font-size: 0.7em; padding: 2px 5px; letter-spacing: 0; }
-            .status-toggle        { gap: 5px; }
-        }
 
         /* ── Wanted / Collected toggle ── */
         .status-toggle { display: flex; align-items: center; gap: 8px; user-select: none; }
@@ -451,6 +460,11 @@
         .is-collected ~ .toggle-label.collected-lbl,
         .status-toggle:has(.is-collected) .toggle-label.collected-lbl { color: #66bb6a; border-color: #66bb6a; background: rgba(102,187,106,0.08); }
         .status-toggle:has(.is-collected) .toggle-label.wanted-lbl    { color: #444; border-color: transparent; background: transparent; }
+
+        /* On mobile, hide the external W / C pills — the letter is shown inside the track */
+        @media (max-width: 767px) {
+            .toggle-label { display: none; }
+        }
 
         /* ── Theme toggle (Dark / Light) ── */
         .theme-toggle { display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0; }
@@ -483,6 +497,18 @@
             -webkit-tap-highlight-color: transparent;
         }
         .toggle-track.is-collected { background: #43a047; }
+        /* Letter on the highlighted side, opposite the circle */
+        .toggle-track::before {
+            content: 'W';
+            position: absolute; right: 7px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.9);
+            pointer-events: none; line-height: 1; transition: none;
+        }
+        .toggle-track.is-collected::before {
+            content: 'C';
+            right: auto; left: 7px;
+        }
         .toggle-track::after {
             content: ''; position: absolute; top: 3px; left: 3px;
             width: 16px; height: 16px; border-radius: 50%; background: #fff;
@@ -1610,11 +1636,11 @@
                             </div>
                         </div>
                         <div class="input-actions">
-                            <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
-                            <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
-                            <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
-                            <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
-                            <div class="checkbox-container">
+                            <div class="action-row-1">
+                                <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
+                                <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
+                                <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
+                                <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
                                 <div class="status-toggle">
                                     <span class="toggle-label wanted-lbl"><span class="cb-full">WANTED</span><span class="cb-short">W</span></span>
                                     <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
@@ -1622,6 +1648,8 @@
                                          title="Toggle Wanted / Collected"></div>
                                     <span class="toggle-label collected-lbl"><span class="cb-full">COLLECTED</span><span class="cb-short">C</span></span>
                                 </div>
+                            </div>
+                            <div class="action-row-2">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})">
                                     <span class="cb-full">Full Art</span><span class="cb-short">FA</span>

@@ -432,8 +432,9 @@
             /* smaller, tighter checkboxes */
             .checkbox-label       { font-size: 0.78em; gap: 4px; min-height: 28px; }
             .checkbox-label input { width: 16px; height: 16px; }
-            /* shrink WANTED / COLLECTED pills so the whole row fits */
-            .toggle-label         { min-width: 40px; font-size: 0.65em; padding: 2px 5px; letter-spacing: 0.02em; }
+            /* shrink WANTED/COLLECTED pills to just W / C */
+            .toggle-label         { min-width: 0; font-size: 0.7em; padding: 2px 5px; letter-spacing: 0; }
+            .status-toggle        { gap: 5px; }
         }
 
         /* ── Wanted / Collected toggle ── */
@@ -1615,11 +1616,11 @@
                             <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
                             <div class="checkbox-container">
                                 <div class="status-toggle">
-                                    <span class="toggle-label wanted-lbl">WANTED</span>
+                                    <span class="toggle-label wanted-lbl"><span class="cb-full">WANTED</span><span class="cb-short">W</span></span>
                                     <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
                                          onclick="toggleCollected(${i})" role="switch" aria-checked="${saved.collected}"
                                          title="Toggle Wanted / Collected"></div>
-                                    <span class="toggle-label collected-lbl">COLLECTED</span>
+                                    <span class="toggle-label collected-lbl"><span class="cb-full">COLLECTED</span><span class="cb-short">C</span></span>
                                 </div>
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})">

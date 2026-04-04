@@ -423,6 +423,18 @@
             font-size: 0.85em; min-height: 32px; -webkit-tap-highlight-color: transparent;
         }
         .checkbox-label input { width: 20px; height: 20px; accent-color: #007bff; cursor: pointer; }
+        .cb-short { display: none; }
+
+        @media (max-width: 767px) {
+            /* swap to short labels */
+            .cb-full  { display: none; }
+            .cb-short { display: inline; }
+            /* smaller, tighter checkboxes */
+            .checkbox-label       { font-size: 0.78em; gap: 4px; min-height: 28px; }
+            .checkbox-label input { width: 16px; height: 16px; }
+            /* shrink WANTED / COLLECTED pills so the whole row fits */
+            .toggle-label         { min-width: 40px; font-size: 0.65em; padding: 2px 5px; letter-spacing: 0.02em; }
+        }
 
         /* ── Wanted / Collected toggle ── */
         .status-toggle { display: flex; align-items: center; gap: 8px; user-select: none; }
@@ -1610,13 +1622,16 @@
                                     <span class="toggle-label collected-lbl">COLLECTED</span>
                                 </div>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})"> Full Art
+                                    <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})">
+                                    <span class="cb-full">Full Art</span><span class="cb-short">FA</span>
                                 </label>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})"> Holo
+                                    <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})">
+                                    <span class="cb-full">Holo</span><span class="cb-short">H</span>
                                 </label>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})"> Rev-Holo
+                                    <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})">
+                                    <span class="cb-full">Rev-Holo</span><span class="cb-short">RH</span>
                                 </label>
                             </div>
                         </div>

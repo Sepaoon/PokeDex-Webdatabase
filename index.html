@@ -368,7 +368,7 @@
             .item-location  { display: none; }
             .item-number    { width: 30px; font-size: 0.9em; }
             .item-name, .item-set, .item-set-number { min-width: 0; }
-            .set-autocomplete-wrapper { min-width: 0; }
+            .set-autocomplete-wrapper, .name-ac-wrapper { min-width: 0; }
             /* Stack action rows vertically */
             .input-actions  { flex-direction: column; align-items: flex-start; gap: 6px; }
             .action-row-1   { width: 100%; flex-wrap: nowrap; justify-content: flex-start; }
@@ -515,9 +515,155 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.4); transition: transform 0.25s;
         }
         .toggle-track.is-collected::after { transform: translateX(22px); }
+
+        /* ── Price source toggle ── */
+        .price-source-row { display:flex; align-items:center; gap:8px; width:100%; padding-bottom:8px; border-bottom:1px solid #252525; margin-bottom:2px; flex-wrap:wrap; }
+        .psrc-btn { padding:5px 12px; border-radius:6px; border:1px solid #3a3a3a; background:#252525; color:#666; font-size:12px; font-weight:bold; cursor:pointer; min-height:32px; transition:all 0.15s; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
+        .psrc-btn.active { background:#007bff; border-color:#0069d9; color:#fff; }
+        .psrc-btn.active.cm-btn { background:#2e7d32; border-color:#1b5e20; }
+        .psrc-help-btn {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:32px; height:32px; border-radius:50%;
+            border:1px solid #3a3a3a; background:#252525; color:#666;
+            font-size:14px; font-weight:900; cursor:pointer; flex-shrink:0;
+            transition:background 0.15s, color 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color:transparent; line-height:1;
+        }
+        .psrc-help-btn:active, .psrc-help-btn:hover { background:#333; color:#ccc; border-color:#555; }
+        /* Info modal */
+        #psrc-info-overlay {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.78);
+            z-index:300; justify-content:center; align-items:center; padding:16px;
+        }
+        #psrc-info-overlay.open { display:flex; }
+        #psrc-info-modal {
+            background:#1e1e1e; border:1px solid #444; border-radius:12px;
+            padding:22px 20px; width:100%; max-width:400px;
+            box-shadow:0 8px 36px rgba(0,0,0,0.65); position:relative;
+        }
+        #psrc-info-modal h3 { margin:0 0 12px; font-size:1em; color:#fff; }
+        #psrc-info-modal p  { margin:0 0 10px; font-size:0.82em; color:#aaa; line-height:1.55; }
+        #psrc-info-modal p:last-of-type { margin-bottom:16px; }
+        #psrc-info-modal strong { color:#ccc; }
+        #psrc-info-modal a  { color:#007bff; text-decoration:none; }
+        #psrc-info-modal a:hover { text-decoration:underline; }
+        .psrc-info-close {
+            width:100%; padding:10px; background:#007bff; color:#fff; border:none;
+            border-radius:7px; font-size:14px; font-weight:bold; cursor:pointer; min-height:40px;
+        }
+        .psrc-info-step {
+            display:flex; gap:10px; align-items:flex-start; margin-bottom:8px;
+        }
+        .psrc-info-num {
+            flex-shrink:0; width:22px; height:22px; border-radius:50%;
+            background:#007bff; color:#fff; font-size:11px; font-weight:bold;
+            display:inline-flex; align-items:center; justify-content:center;
+        }
+        .psrc-info-step p { margin:0; }
+        body.light #psrc-info-modal { background:#d8ecf8; border-color:#b8cfe0; }
+        body.light #psrc-info-modal h3 { color:#1a1a1a; }
+        body.light #psrc-info-modal p  { color:#5a7a99; }
+        body.light #psrc-info-modal strong { color:#334; }
+        body.light .psrc-help-btn { background:#c8dcf0; border-color:#a8c0d8; color:#5a7a99; }
+        .rate-badge { font-size:0.63em; color:#555; white-space:nowrap; }
+
+        /* ── API key inputs ── */
+        .api-keys-row { display:flex; flex-wrap:wrap; gap:8px; width:100%; padding-bottom:8px; border-bottom:1px solid #252525; margin-bottom:2px; }
+        .api-key-group { display:flex; flex-direction:column; gap:3px; min-width:150px; flex:1; }
+        .api-key-sublabel { font-size:0.6em; color:#555; text-transform:uppercase; font-weight:bold; letter-spacing:0.06em; }
+        .api-key-sublabel a { color:#555; text-decoration:none; }
+        .api-key-input { padding:5px 8px; border-radius:5px; border:1px solid #3a3a3a; background:#1e1e1e; color:#bbb; font-size:13px; min-height:30px; width:100%; }
+        .api-key-input::placeholder { color:#333; }
+        .api-keys-save { padding:5px 12px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:5px; color:#aaa; font-size:12px; font-weight:bold; cursor:pointer; min-height:32px; align-self:flex-end; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background 0.15s; }
+        .api-keys-save:active { background:#3a3a3a; color:#fff; }
+
+        /* ── Card name autocomplete ── */
+        .name-ac-wrapper { position:relative; flex:0.38; min-width:40px; }
+        .name-ac-wrapper .item-name { width:100%; flex:unset; }
+        .name-dropdown { position:absolute; top:calc(100% + 3px); left:0; right:0; z-index:52; background:#1e1e1e; border:1px solid #007bff; border-radius:6px; max-height:220px; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:none; }
+        .name-dropdown.open { display:block; }
+        .name-dd-item { display:flex; align-items:center; gap:8px; padding:7px 10px; font-size:13px; color:#ccc; cursor:pointer; border-bottom:1px solid #2a2a2a; }
+        .name-dd-item:last-child { border-bottom:none; }
+        .name-dd-item:hover, .name-dd-item.active { background:#1a2a3a; color:#fff; }
+        .name-dd-thumb { width:26px; height:36px; object-fit:contain; border-radius:2px; flex-shrink:0; background:#2a2a2a; }
+        .name-dd-info { display:flex; flex-direction:column; gap:1px; min-width:0; overflow:hidden; }
+        .name-dd-name { font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
+        .name-dd-set  { font-size:11px; color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .name-dd-num  { font-size:10px; color:#555; }
+
+        /* ── OCR overlay ── */
+        #ocr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; }
+        #ocr-overlay.open { display:flex; }
+        .ocr-spinner { width:44px; height:44px; border:3px solid #2a2a2a; border-top-color:#007bff; border-radius:50%; animation:ocrspin 0.75s linear infinite; }
+        @keyframes ocrspin { to { transform:rotate(360deg); } }
+        #ocr-status { font-size:0.88em; color:#777; }
+        #ocr-result { background:#1e1e1e; border:1px solid #3a3a3a; border-radius:12px; padding:18px 20px; max-width:340px; width:100%; display:none; }
+        #ocr-result.open { display:block; }
+        #ocr-result h3 { margin:0 0 4px; font-size:0.95em; color:#ccc; }
+        #ocr-detected-note { font-size:0.72em; color:#555; margin:0 0 10px; }
+        #ocr-name-input { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #007bff; background:#252525; color:#fff; font-size:16px; margin-bottom:10px; }
+        #ocr-set-input  { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #444;    background:#252525; color:#ccc; font-size:14px; margin-bottom:6px;  }
+        #ocr-num-input  { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #444;    background:#252525; color:#ccc; font-size:14px; margin-bottom:12px; }
+        #ocr-num-input::placeholder { color:#444; }
+        .ocr-actions { display:flex; gap:8px; justify-content:flex-end; }
+        .ocr-apply  { padding:8px 18px; background:#007bff; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer; min-height:38px; }
+        .ocr-cancel { padding:8px 14px; background:#2a2a2a; color:#aaa; border:1px solid #3a3a3a; border-radius:6px; font-size:14px; cursor:pointer; min-height:38px; }
+
+        /* Light mode for new elements */
+        body.light .psrc-btn { background:#c8dcf0; border-color:#a8c0d8; color:#5a7a99; }
+        body.light .psrc-btn.active { background:#1a73e8; border-color:#1558b0; color:#fff; }
+        body.light .api-key-input { border-color:#a8c0d8; background:#d8ecf8; color:#1a1a1a; }
+        body.light .api-keys-save { background:#c0d8ee; color:#334; border-color:#a0b8d0; }
+        body.light .name-dropdown { background:#d8ecf8; border-color:#1a73e8; }
+        body.light .name-dd-item  { color:#334; border-bottom-color:#c0d8ee; }
+        body.light .name-dd-item:hover, body.light .name-dd-item.active { background:#bcd4f0; color:#1a1a1a; }
+        body.light .name-dd-set, body.light .name-dd-num { color:#7a9ab5; }
+        body.light #ocr-result { background:#d8ecf8; border-color:#b8cfe0; }
+        body.light #ocr-result h3 { color:#1a1a1a; }
+        body.light #ocr-name-input { background:#c8dcf0; border-color:#1a73e8; color:#1a1a1a; }
+        body.light #ocr-set-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
+        body.light #ocr-num-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
     </style>
 </head>
 <body>
+
+    <!-- Price Source Info Modal -->
+    <div id="psrc-info-overlay" onclick="if(event.target===this)closePsrcInfo()">
+        <div id="psrc-info-modal">
+            <h3>💱 Price Sources &amp; Currency Conversion</h3>
+            <p><strong>TCGPlayer (USD)</strong> — the default. Uses the Pokémon TCG API to pull live market prices in US dollars. No account needed.</p>
+            <p><strong>Cardmarket (EUR)</strong> — the main European marketplace. Prices are in Euros. Requires free API credentials from Cardmarket.</p>
+            <p>The <strong>Open Exchange Rates</strong> App ID lets the app fetch a live USD↔EUR rate so your total value is always accurate whichever source you use. Here's how to get one free:</p>
+            <div class="psrc-info-step"><span class="psrc-info-num">1</span><p>Go to <a href="https://openexchangerates.org/signup/free" target="_blank">openexchangerates.org/signup/free</a> and create a free account — no credit card needed.</p></div>
+            <div class="psrc-info-step"><span class="psrc-info-num">2</span><p>After signing in, your <strong>App ID</strong> is shown on the dashboard — a string of letters and numbers.</p></div>
+            <div class="psrc-info-step"><span class="psrc-info-num">3</span><p>Copy it, paste it into the <strong>Open Exchange Rates App ID</strong> field below, and tap <strong>Save Keys</strong>.</p></div>
+            <div class="psrc-info-step"><span class="psrc-info-num">4</span><p>Done. The app fetches the rate once per hour and caches it — well within the free plan's 1,000 requests/month limit. Without a key it falls back to a fixed rate of 0.92.</p></div>
+            <button class="psrc-info-close" onclick="closePsrcInfo()">Got it</button>
+        </div>
+    </div>
+
+    <!-- OCR Overlay (Tesseract.js) -->
+    <div id="ocr-overlay">
+        <div class="ocr-spinner" id="ocr-spinner"></div>
+        <div id="ocr-status">Loading OCR engine…</div>
+        <div id="ocr-result">
+            <h3>📷 Card Detected</h3>
+            <p id="ocr-detected-note"></p>
+            <input id="ocr-name-input" type="text" placeholder="Card name…" autocomplete="off" spellcheck="false" oninput="onOcrNameChange()">
+            <div style="position:relative;">
+                <input id="ocr-set-input" type="text" placeholder="Set name…" autocomplete="off" spellcheck="false" style="padding-right:28px;">
+                <span id="ocr-set-spin" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);">
+                    <span class="ocr-spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;"></span>
+                </span>
+            </div>
+            <input id="ocr-num-input"  type="text" placeholder="Set number (e.g. 012/165)…" autocomplete="off" spellcheck="false">
+            <p id="ocr-lookup-note" style="font-size:0.7em;color:#555;margin:2px 0 8px;min-height:1em;"></p>
+            <div class="ocr-actions">
+                <button class="ocr-cancel" onclick="closeOCR()">Cancel</button>
+                <button class="ocr-apply"  onclick="applyOCR()">Use This</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Hidden file input for photos -->
     <input type="file" id="camera-input" accept="image/*"
@@ -601,6 +747,32 @@
                 <button class="nav-btn btn-print"   onclick="printWanted()">🖨 Wanted</button>
                 <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save</button>
                 <button class="nav-btn btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
+            </div>
+            <!-- Price source -->
+            <div class="price-source-row">
+                <span class="settings-label">Price Source</span>
+                <button id="psrc-tcg" class="psrc-btn active"   onclick="setPriceSource('tcg')">💲 TCGPlayer (USD)</button>
+                <button id="psrc-cm"  class="psrc-btn cm-btn"   onclick="setPriceSource('cardmarket')">€ Cardmarket (EUR)</button>
+                <button class="psrc-help-btn" onclick="openPsrcInfo()" title="How price sources work">?</button>
+                <span class="rate-badge" id="rate-badge"></span>
+            </div>
+            <!-- API Keys -->
+            <div class="api-keys-row">
+                <div class="api-key-group">
+                    <span class="api-key-sublabel">Open Exchange Rates App ID &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a></span>
+                    <input class="api-key-input" id="oxr-key" type="password" placeholder="Paste App ID…" autocomplete="off">
+                </div>
+                <div class="api-key-group" id="cm-key-group" style="display:none">
+                    <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
+                    <input class="api-key-input" id="cm-app-token"    type="password" placeholder="App Token"    autocomplete="off">
+                    <span class="api-key-sublabel" style="margin-top:4px">App Secret</span>
+                    <input class="api-key-input" id="cm-app-secret"   type="password" placeholder="App Secret"   autocomplete="off">
+                    <span class="api-key-sublabel" style="margin-top:4px">Access Token</span>
+                    <input class="api-key-input" id="cm-access-token" type="password" placeholder="Access Token" autocomplete="off">
+                    <span class="api-key-sublabel" style="margin-top:4px">Access Secret</span>
+                    <input class="api-key-input" id="cm-access-secret" type="password" placeholder="Access Secret" autocomplete="off">
+                </div>
+                <button class="api-keys-save" onclick="saveApiKeys()">💾 Save Keys</button>
             </div>
             <div class="settings-theme-row" style="display:flex;align-items:center;gap:10px;width:100%;padding-bottom:8px;border-bottom:1px solid #252525;margin-bottom:2px;">
                 <span class="settings-label" style="text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;">Theme</span>
@@ -731,6 +903,15 @@
                 const dataUrl = await compressImage(file, 900, 0.78);
                 await savePhoto(captureTargetId, dataUrl);
                 setPhotoBtn(captureTargetId, true);
+                // Auto-offer OCR if entry is blank (name, set, and set number all empty)
+                const nameEl  = document.getElementById(`name-${captureTargetId}`);
+                const setEl2  = document.getElementById(`set-${captureTargetId}`);
+                const snEl2   = document.getElementById(`setNumber-${captureTargetId}`);
+                const isBlank = !nameEl?.value.trim() && !setEl2?.value.trim() && !snEl2?.value.trim();
+                if (isBlank) {
+                    ocrTargetId = captureTargetId;
+                    openOCR(dataUrl);
+                }
             } catch (err) { console.error('Photo save failed:', err); }
             event.target.value = '';
         }
@@ -772,85 +953,436 @@
 
         /* ── Gallery ── */
         async function openGallery() {
-            let photos;
-            try { photos = await getAllPhotos(); }
-            catch(e) { alert('Unable to access photo storage.'); return; }
-            const entries = Object.keys(photos);
-            if (!entries.length) { alert('No card photos yet — tap 📷 on any entry to add one.'); return; }
+            const allCards = [];
+            for (let i = 1; i <= config.total; i++) {
+                const saved = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                if (saved.name) allCards.push({
+                    id: i, name: saved.name || '', set: saved.set || '',
+                    setNumber: saved.setNumber || '', value: saved.value || 0,
+                    collected: !!saved.collected,
+                });
+            }
+            let photos = {};
+            try { photos = await getAllPhotos(); } catch(e) {}
 
-            const cards = entries.map(id => {
-                const saved = JSON.parse(localStorage.getItem(`item-${id}`)) || {};
-                return { id, name: saved.name || '', variant: saved.variant || '', photo: photos[id] };
-            }).sort((a, b) => parseInt(a.id) - parseInt(b.id));
+            if (!allCards.length && !Object.keys(photos).length) {
+                alert('No entries yet — add some cards first.'); return;
+            }
 
-            const cardHTML = cards.map(c => `
-                <div class="card" data-src="${c.photo}" data-label="#${c.id} ${c.name || ''}">
-                    <img src="${c.photo}" alt="Card #${c.id}" loading="lazy">
-                    <div class="card-info">
-                        <span class="card-num">#${c.id}</span>
-                        <span class="card-name">${c.name || '(unnamed)'}</span>
-                        ${c.variant ? `<span class="card-variant">${c.variant}</span>` : ''}
-                    </div>
-                </div>`).join('');
+            const cardsJson  = JSON.stringify(allCards);
+            const photosJson = JSON.stringify(photos);
+            const configJson = JSON.stringify({ rows: config.rows, cols: config.cols, total: config.total });
 
             const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Card Photo Gallery</title>
+<title>PokeDexCheck Gallery</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body { background:#121212; color:#e0e0e0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; margin:0; padding:16px; }
-  .top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
-  .top-bar h1 { font-size:1.2em; margin:0; }
-  .back-btn { background:#007bff; color:#fff; border:none; padding:10px 18px; border-radius:6px; font-size:15px; font-weight:bold; cursor:pointer; min-height:44px; }
-  .count { font-size:0.8em; color:#999; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
-  .card { background:#1e1e1e; border-radius:10px; overflow:hidden; border:1px solid #333; cursor:pointer; transition:transform 0.15s,border-color 0.15s; }
-  .card:active { transform:scale(0.97); border-color:#007bff; }
-  .card img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
-  .card-info { padding:8px 10px; display:flex; flex-direction:column; gap:2px; }
-  .card-num { font-size:0.7em; color:#888; }
-  .card-name { font-size:0.88em; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .card-variant { font-size:0.75em; color:#aaa; }
-  #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999; justify-content:center; align-items:center; flex-direction:column; gap:12px; padding:20px; }
-  #lightbox.open { display:flex; }
-  #lightbox img { max-width:100%; max-height:80vh; border-radius:8px; object-fit:contain; }
-  #lightbox-label { font-size:0.95em; color:#ccc; text-align:center; }
-  #lightbox-close { position:absolute; top:14px; right:18px; background:none; border:none; color:#fff; font-size:2.2em; cursor:pointer; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
+  *, *::before, *::after { box-sizing:border-box; }
+  body { background:#121212; color:#e0e0e0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; margin:0; padding:0; }
+
+  /* Top bar */
+  .top-bar { position:sticky; top:0; z-index:10; background:#1a1a1a; border-bottom:1px solid #2a2a2a;
+             display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+             gap:8px; padding:10px 16px; }
+  .top-bar h1 { font-size:1.1em; margin:0; flex-shrink:0; }
+  .top-meta  { display:flex; align-items:center; gap:10px; flex:1; }
+  .art-status { font-size:0.75em; color:#555; white-space:nowrap; }
+  .close-btn { background:#333; color:#aaa; border:none; padding:8px 14px;
+               border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer; min-height:38px; flex-shrink:0; }
+
+  /* Grid */
+  .grid-wrap { padding:14px; }
+  .page-section { margin-bottom:6px; }
+  .page-header-g {
+    display:flex; align-items:center; gap:10px;
+    margin:10px 0 0; padding:9px 12px;
+    background:#1a1a1a; border:1px solid #2e2e2e; border-radius:8px;
+    cursor:pointer; user-select:none; min-height:44px;
+    transition:background 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .page-header-g:active { background:#222; border-color:#3a3a3a; }
+  .page-header-g.open   { border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom-color:transparent; }
+  .page-caret-g { font-size:0.65em; color:#555; transition:transform 0.2s; flex-shrink:0; }
+  .page-header-g.open .page-caret-g { transform:rotate(90deg); }
+  .page-label-g { font-size:0.78em; font-weight:700; color:#777; text-transform:uppercase; letter-spacing:0.09em; white-space:nowrap; }
+  .page-line-g  { flex:1; height:1px; background:linear-gradient(to right,#2e2e2e,transparent); }
+  .page-stats-g { font-size:0.7em; color:#555; white-space:nowrap; display:flex; gap:8px; }
+  .page-body-g {
+    overflow:hidden; max-height:0; transition:max-height 0.3s ease;
+    border:1px solid #2e2e2e; border-top:none;
+    border-radius:0 0 8px 8px; padding:0;
+  }
+  .page-body-g.open { max-height:9999999px; padding:10px; }
+  .binder-grid { display:grid; gap:10px; }
+
+  /* Tile */
+  .tile { border-radius:10px; overflow:hidden; cursor:pointer; position:relative;
+          transition:transform 0.14s, box-shadow 0.14s;
+          border:1px solid rgba(255,255,255,0.06); }
+  .tile:active { transform:scale(0.96); }
+  .tile-img-wrap { position:relative; width:100%; aspect-ratio:3/4; overflow:hidden; }
+  .tile-bg { position:absolute; inset:0; }
+  .tile-img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+              opacity:0; transition:opacity 0.35s; display:block; }
+  .tile-img.ready { opacity:1; }
+  .tile-photo { object-fit:cover; }
+  .tile-indicators { position:absolute; bottom:5px; right:5px; display:flex; gap:3px; }
+  .ind { width:18px; height:18px; border-radius:4px; display:flex; align-items:center; justify-content:center;
+         font-size:10px; background:rgba(0,0,0,0.65); opacity:0.35; transition:opacity 0.2s; }
+  .ind.has { opacity:1; }
+  .tile-info { padding:6px 8px; background:rgba(0,0,0,0.4); }
+  .tile-id   { font-size:0.6em; color:#555; }
+  .tile-name { font-size:0.78em; font-weight:bold; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile-set  { font-size:0.66em; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Lightbox */
+  #lb { display:none; position:fixed; inset:0; background:#0a0a0a; z-index:999;
+        flex-direction:column; align-items:stretch; }
+  #lb.open { display:flex; }
+
+  /* LB header */
+  #lb-header { display:flex; align-items:center; justify-content:space-between;
+               padding:10px 14px; background:#111; border-bottom:1px solid #1e1e1e;
+               flex-shrink:0; gap:8px; }
+  #lb-card-of  { font-size:0.8em; color:#666; white-space:nowrap; }
+  #lb-title    { font-size:0.95em; font-weight:bold; color:#ddd; flex:1; text-align:center;
+                 white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  #lb-type-pill { font-size:0.7em; font-weight:bold; padding:3px 9px; border-radius:12px;
+                  white-space:nowrap; flex-shrink:0; }
+  #lb-type-pill.art   { background:rgba(0,123,255,0.18); color:#90caf9; border:1px solid rgba(0,123,255,0.3); }
+  #lb-type-pill.photo { background:rgba(40,167,69,0.18);  color:#a5d6a7; border:1px solid rgba(40,167,69,0.3);  }
+  #lb-close { background:none; border:none; color:#555; font-size:1.5em; cursor:pointer;
+              width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+              border-radius:50%; flex-shrink:0; transition:color 0.15s; }
+  #lb-close:hover { color:#fff; }
+
+  /* LB stage */
+  #lb-stage { flex:1; position:relative; display:flex; align-items:center; justify-content:center;
+              overflow:hidden; min-height:0; }
+  #lb-img   { max-width:100%; max-height:100%; object-fit:contain; border-radius:6px;
+              display:none; padding:12px; }
+  #lb-img.show { display:block; }
+  #lb-placeholder { display:none; flex-direction:column; align-items:center; justify-content:center;
+                    gap:14px; color:#333; width:100%; height:100%; padding:20px; }
+  #lb-placeholder.show { display:flex; }
+  #lb-placeholder .ph-icon { font-size:3.5em; }
+  #lb-placeholder .ph-text { font-size:0.85em; color:#3a3a3a; text-align:center; max-width:220px; line-height:1.5; }
+  #lb-placeholder .ph-card  { font-size:0.75em; color:#2a2a2a; }
+
+  /* LB nav */
+  #lb-nav { display:flex; align-items:center; justify-content:space-between;
+            padding:10px 12px; background:#111; border-top:1px solid #1e1e1e; flex-shrink:0; }
+  .lb-nav-btn { background:#1e1e1e; border:1px solid #2a2a2a; color:#666; font-size:1.1em;
+                width:44px; height:44px; border-radius:8px; cursor:pointer;
+                display:flex; align-items:center; justify-content:center;
+                transition:background 0.15s, color 0.15s; -webkit-tap-highlight-color:transparent; }
+  .lb-nav-btn:active { background:#2a2a2a; color:#fff; }
+  .lb-nav-btn:disabled { opacity:0.2; cursor:default; }
+  #lb-dots { display:flex; gap:5px; align-items:center; }
+  .lb-dot { width:7px; height:7px; border-radius:50%; background:#2a2a2a; transition:all 0.2s; }
+  .lb-dot.active { background:#007bff; transform:scale(1.35); }
+  .lb-dot.photo-dot.active { background:#43a047; }
+  #lb-frame-hint { font-size:0.72em; color:#333; text-align:center; min-width:80px; }
+
+  /* Spinner */
+  .spin { display:inline-block; width:12px; height:12px; border:2px solid #2a2a2a;
+          border-top-color:#007bff; border-radius:50%; animation:sp 0.7s linear infinite; vertical-align:middle; margin-right:4px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
+
 <div class="top-bar">
-  <h1>📸 Card Photos</h1>
-  <span class="count">${cards.length} photo${cards.length !== 1 ? 's' : ''}</span>
-  <button class="back-btn" onclick="window.close()">✕ Close</button>
+  <h1>🖼 Gallery</h1>
+  <div class="top-meta">
+    <span class="art-status" id="art-status"><span class="spin"></span>Loading art…</span>
+  </div>
+  <button class="close-btn" onclick="window.close()">✕ Close</button>
 </div>
-<div class="grid">${cardHTML}</div>
-<div id="lightbox">
-  <button id="lightbox-close" onclick="closeLightbox()">×</button>
-  <img id="lightbox-img" src="" alt="">
-  <div id="lightbox-label"></div>
+
+<div class="grid-wrap" id="grid-wrap"></div>
+
+<!-- Lightbox -->
+<div id="lb">
+  <div id="lb-header">
+    <span id="lb-card-of"></span>
+    <span id="lb-title"></span>
+    <span id="lb-type-pill" class="art"></span>
+    <button id="lb-close" onclick="closeLB()">×</button>
+  </div>
+  <div id="lb-stage">
+    <img id="lb-img" src="" alt="">
+    <div id="lb-placeholder">
+      <div class="ph-icon" id="ph-icon"></div>
+      <div class="ph-text" id="ph-text"></div>
+      <div class="ph-card" id="ph-card"></div>
+    </div>
+  </div>
+  <div id="lb-nav">
+    <button class="lb-nav-btn" id="lb-prev" onclick="stepLB(-1)">‹</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div id="lb-dots"></div>
+      <div id="lb-frame-hint"></div>
+    </div>
+    <button class="lb-nav-btn" id="lb-next" onclick="stepLB(1)">›</button>
+  </div>
 </div>
+
 <script>
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.getElementById('lightbox-img').src = card.dataset.src;
-      document.getElementById('lightbox-label').textContent = card.dataset.label;
-      document.getElementById('lightbox').classList.add('open');
-    });
+'use strict';
+const CARDS  = ${cardsJson};
+const PHOTOS = ${photosJson};
+const CONFIG = ${configJson};
+const PTCG   = 'https://api.pokemontcg.io/v2/cards';
+
+// Per-card art cache: artCache[id] = { small, large } or null
+const artCache = {};
+// Per-card tile element references
+const tileMap  = {};
+
+// ── Tile placeholder colour (golden-angle hue, dark sat) ──
+function tileColor(id) {
+  const h = (id * 137) % 360;
+  return \`hsl(\${h},22%,14%)\`;
+}
+
+// ── Flat ordered list of all cards (sorted by id for lightbox nav) ──
+const CARDS_BY_ID = {};
+CARDS.forEach(c => CARDS_BY_ID[c.id] = c);
+
+// ── Build paged, collapsible grid ──
+function buildGrid() {
+  const wrap     = document.getElementById('grid-wrap');
+  const pageSize = CONFIG.rows * CONFIG.cols;
+  const cols     = CONFIG.cols;
+
+  // Group cards by page
+  const pages = {};
+  CARDS.forEach(c => {
+    const pg = Math.floor((c.id - 1) / pageSize) + 1;
+    if (!pages[pg]) pages[pg] = [];
+    pages[pg].push(c);
   });
-  function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
-  document.getElementById('lightbox').addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
+
+  const pageNums = Object.keys(pages).map(Number).sort((a,b)=>a-b);
+
+  wrap.innerHTML = pageNums.map(pg => {
+    const cards = pages[pg];
+    const tiles = cards.map((c, ci) => {
+      const photo = PHOTOS[String(c.id)];
+      const bg    = tileColor(c.id);
+      const globalIdx = CARDS.indexOf(c);
+      return \`<div class="tile" id="tile-\${c.id}" onclick="openLB(\${globalIdx},0)" style="background:\${bg}">
+        <div class="tile-img-wrap">
+          <div class="tile-bg" style="background:\${bg}"></div>
+          \${photo ? \`<img class="tile-img tile-photo ready" id="timg-ph-\${c.id}" src="\${photo}" alt="">\` : ''}
+          <img class="tile-img" id="timg-art-\${c.id}" src="" alt="" style="display:none">
+          <div class="tile-indicators">
+            <div class="ind art-ind" id="ind-art-\${c.id}" title="Card art">🎨</div>
+            <div class="ind photo-ind \${photo ? 'has' : ''}" id="ind-ph-\${c.id}" title="My photo">📸</div>
+          </div>
+        </div>
+        <div class="tile-info">
+          <div class="tile-id">#\${c.id}</div>
+          <div class="tile-name">\${c.name}</div>
+          <div class="tile-set">\${c.set || ''}</div>
+        </div>
+      </div>\`;
+    }).join('');
+
+    return \`<div class="page-section">
+      <div class="page-header-g" id="pg-hdr-\${pg}" onclick="togglePage(\${pg})">
+        <span class="page-caret-g">▶</span>
+        <span class="page-label-g">Page \${pg}</span>
+        <div class="page-line-g"></div>
+        <div class="page-stats-g">\${cards.length} card\${cards.length!==1?'s':''}</div>
+      </div>
+      <div class="page-body-g" id="pg-body-\${pg}">
+        <div class="binder-grid" style="grid-template-columns:repeat(\${cols},1fr)">
+          \${tiles}
+        </div>
+      </div>
+    </div>\`;
+  }).join('');
+}
+
+function togglePage(pg) {
+  const hdr  = document.getElementById(\`pg-hdr-\${pg}\`);
+  const body = document.getElementById(\`pg-body-\${pg}\`);
+  const open = body.classList.toggle('open');
+  hdr.classList.toggle('open', open);
+}
+
+// ── Fetch art in batches — only when name + set + setNumber all present ──
+async function fetchAllArt() {
+  const status = document.getElementById('art-status');
+  let done = 0, skipped = 0;
+  const BATCH = 8;
+
+  // Only process cards with all three fields filled
+  const eligible = CARDS.filter(c => c.name && c.set && c.setNumber);
+  skipped = CARDS.length - eligible.length;
+
+  for (let start = 0; start < eligible.length; start += BATCH) {
+    const batch = eligible.slice(start, start + BATCH);
+    await Promise.allSettled(batch.map(async c => {
+      try {
+        const rawNum = (c.setNumber || '').split('/')[0].replace(/^0+/, '');
+        if (!rawNum) return; // no card number — skip
+
+        // Build a tight query: name + number + set name
+        const safeName = c.name.replace(/"/g,'');
+        const safeSet  = c.set.replace(/"/g,'');
+        const q = \`name:"\${safeName}" number:\${rawNum} set.name:"\${safeSet}"\`;
+
+        const r = await fetch(\`\${PTCG}?q=\${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images\`);
+        if (!r.ok) return;
+        const j = await r.json();
+        const hits = j.data || [];
+        if (!hits.length) return;
+
+        // Verify returned card matches name, set name, and number exactly
+        const match = hits.find(h => {
+          const nameOk   = (h.name || '').toLowerCase() === c.name.toLowerCase();
+          const setOk    = (h.set?.name || '').toLowerCase().includes(c.set.toLowerCase())
+                        || c.set.toLowerCase().includes((h.set?.name || '').toLowerCase());
+          const numOk    = String(h.number || '').replace(/^0+/,'') === rawNum;
+          return nameOk && setOk && numOk;
+        });
+        if (!match?.images?.small) return;
+
+        artCache[c.id] = { small: match.images.small, large: match.images.large || match.images.small };
+
+        // Update grid tile
+        const artImg = document.getElementById(\`timg-art-\${c.id}\`);
+        if (artImg) {
+          artImg.style.display = '';
+          artImg.src = match.images.small;
+          artImg.onload = () => artImg.classList.add('ready');
+        }
+        const indArt = document.getElementById(\`ind-art-\${c.id}\`);
+        if (indArt) indArt.classList.add('has');
+        done++;
+      } catch(e) { /* skip */ }
+    }));
+    status.innerHTML = \`<span class="spin"></span>\${Math.min(start + BATCH, eligible.length)} / \${eligible.length} checked\`;
+  }
+  status.textContent = done + ' art loaded · ' + skipped + ' skipped (incomplete info) · ' + Object.keys(PHOTOS).length + ' photos';
+}
+
+// ── Lightbox state ──
+// lbCardIdx = which card (0..CARDS.length-1)
+// lbFrame   = 0 (art) or 1 (photo)
+let lbCardIdx = 0, lbFrame = 0;
+
+function openLB(ci, frame) {
+  lbCardIdx = ci; lbFrame = frame;
+  renderLB();
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() { document.getElementById('lb').classList.remove('open'); }
+
+function stepLB(dir) {
+  // Sequence: art(0) → photo(1) → next card art(0) → ...
+  lbFrame += dir;
+  if (lbFrame > 1) { lbFrame = 0; lbCardIdx = (lbCardIdx + 1) % CARDS.length; }
+  if (lbFrame < 0) { lbFrame = 1; lbCardIdx = (lbCardIdx - 1 + CARDS.length) % CARDS.length; }
+  renderLB();
+}
+
+function renderLB() {
+  const card  = CARDS[lbCardIdx];
+  const art   = artCache[card.id];
+  const photo = PHOTOS[String(card.id)];
+  const img   = document.getElementById('lb-img');
+  const ph    = document.getElementById('lb-placeholder');
+
+  // Header
+  document.getElementById('lb-card-of').textContent = \`\${lbCardIdx + 1} / \${CARDS.length}\`;
+  document.getElementById('lb-title').textContent    = \`#\${card.id} \${card.name}\`;
+
+  const pill = document.getElementById('lb-type-pill');
+  if (lbFrame === 0) {
+    pill.textContent = '🎨 Card Art';
+    pill.className   = 'art';
+  } else {
+    pill.textContent = '📸 My Photo';
+    pill.className   = 'photo';
+  }
+
+  // Stage
+  if (lbFrame === 0 && art) {
+    img.src = art.large;
+    img.className = 'show';
+    ph.className  = '';
+  } else if (lbFrame === 1 && photo) {
+    img.src = photo;
+    img.className = 'show';
+    ph.className  = '';
+  } else {
+    img.className = '';
+    img.src = '';
+    ph.className = 'show';
+    if (lbFrame === 0) {
+      document.getElementById('ph-icon').textContent = '🎨';
+      document.getElementById('ph-text').textContent = art === undefined
+        ? 'Loading card art…' : 'No art found for this card';
+      document.getElementById('ph-card').textContent = card.set ? card.set : '';
+    } else {
+      document.getElementById('ph-icon').textContent = '📷';
+      document.getElementById('ph-text').textContent = 'No photo yet — tap 📷 on this entry in the app to add one';
+      document.getElementById('ph-card').textContent = '';
+    }
+    // Tint placeholder bg to tile colour
+    ph.style.background = tileColor(card.id);
+  }
+
+  // Dots (art=blue, photo=green)
+  const dotsEl = document.getElementById('lb-dots');
+  dotsEl.innerHTML = \`
+    <div class="lb-dot \${lbFrame===0?'active':''}" onclick="lbFrame=0;renderLB()"></div>
+    <div class="lb-dot photo-dot \${lbFrame===1?'active':''}" onclick="lbFrame=1;renderLB()"></div>\`;
+
+  document.getElementById('lb-frame-hint').textContent = lbFrame === 0 ? 'Art → Photo →' : '→ Next card';
+
+  // Scroll tile into view subtly
+  const tile = document.getElementById(\`tile-\${card.id}\`);
+  if (tile) tile.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// Keyboard & swipe
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lb').classList.contains('open')) return;
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') { e.preventDefault(); stepLB(1); }
+  if (e.key==='ArrowLeft'||e.key==='ArrowUp')    { e.preventDefault(); stepLB(-1); }
+  if (e.key==='Escape') closeLB();
+});
+// Touch swipe
+let tsX = null;
+document.getElementById('lb-stage').addEventListener('touchstart', e => { tsX = e.touches[0].clientX; }, {passive:true});
+document.getElementById('lb-stage').addEventListener('touchend',   e => {
+  if (tsX === null) return;
+  const dx = e.changedTouches[0].clientX - tsX;
+  if (Math.abs(dx) > 40) stepLB(dx < 0 ? 1 : -1);
+  tsX = null;
+});
+
+// ── Init ──
+buildGrid();
+fetchAllArt();
 <\/script>
 </body>
 </html>`;
+
             const blob = new Blob([html], { type: 'text/html' });
             const url  = URL.createObjectURL(blob);
             const win  = window.open(url, '_blank');
             if (!win) alert('Please allow popups to view the gallery.');
-            setTimeout(() => URL.revokeObjectURL(url), 15000);
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
 
         /* ── Settings ── */
@@ -991,12 +1523,17 @@
                 <span>${total} cards</span>`;
         }
         function updateTotalValue() {
+            const total = getTotalCollectionValue();
+            document.getElementById('total-value-amt').textContent = getCurrencySymbol() + total.toFixed(2);
+            updateRateBadge();
+        }
+        function getTotalCollectionValue() {
             let total = 0;
             for (let i = 1; i <= config.total; i++) {
                 const el = document.getElementById(`value-${i}`);
                 if (el) total += parseFloat(el.value) || 0;
             }
-            document.getElementById('total-value-amt').textContent = '$' + total.toFixed(2);
+            return total;
         }
 
         /* ── TCG Search ── */
@@ -1510,8 +2047,13 @@
             if (dd) { dd.classList.remove('open'); }
         }
 
-        /* ── Price Fetch (Pokemon TCG API) ── */
+        /* ── Price Fetch — routes to TCGPlayer or Cardmarket ── */
         async function fetchPrice(id) {
+            if (priceSource === 'cardmarket') return fetchCardmarketPrice(id);
+            return fetchTCGPrice(id);
+        }
+
+        async function fetchTCGPrice(id) {
             const btn       = document.getElementById(`price-btn-${id}`);
             const nameEl    = document.getElementById(`name-${id}`);
             const snEl      = document.getElementById(`setNumber-${id}`);
@@ -1598,7 +2140,451 @@
             if (!btn) return;
             btn.classList.remove('loading', 'error');
             btn.style.color = '';
-            btn.textContent = '💲';
+            btn.title = priceSource === 'cardmarket' ? 'Fetch Cardmarket price (EUR)' : 'Fetch market price from Pokemon TCG API';
+            btn.textContent = getPriceBtnIcon();
+        }
+
+        /* ── Price Source & Currency ── */
+        let priceSource = localStorage.getItem('priceSource') || 'tcg';
+        let usdToEur    = parseFloat(localStorage.getItem('usdToEurRate')) || 0.92;
+
+        function getCurrencySymbol() { return priceSource === 'cardmarket' ? '€' : '$'; }
+        function getPriceBtnIcon()   { return priceSource === 'cardmarket' ? '€' : '💲'; }
+
+        function openPsrcInfo()  { document.getElementById('psrc-info-overlay').classList.add('open'); }
+        function closePsrcInfo() { document.getElementById('psrc-info-overlay').classList.remove('open'); }
+
+        function setPriceSource(source) {
+            priceSource = source;
+            localStorage.setItem('priceSource', source);
+            document.getElementById('psrc-tcg').classList.toggle('active', source === 'tcg');
+            document.getElementById('psrc-cm').classList.toggle('active',  source === 'cardmarket');
+            const cmGrp = document.getElementById('cm-key-group');
+            if (cmGrp) cmGrp.style.display = source === 'cardmarket' ? '' : 'none';
+            // Refresh all rendered currency symbols
+            document.querySelectorAll('.value-prefix').forEach(el => el.textContent = getCurrencySymbol());
+            document.querySelectorAll('.price-btn').forEach(btn => {
+                if (!btn.classList.contains('loading') && !btn.classList.contains('error') && btn.textContent !== '✓') {
+                    btn.textContent = getPriceBtnIcon();
+                    btn.title = source === 'cardmarket' ? 'Fetch Cardmarket price (EUR)' : 'Fetch market price from Pokemon TCG API';
+                }
+            });
+            updateTotalValue();
+            if (source === 'cardmarket') maybeRefreshOXR();
+        }
+
+        function applyPriceSourceUI() {
+            // Restore saved price source UI state on init (rows not yet rendered, so just buttons)
+            document.getElementById('psrc-tcg').classList.toggle('active', priceSource === 'tcg');
+            document.getElementById('psrc-cm').classList.toggle('active',  priceSource === 'cardmarket');
+            const cmGrp = document.getElementById('cm-key-group');
+            if (cmGrp) cmGrp.style.display = priceSource === 'cardmarket' ? '' : 'none';
+            if (priceSource === 'cardmarket') maybeRefreshOXR();
+        }
+
+        /* ── Open Exchange Rates ── */
+        async function maybeRefreshOXR() {
+            const lastFetch = parseInt(localStorage.getItem('oxrLastFetch') || '0');
+            if (Date.now() - lastFetch < 3_600_000) { updateRateBadge(); return; }
+            const appId = localStorage.getItem('oxr_app_id') || '';
+            if (!appId) { updateRateBadge(); return; }
+            try {
+                const r = await fetch(`https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR`);
+                const j = await r.json();
+                if (j.rates?.EUR) {
+                    usdToEur = j.rates.EUR;
+                    localStorage.setItem('usdToEurRate', usdToEur);
+                    localStorage.setItem('oxrLastFetch', Date.now());
+                }
+            } catch(e) { /* use cached rate */ }
+            updateRateBadge();
+        }
+
+        function updateRateBadge() {
+            const badge = document.getElementById('rate-badge');
+            if (!badge) return;
+            const oxrKey = localStorage.getItem('oxr_app_id');
+            if (priceSource === 'cardmarket') {
+                badge.textContent = `· 1 USD ≈ ${usdToEur.toFixed(4)} EUR`;
+            } else if (oxrKey) {
+                const total = getTotalCollectionValue();
+                badge.textContent = total > 0 ? `· ~€${(total * usdToEur).toFixed(2)}` : '';
+            } else {
+                badge.textContent = '';
+            }
+        }
+
+        /* ── API Key Save / Load ── */
+        function saveApiKeys() {
+            const save = (elId, storKey) => {
+                const v = document.getElementById(elId)?.value.trim();
+                if (v) localStorage.setItem(storKey, v);
+            };
+            save('oxr-key',          'oxr_app_id');
+            save('cm-app-token',     'cm_app_token');
+            save('cm-app-secret',    'cm_app_secret');
+            save('cm-access-token',  'cm_access_token');
+            save('cm-access-secret', 'cm_access_secret');
+            const btn = document.querySelector('.api-keys-save');
+            if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = '💾 Save Keys', 2000); }
+            maybeRefreshOXR();
+        }
+
+        function loadApiKeyInputs() {
+            const set = (elId, storKey) => {
+                const el = document.getElementById(elId);
+                const v  = localStorage.getItem(storKey);
+                if (el && v) el.value = v;
+            };
+            set('oxr-key',          'oxr_app_id');
+            set('cm-app-token',     'cm_app_token');
+            set('cm-app-secret',    'cm_app_secret');
+            set('cm-access-token',  'cm_access_token');
+            set('cm-access-secret', 'cm_access_secret');
+        }
+
+        /* ── Cardmarket OAuth 1.0a ── */
+        async function buildCMAuthHeader(method, url) {
+            const appToken  = localStorage.getItem('cm_app_token')    || '';
+            const appSecret = localStorage.getItem('cm_app_secret')   || '';
+            const accToken  = localStorage.getItem('cm_access_token') || '';
+            const accSecret = localStorage.getItem('cm_access_secret')|| '';
+            if (!appToken || !appSecret || !accToken || !accSecret) return null;
+
+            const ts    = Math.floor(Date.now() / 1000).toString();
+            const nonce = Array.from(crypto.getRandomValues(new Uint8Array(10)))
+                               .map(b => b.toString(16).padStart(2,'0')).join('');
+
+            const oauthParams = {
+                oauth_consumer_key:     appToken,
+                oauth_nonce:            nonce,
+                oauth_signature_method: 'HMAC-SHA1',
+                oauth_timestamp:        ts,
+                oauth_token:            accToken,
+                oauth_version:          '1.0',
+            };
+
+            const paramStr = Object.keys(oauthParams).sort()
+                .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(oauthParams[k])}`).join('&');
+            const baseStr = [method.toUpperCase(), encodeURIComponent(url), encodeURIComponent(paramStr)].join('&');
+            const sigKey  = `${encodeURIComponent(appSecret)}&${encodeURIComponent(accSecret)}`;
+
+            const enc = new TextEncoder();
+            const key = await crypto.subtle.importKey('raw', enc.encode(sigKey), { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+            const sig = await crypto.subtle.sign('HMAC', key, enc.encode(baseStr));
+            const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+
+            oauthParams.oauth_signature = sigB64;
+            return 'OAuth ' + Object.keys(oauthParams)
+                .map(k => `${encodeURIComponent(k)}="${encodeURIComponent(oauthParams[k])}"`)
+                .join(', ');
+        }
+
+        async function fetchCardmarketPrice(id) {
+            const btn     = document.getElementById(`price-btn-${id}`);
+            const nameEl  = document.getElementById(`name-${id}`);
+            const setEl   = document.getElementById(`set-${id}`);
+            const valueEl = document.getElementById(`value-${id}`);
+            const cardName = (nameEl?.value || '').trim();
+            if (!cardName) {
+                btn.classList.add('error'); btn.textContent = '?';
+                setTimeout(() => resetPriceBtn(id), 2000); return;
+            }
+            btn.classList.remove('error'); btn.classList.add('loading'); btn.textContent = '…';
+            try {
+                const authHdr = await buildCMAuthHeader('GET', 'https://api.cardmarket.com/ws/v2.0/products/find');
+                if (!authHdr) throw new Error('no-keys');
+
+                // Cardmarket API requires a CORS proxy for browser requests
+                const proxy   = 'https://corsproxy.io/?';
+                const qs      = new URLSearchParams({ search: cardName, exact: 'false', gameName: 'Pokemon', maxResults: '10' }).toString();
+                const r1      = await fetch(`${proxy}${encodeURIComponent(`https://api.cardmarket.com/ws/v2.0/products/find?${qs}`)}`,
+                                            { headers: { Authorization: authHdr } });
+                if (!r1.ok) throw new Error(`CM ${r1.status}`);
+                const j1      = await r1.json();
+                const products = j1.product || [];
+                if (!products.length) throw new Error('not found');
+
+                // Prefer expansion match
+                const setVal  = (setEl?.value || '').toLowerCase();
+                let product   = products[0];
+                if (setVal) {
+                    const m = products.find(p => (p.expansionName || '').toLowerCase().includes(setVal));
+                    if (m) product = m;
+                }
+
+                // Fetch price guide
+                const priceUrl  = `https://api.cardmarket.com/ws/v2.0/products/${product.idProduct}`;
+                const authHdr2  = await buildCMAuthHeader('GET', priceUrl);
+                const r2        = await fetch(`${proxy}${encodeURIComponent(priceUrl)}`,
+                                              { headers: { Authorization: authHdr2 } });
+                if (!r2.ok) throw new Error(`CM price ${r2.status}`);
+                const j2   = await r2.json();
+                const pg   = j2.product?.priceGuide;
+                if (!pg)   throw new Error('no price guide');
+
+                const price = pg.TREND ?? pg.SELL ?? pg.AVG ?? pg.LOW;
+                if (price == null) throw new Error('no price');
+
+                valueEl.value = parseFloat(price).toFixed(2);
+                saveData(id);
+                btn.classList.remove('loading'); btn.textContent = '✓'; btn.style.color = '#66bb6a';
+                setTimeout(() => resetPriceBtn(id), 2000);
+
+            } catch(err) {
+                btn.classList.remove('loading'); btn.classList.add('error');
+                if (err.message === 'no-keys') {
+                    btn.textContent = '🔑'; btn.title = 'Add Cardmarket API keys in ⚙ Settings';
+                    setTimeout(() => resetPriceBtn(id), 5000);
+                } else {
+                    btn.textContent = '✕';
+                    setTimeout(() => resetPriceBtn(id), 2500);
+                }
+            }
+        }
+
+        /* ── Card Name Autocomplete (Pokémon TCG API) ── */
+        const _nameAC  = {};
+        const PTCG_API = 'https://api.pokemontcg.io/v2/cards';
+
+        function onNameInput(id) {
+            saveData(id);
+            const val = (document.getElementById(`name-${id}`)?.value || '').trim();
+            clearTimeout(_nameAC[id]?.timer);
+            if (val.length < 2) { closeNameDropdown(id); return; }
+            _nameAC[id] = { ...(_nameAC[id] || {}), timer: setTimeout(() => fetchNameSuggestions(id, val), 380) };
+        }
+
+        async function fetchNameSuggestions(id, query) {
+            try {
+                const url = `${PTCG_API}?q=name:"${encodeURIComponent(query)}*"&pageSize=8&select=name,set,number,images`;
+                const r   = await fetch(url);
+                if (!r.ok) return;
+                const j = await r.json();
+                const cards = j.data || [];
+                if (!cards.length) { closeNameDropdown(id); return; }
+                _nameAC[id] = { ...(_nameAC[id] || {}), results: cards, activeIdx: -1 };
+                const dd = document.getElementById(`name-dd-${id}`);
+                if (!dd) return;
+                dd.innerHTML = cards.map((c, idx) => `
+                    <div class="name-dd-item" data-idx="${idx}" onmousedown="selectNameCard(${id},${idx})">
+                        <img class="name-dd-thumb" src="${c.images?.small || ''}" alt="" loading="lazy" onerror="this.style.display='none'">
+                        <div class="name-dd-info">
+                            <span class="name-dd-name">${c.name}</span>
+                            <span class="name-dd-set">${c.set?.name || ''}</span>
+                            <span class="name-dd-num">${c.number || ''}${c.set?.total ? ' / ' + c.set.total : ''}</span>
+                        </div>
+                    </div>`).join('');
+                dd.classList.add('open');
+            } catch(e) { /* silently skip */ }
+        }
+
+        function onNameKeydown(e, id) {
+            const dd    = document.getElementById(`name-dd-${id}`);
+            const state = _nameAC[id] || {};
+            if (!dd?.classList.contains('open')) return;
+            const items = dd.querySelectorAll('.name-dd-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                state.activeIdx = Math.min((state.activeIdx ?? -1) + 1, items.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                state.activeIdx = Math.max((state.activeIdx ?? 0) - 1, 0);
+            } else if (e.key === 'Enter' && (state.activeIdx ?? -1) >= 0) {
+                e.preventDefault(); selectNameCard(id, state.activeIdx); return;
+            } else if (e.key === 'Escape') {
+                closeNameDropdown(id); return;
+            } else { return; }
+            _nameAC[id] = state;
+            items.forEach((el, i) => el.classList.toggle('active', i === state.activeIdx));
+        }
+
+        function selectNameCard(id, idx) {
+            const state = _nameAC[id];
+            if (!state?.results) return;
+            const card = state.results[idx];
+            if (!card) return;
+            const nameEl = document.getElementById(`name-${id}`);
+            const setEl  = document.getElementById(`set-${id}`);
+            const snEl   = document.getElementById(`setNumber-${id}`);
+            if (nameEl) nameEl.value = card.name;
+            if (setEl  && card.set?.name)  setEl.value = card.set.name;
+            if (snEl   && card.number) {
+                const num   = String(card.number).padStart(3, '0');
+                const total = card.set?.total ? String(card.set.total).padStart(3, '0') : '';
+                snEl.value  = total ? `${num}/${total}` : num;
+            }
+            closeNameDropdown(id);
+            saveData(id);
+        }
+
+        function closeNameDropdown(id) {
+            const dd = document.getElementById(`name-dd-${id}`);
+            if (dd) dd.classList.remove('open');
+        }
+
+        /* ── OCR — Tesseract.js ── */
+        let ocrTargetId = null;
+
+        function openOCR(imageData) {
+            const overlay = document.getElementById('ocr-overlay');
+            document.getElementById('ocr-spinner').style.display = '';
+            document.getElementById('ocr-status').textContent    = 'Loading OCR engine…';
+            document.getElementById('ocr-result').classList.remove('open');
+            overlay.classList.add('open');
+            loadTesseract()
+                .then(() => runOCR(imageData))
+                .catch(() => { document.getElementById('ocr-status').textContent = 'OCR unavailable — check connection.'; });
+        }
+
+        function loadTesseract() {
+            if (window.Tesseract) return Promise.resolve();
+            return new Promise((res, rej) => {
+                const s   = document.createElement('script');
+                s.src     = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                s.onload  = res;
+                s.onerror = rej;
+                document.head.appendChild(s);
+            });
+        }
+
+        async function runOCR(imageData) {
+            const statusEl = document.getElementById('ocr-status');
+            try {
+                statusEl.textContent = 'Scanning card text…';
+                const result = await Tesseract.recognize(imageData, 'eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text')
+                            statusEl.textContent = `Scanning… ${Math.round((m.progress || 0) * 100)}%`;
+                    }
+                });
+
+                const allText = result.data.text;
+
+                // Name heuristic: prefer short, high-confidence capitalized lines
+                const nameCandidates = result.data.lines
+                    .filter(l => l.confidence > 40)
+                    .map(l => l.text.trim())
+                    .filter(t => /^[A-ZÉ][a-zA-Zé\s\-']+$/.test(t) && t.length >= 3 && t.length <= 28);
+                const detectedName = nameCandidates[0] || '';
+
+                // Set number heuristic: look for NNN/NNN pattern
+                const numMatch = allText.match(/\b(\d{1,3})\/(\d{2,3})\b/);
+                const detectedNum = numMatch
+                    ? `${String(numMatch[1]).padStart(3,'0')}/${String(numMatch[2]).padStart(3,'0')}`
+                    : '';
+
+                document.getElementById('ocr-spinner').style.display = 'none';
+                statusEl.textContent = '';
+                document.getElementById('ocr-name-input').value  = detectedName;
+                document.getElementById('ocr-set-input').value   = '';
+                document.getElementById('ocr-num-input').value   = detectedNum;
+                document.getElementById('ocr-lookup-note').textContent = '';
+                document.getElementById('ocr-detected-note').textContent =
+                    detectedName ? 'Detected from photo — edit if needed:' : 'Could not detect name — enter manually:';
+                document.getElementById('ocr-result').classList.add('open');
+
+                // Auto-lookup set via PTCG if we have at least a name
+                if (detectedName) lookupOcrSet(detectedName, detectedNum);
+
+            } catch(e) {
+                closeOCR();
+            }
+        }
+
+        // Re-run set lookup whenever the user edits the name field manually
+        let _ocrLookupTimer = null;
+        function onOcrNameChange() {
+            clearTimeout(_ocrLookupTimer);
+            const name = (document.getElementById('ocr-name-input')?.value || '').trim();
+            const num  = (document.getElementById('ocr-num-input')?.value  || '').trim();
+            if (name.length < 2) return;
+            _ocrLookupTimer = setTimeout(() => lookupOcrSet(name, num), 600);
+        }
+
+        async function lookupOcrSet(name, numRaw) {
+            const setInput  = document.getElementById('ocr-set-input');
+            const spin      = document.getElementById('ocr-set-spin');
+            const noteEl    = document.getElementById('ocr-lookup-note');
+            if (!setInput) return;
+
+            spin.style.display = '';
+            noteEl.textContent = 'Looking up in Pokémon TCG database…';
+
+            try {
+                const cardNum = (numRaw || '').split('/')[0].replace(/^0+/, '');
+                const safeName = name.replace(/"/g, '');
+                let q = `name:"${safeName}"`;
+                if (cardNum) q += ` number:${cardNum}`;
+
+                const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=6&select=name,set,number`;
+                const r   = await fetch(url);
+                if (!r.ok) throw new Error('api error');
+                const j   = await r.json();
+                const hits = j.data || [];
+
+                if (!hits.length) {
+                    noteEl.textContent = '⚠ No matching card found — enter set manually.';
+                    spin.style.display = 'none';
+                    return;
+                }
+
+                // If multiple hits with same number, prefer the one whose set total matches the detected total
+                let best = hits[0];
+                if (numRaw && hits.length > 1) {
+                    const total = (numRaw.split('/')[1] || '').replace(/^0+/, '');
+                    if (total) {
+                        const m = hits.find(h => String(h.set?.total || '') === total);
+                        if (m) best = m;
+                    }
+                }
+
+                const setName   = best.set?.name || '';
+                const setTotal  = best.set?.total ? String(best.set.total).padStart(3,'0') : '';
+                const bestNum   = best.number ? String(best.number).padStart(3,'0') : '';
+
+                setInput.value = setName;
+
+                // Also backfill set number if it was missing
+                const numInput = document.getElementById('ocr-num-input');
+                if (numInput && !numInput.value.trim() && bestNum && setTotal) {
+                    numInput.value = `${bestNum}/${setTotal}`;
+                }
+
+                noteEl.textContent = hits.length > 1
+                    ? `✓ Matched (${hits.length} results — top result shown)`
+                    : '✓ Matched in database';
+
+            } catch(e) {
+                noteEl.textContent = 'Could not reach database — enter set manually.';
+            }
+            spin.style.display = 'none';
+        }
+
+        function applyOCR() {
+            if (ocrTargetId === null) { closeOCR(); return; }
+            const name   = document.getElementById('ocr-name-input')?.value.trim();
+            const setVal = document.getElementById('ocr-set-input')?.value.trim();
+            const setNum = document.getElementById('ocr-num-input')?.value.trim();
+            if (name) {
+                const nameEl = document.getElementById(`name-${ocrTargetId}`);
+                if (nameEl) { nameEl.value = name; onNameInput(ocrTargetId); }
+            }
+            if (setVal) {
+                const setEl = document.getElementById(`set-${ocrTargetId}`);
+                if (setEl) setEl.value = setVal;
+            }
+            if (setNum) {
+                const snEl = document.getElementById(`setNumber-${ocrTargetId}`);
+                if (snEl) snEl.value = setNum;
+            }
+            if (name || setVal || setNum) saveData(ocrTargetId);
+            closeOCR();
+        }
+
+        function closeOCR() {
+            document.getElementById('ocr-overlay').classList.remove('open');
+            ocrTargetId = null;
         }
 
         /* ── Render ── */
@@ -1677,7 +2663,10 @@
                     <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
                     <div class="input-group">
                         <div class="input-fields">
-                            <input type="text"   id="name-${i}"       class="item-name"       placeholder="Name"       value="${safeName}"      autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
+                            <div class="name-ac-wrapper">
+                                <input type="text" id="name-${i}" class="item-name" placeholder="Name" value="${safeName}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onNameInput(${i})" onkeydown="onNameKeydown(event,${i})" onblur="closeNameDropdown(${i})">
+                                <div class="name-dropdown" id="name-dd-${i}"></div>
+                            </div>
                             <div class="set-autocomplete-wrapper">
                                 <input type="text" id="set-${i}" class="item-set" placeholder="Set" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
                                     oninput="onSetInput(${i})" onkeydown="onSetKeydown(event,${i})" onblur="closeSetDropdown(${i})">
@@ -1685,13 +2674,13 @@
                             </div>
                             <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
                             <div class="value-wrapper">
-                                <span class="value-prefix">$</span>
+                                <span class="value-prefix">${getCurrencySymbol()}</span>
                                 <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
                             </div>
                         </div>
                         <div class="input-actions">
                             <div class="action-row-1">
-                                <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch market price from Pokemon TCG API">💲</button>
+                                <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch price">${getPriceBtnIcon()}</button>
                                 <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
                                 <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
                                 <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
@@ -1781,6 +2770,8 @@
         });
 
         /* ── Init ── */
+        applyPriceSourceUI();
+        loadApiKeyInputs();
         renderList();
         loadLastUpdated();
     </script>

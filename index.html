@@ -809,6 +809,7 @@
             <button class="settings-apply" style="background:#333;color:#aaa;" onclick="collapseAll()">⊖ Collapse All</button>
             <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
             <button class="settings-apply" id="repair-sets-btn" style="background:#1e2e1e;color:#4caf50;border:1px solid #2e4e2e;" onclick="repairSetNames()" title="Replace set codes (e.g. SWSH08, sv2a) with their full API names">🔧 Fix Set Names</button>
+            <button class="settings-apply" style="background:#2e1a1a;color:#e57373;border:1px solid #4e2a2a;" onclick="clearPokedex()" title="Permanently delete all entries and photos">🗑 Clear Pokédex</button>
             <div class="nav-page-group">
                 <span class="settings-label">Page</span>
                 <input type="number" id="gotoPage" min="1" value="1" inputmode="numeric">
@@ -1572,6 +1573,21 @@ fetchAllArt();
                 }, 3000);
             }
             if (fixed) updateTotalValue();
+        }
+
+        function clearPokedex() {
+            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, and saved data. This cannot be undone.')) return;
+            if (!confirm('Are you absolutely sure? All data will be lost.')) return;
+            for (let i = 1; i <= config.total; i++) localStorage.removeItem(`item-${i}`);
+            localStorage.removeItem('lastUpdated');
+            localStorage.removeItem('collapsedPages');
+            openDB().then(db => {
+                const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                tx.objectStore(PHOTO_STORE).clear();
+            }).catch(() => {});
+            renderList();
+            touchLastUpdated();
+            toggleSettings();
         }
 
         function toggleSettings() {

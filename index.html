@@ -1194,12 +1194,19 @@ function buildGrid() {
       </div>\`;
     }).join('');
 
+    const collected = cards.filter(c => c.collected).length;
+    const wanted    = cards.length - collected;
+
     return \`<div class="page-section">
       <div class="page-header-g" id="pg-hdr-\${pg}" onclick="togglePage(\${pg})">
         <span class="page-caret-g">▶</span>
         <span class="page-label-g">Page \${pg}</span>
         <div class="page-line-g"></div>
-        <div class="page-stats-g">\${cards.length} card\${cards.length!==1?'s':''}</div>
+        <div class="page-stats-g">
+          <span style="color:#43a047">✓ \${collected}</span>
+          <span style="color:#e57373">♥ \${wanted}</span>
+          <span>\${cards.length} card\${cards.length!==1?'s':''}</span>
+        </div>
       </div>
       <div class="page-body-g" id="pg-body-\${pg}">
         <div class="binder-grid" style="grid-template-columns:repeat(\${cols},1fr)">

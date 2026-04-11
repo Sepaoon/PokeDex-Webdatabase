@@ -1037,7 +1037,7 @@
             </div>
 
             <div class="nav-actions">
-                <div id="total-value-display">💰 <strong id="total-value-amt">$0.00</strong></div>
+                <div id="total-value-display" onclick="promptBulkPriceUpdate()" style="cursor:pointer;" title="Tap to bulk-update all prices">💰 <strong id="total-value-amt">$0.00</strong></div>
                 
                 <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
                 <button class="nav-btn btn-save    hide-mobile" onclick="saveJSON()">⬇ Save</button>
@@ -2178,6 +2178,11 @@ fetchAllArt();
                 revHolo:   revHoloEl ? revHoloEl.checked : false,
                 wanted:    !collected,
             };
+            // Track peak value
+            const prev = _memoryCache[`item-${id}`] || {};
+            const prevPeak = parseFloat(prev.peakValue) || 0;
+            item.peakValue = Math.max(prevPeak, item.value);
+
             saveCardToDB(id, item);
             applyRarityBorder(id, item.value);
             updateTotalValue();
@@ -2537,6 +2542,7 @@ fetchAllArt();
                         <span class="value-prefix">${getCurrencySymbol()}</span>
                         <input type="number" id="value-${id}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${id})">
                     </div>
+                    ${(parseFloat(saved.peakValue) || 0) > 0 ? `<span style="font-size:0.68em;color:#555;white-space:nowrap;" title="Highest recorded value">📈 Peak: ${getCurrencySymbol()}${(parseFloat(saved.peakValue) || 0).toFixed(2)}</span>` : ''}
                 </div>`;
 
             // Toggle row
@@ -3127,6 +3133,116 @@ fetchAllArt();
             btn.style.color = '';
             btn.title = getPriceBtnTitle();
             btn.textContent = getPriceBtnIcon();
+        }
+
+        /* ── Bulk Price Update ── */
+        let _bulkPriceRunning = false;
+
+        function promptBulkPriceUpdate() {
+            if (_bulkPriceRunning) {
+                alert('A bulk price update is already running.');
+                return;
+            }
+            // Count eligible cards
+            let eligible = 0;
+            for (let i = 1; i <= config.total; i++) {
+                const s = _memoryCache[`item-${i}`];
+                if (s && s.name && s.name.trim()) eligible++;
+            }
+            if (!eligible) {
+                alert('No cards with names entered yet — add some cards first.');
+                return;
+            }
+            if (!confirm(`Bulk Price Update\n\nThis will fetch current market prices for ${eligible} card${eligible !== 1 ? 's' : ''} with data entered.\n\nThis may take a while and uses the Pokémon TCG API.\n\nContinue?`)) return;
+            runBulkPriceUpdate();
+        }
+
+        async function runBulkPriceUpdate() {
+            _bulkPriceRunning = true;
+            const valDisplay = document.getElementById('total-value-amt');
+            const originalText = valDisplay.textContent;
+
+            const eligible = [];
+            for (let i = 1; i <= config.total; i++) {
+                const s = _memoryCache[`item-${i}`];
+                if (s && s.name && s.name.trim()) eligible.push(i);
+            }
+
+            let done = 0, updated = 0, failed = 0;
+            const BATCH = 3;
+
+            for (let start = 0; start < eligible.length; start += BATCH) {
+                const batch = eligible.slice(start, start + BATCH);
+                await Promise.allSettled(batch.map(async (id) => {
+                    try {
+                        const saved = _memoryCache[`item-${id}`];
+                        if (!saved || !saved.name) return;
+
+                        const cardName = saved.name.trim();
+                        const snRaw = (saved.setNumber || '').trim();
+                        const cardNum = snRaw.split('/')[0].replace(/^0+/, '') || '';
+                        const setVal = (saved.set || '').trim();
+
+                        let q = `name:"${cardName.replace(/"/g, '')}"`;
+                        if (cardNum) q += ` number:${cardNum}`;
+
+                        const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=10&select=name,number,tcgplayer,set`;
+                        const resp = await fetch(url);
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const json = await resp.json();
+                        const cards = json.data || [];
+                        if (!cards.length) throw new Error('not found');
+
+                        const resolvedSetVal = resolveSetName(setVal);
+                        let card = cards[0];
+                        if (resolvedSetVal && cards.length > 1) {
+                            const match = cards.find(c => setNamesMatch(c.set?.name, resolvedSetVal));
+                            if (match) card = match;
+                        }
+
+                        const prices = card?.tcgplayer?.prices;
+                        if (!prices) throw new Error('no price');
+
+                        // Determine price based on card attributes
+                        const isHolo = saved.holo;
+                        const isRevHolo = saved.revHolo;
+                        let market = null;
+                        if (isRevHolo && prices.reverseHolofoil?.market != null) market = prices.reverseHolofoil.market;
+                        else if (isHolo && prices.holofoil?.market != null)       market = prices.holofoil.market;
+                        else if (prices.normal?.market != null)                   market = prices.normal.market;
+                        if (market == null) {
+                            for (const v of Object.values(prices)) {
+                                if (v?.market != null) { market = v.market; break; }
+                            }
+                        }
+                        if (market == null) throw new Error('no price data');
+
+                        const newValue = parseFloat(parseFloat(market).toFixed(2));
+                        const prevPeak = parseFloat(saved.peakValue) || 0;
+                        saved.value = newValue;
+                        saved.peakValue = Math.max(prevPeak, newValue);
+                        saveCardToDB(id, saved);
+                        updateTile(id);
+                        updated++;
+                    } catch(e) {
+                        failed++;
+                    }
+                    done++;
+                }));
+
+                // Update progress in the value display
+                valDisplay.textContent = `${done}/${eligible.length}…`;
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            // Finished
+            updateTotalValue();
+            _bulkPriceRunning = false;
+
+            const total = getTotalCollectionValue();
+            valDisplay.textContent = getCurrencySymbol() + total.toFixed(2);
+
+            alert(`Bulk Price Update Complete\n\n✓ ${updated} prices updated\n✕ ${failed} failed or no price found\n\nTotal collection value: ${getCurrencySymbol()}${total.toFixed(2)}`);
         }
 
         /* ── Price Source & Currency ── */

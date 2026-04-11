@@ -956,14 +956,14 @@
                 <img id="ocr-preview-img" src="" alt="Card photo">
             </div>
             <p id="ocr-detected-note" style="font-size:0.75em;color:#777;margin:0 0 10px;"></p>
-            <input id="ocr-name-input" type="text" placeholder="Card name…" autocomplete="off" spellcheck="false" oninput="onOcrNameChange()">
+            <input id="ocr-name-input" type="text" placeholder="Card name…" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" spellcheck="false" oninput="onOcrNameChange()">
             <div style="position:relative;">
-                <input id="ocr-set-input" type="text" placeholder="Set name…" autocomplete="off" spellcheck="false" style="padding-right:28px;">
+                <input id="ocr-set-input" type="text" placeholder="Set name…" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" spellcheck="false" style="padding-right:28px;">
                 <span id="ocr-set-spin" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);">
                     <span class="ocr-spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;"></span>
                 </span>
             </div>
-            <input id="ocr-num-input"  type="text" placeholder="Set number (e.g. 012/165)…" autocomplete="off" spellcheck="false">
+            <input id="ocr-num-input"  type="text" placeholder="Set number (e.g. 012/165)…" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" spellcheck="false">
             <p id="ocr-lookup-note" style="font-size:0.7em;color:#555;margin:2px 0 8px;min-height:1em;"></p>
             <div class="ocr-actions">
                 <button class="ocr-cancel" onclick="closeOCR()">Cancel</button>
@@ -1028,7 +1028,7 @@
             <div class="nav-search">
                 <span class="nav-search-sep">🔍</span>
                 <input type="text" id="searchInput" placeholder="Search name, set, #…"
-                       inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false"
+                       inputmode="search" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" autocorrect="off" spellcheck="false"
                        oninput="document.getElementById('search-clear-btn').style.display=this.value?'flex':'none'">
                 <button id="search-clear-btn" class="search-clear-btn" onclick="clearSearch()" title="Clear search" style="display:none;">✕</button>
                 <button class="nav-search-btn" onclick="findItem()">Find</button>
@@ -1067,21 +1067,21 @@
             <div class="api-keys-row">
                 <div class="api-key-group">
                     <span class="api-key-sublabel">Open Exchange Rates App ID &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a></span>
-                    <input class="api-key-input" id="oxr-key" type="password" placeholder="Paste App ID…" autocomplete="off">
+                    <input class="api-key-input" id="oxr-key" type="password" placeholder="Paste App ID…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
                 </div>
                 <div class="api-key-group">
                     <span class="api-key-sublabel">Google Gemini API Key &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a></span>
-                    <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off">
+                    <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
                 </div>
                 <div class="api-key-group" id="cm-key-group" style="display:none">
                     <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
-                    <input class="api-key-input" id="cm-app-token"    type="password" placeholder="App Token"    autocomplete="off">
+                    <input class="api-key-input" id="cm-app-token" data-1p-ignore data-lpignore="true" data-form-type="other"    type="password" placeholder="App Token"    autocomplete="off">
                     <span class="api-key-sublabel" style="margin-top:4px">App Secret</span>
-                    <input class="api-key-input" id="cm-app-secret"   type="password" placeholder="App Secret"   autocomplete="off">
+                    <input class="api-key-input" id="cm-app-secret" data-1p-ignore data-lpignore="true" data-form-type="other"   type="password" placeholder="App Secret"   autocomplete="off">
                     <span class="api-key-sublabel" style="margin-top:4px">Access Token</span>
-                    <input class="api-key-input" id="cm-access-token" type="password" placeholder="Access Token" autocomplete="off">
+                    <input class="api-key-input" id="cm-access-token" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Token" autocomplete="off">
                     <span class="api-key-sublabel" style="margin-top:4px">Access Secret</span>
-                    <input class="api-key-input" id="cm-access-secret" type="password" placeholder="Access Secret" autocomplete="off">
+                    <input class="api-key-input" id="cm-access-secret" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Secret" autocomplete="off">
                 </div>
                 <button class="api-keys-save" onclick="saveApiKeys()">💾 Save Keys</button>
             </div>
@@ -2487,7 +2487,7 @@ fetchAllArt();
                 <div class="cd-field-row">
                     <span class="cd-field-label">Name</span>
                     <div class="name-ac-wrapper">
-                        <input type="text" id="name-${id}" class="item-name" placeholder="Card name…" value="${safeName}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onNameInput(${id})" onkeydown="onNameKeydown(event,${id})" onblur="closeNameDropdown(${id})">
+                        <input type="text" id="name-${id}" class="item-name" placeholder="Card name…" value="${safeName}" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" autocorrect="off" spellcheck="false" oninput="onNameInput(${id})" onkeydown="onNameKeydown(event,${id})" onblur="closeNameDropdown(${id})">
                         <div class="name-dropdown" id="name-dd-${id}"></div>
                         <div class="match-badge" id="mb-${id}"></div>
                     </div>
@@ -2495,14 +2495,14 @@ fetchAllArt();
                 <div class="cd-field-row">
                     <span class="cd-field-label">Set</span>
                     <div class="set-autocomplete-wrapper">
-                        <input type="text" id="set-${id}" class="item-set" placeholder="Set name…" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
+                        <input type="text" id="set-${id}" class="item-set" placeholder="Set name…" value="${safeSet}" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" autocorrect="off" spellcheck="false"
                             oninput="onSetInput(${id})" onkeydown="onSetKeydown(event,${id})" onblur="closeSetDropdown(${id})">
                         <div class="set-dropdown" id="set-dd-${id}"></div>
                     </div>
                 </div>
                 <div class="cd-field-row">
                     <span class="cd-field-label">Set #</span>
-                    <input type="text" id="setNumber-${id}" class="item-set-number" placeholder="001/100" value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${id})">
+                    <input type="text" id="setNumber-${id}" class="item-set-number" placeholder="001/100" value="${safeSetNumber}" autocomplete="one-time-code" data-1p-ignore data-lpignore="true" autocorrect="off" spellcheck="false" oninput="saveData(${id})">
                     <span class="cd-field-label" style="min-width:auto;">Value</span>
                     <div class="value-wrapper">
                         <span class="value-prefix">${getCurrencySymbol()}</span>

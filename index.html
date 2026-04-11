@@ -1105,6 +1105,11 @@
             <input type="number" id="gridRows" value="4" min="1" inputmode="numeric">
             <span class="settings-label">Slots</span>
             <input type="number" id="gridCols" value="4" min="1" inputmode="numeric">
+            <span class="settings-label">Card Size</span>
+            <input type="range" id="cardSizeSlider" min="25" max="300" value="100" step="25"
+                   oninput="applyCardSize(this.value)"
+                   style="width:90px;height:22px;accent-color:#007bff;cursor:pointer;vertical-align:middle;">
+            <span class="settings-label" id="cardSizeLabel" style="min-width:32px;text-transform:none;">100%</span>
             <button class="settings-apply" onclick="applySettings()">Apply</button>
             <button class="settings-apply" style="background:#333;color:#aaa;" onclick="collapseAll()">⊖ Collapse All</button>
             <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
@@ -2050,7 +2055,31 @@ fetchAllArt();
             config.cols  = Math.max(1, parseInt(document.getElementById('gridCols').value)   || 1);
             localStorage.setItem('appConfig', JSON.stringify(config));
             renderList();
+            applyCardSize(); // re-apply after re-render
         }
+
+        function applyCardSize(val) {
+            if (val !== undefined) {
+                localStorage.setItem('cardSize', val);
+            } else {
+                val = localStorage.getItem('cardSize') || '100';
+            }
+            const pct = Math.max(25, Math.min(300, parseInt(val) || 100));
+            document.getElementById('cardSizeSlider').value = pct;
+            document.getElementById('cardSizeLabel').textContent = pct + '%';
+
+            // On mobile, lock to default binder columns
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            document.querySelectorAll('.binder-grid').forEach(grid => {
+                if (isMobile) {
+                    grid.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+                } else {
+                    const effectiveCols = Math.max(1, Math.round(config.cols * (100 / pct)));
+                    grid.style.gridTemplateColumns = `repeat(${effectiveCols}, 1fr)`;
+                }
+            });
+        }
+        window.addEventListener('resize', () => applyCardSize());
 
         /* ── Banner ── */
         function applyBanner(url) {
@@ -4219,6 +4248,7 @@ fetchAllArt();
             await migrateLocalStorageToIDB();
             await bootDatabase();
             renderList();
+            applyCardSize();
             loadLastUpdated();
         })();
     </script>

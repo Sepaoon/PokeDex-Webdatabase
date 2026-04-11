@@ -3741,7 +3741,7 @@ fetchAllArt();
 
                 if (page !== currentPage) {
                     currentPage = page;
-                    const isOpen = !collapsed[page];
+                    const isOpen = collapsed[page] === undefined ? (page === 1) : !collapsed[page];
                     const stats  = pageStats[page] || { total:0, collected:0, wanted:0 };
 
                     const section = document.createElement('div');

@@ -2726,6 +2726,14 @@ fetchAllArt();
                 large: cardData.images.large || cardData.images.small
             };
 
+            // Persist art URLs to card data
+            const stored = _memoryCache[`item-${id}`];
+            if (stored) {
+                stored.artSmall = cardData.images.small;
+                stored.artLarge = cardData.images.large || cardData.images.small;
+                saveCardToDB(id, stored);
+            }
+
             // Update tile art
             const tileArt = document.getElementById(`tart-${id}`);
             if (tileArt) {
@@ -4166,6 +4174,12 @@ fetchAllArt();
                 const hasData = !!(saved.name);
                 const val = parseFloat(saved.value) || 0;
 
+                // Restore cached art URLs
+                const hasArt = !!(saved.artSmall);
+                if (hasArt && !_artCache[i]) {
+                    _artCache[i] = { small: saved.artSmall, large: saved.artLarge || saved.artSmall };
+                }
+
                 const tile = document.createElement('div');
                 tile.className = 'tile' + (!hasData ? ' tile-empty' : '');
                 tile.id = `tile-${i}`;
@@ -4174,11 +4188,11 @@ fetchAllArt();
                     <div class="tile-img-wrap">
                         <div class="tile-bg" style="background:${bg}"></div>
                         <img class="tile-img tile-photo" id="tphoto-${i}" src="" alt="" style="display:none">
-                        <img class="tile-img" id="tart-${i}" src="" alt="" style="display:none">
+                        <img class="tile-img${hasArt ? ' ready' : ''}" id="tart-${i}" src="${hasArt ? saved.artSmall : ''}" alt="" style="${hasArt ? '' : 'display:none'}">
                         <div class="tile-collected-badge ${saved.collected ? 'show' : ''}" id="tcoll-${i}">✓</div>
                         <div class="tile-value-badge ${val > 0 ? 'show' : ''}" id="tval-${i}">${getCurrencySymbol()}${val > 0 ? val.toFixed(2) : ''}</div>
                         <div class="tile-indicators">
-                            <div class="tile-ind" id="tind-art-${i}" title="Card art">🎨</div>
+                            <div class="tile-ind${hasArt ? ' has' : ''}" id="tind-art-${i}" title="Card art">🎨</div>
                             <div class="tile-ind" id="tind-ph-${i}" title="My photo">📸</div>
                         </div>
                     </div>
@@ -4254,7 +4268,7 @@ fetchAllArt();
             const eligible = [];
             for (let i = start; i <= end; i++) {
                 const saved = _memoryCache[`item-${i}`];
-                if (saved && saved.name && saved.set && saved.setNumber) {
+                if (saved && saved.name && saved.set && saved.setNumber && !saved.artSmall) {
                     eligible.push({ id: i, ...saved });
                 }
             }
@@ -4285,6 +4299,14 @@ fetchAllArt();
                         if (!match?.images?.small) return;
 
                         _artCache[c.id] = { small: match.images.small, large: match.images.large || match.images.small };
+
+                        // Persist art URLs to card data
+                        const stored = _memoryCache[`item-${c.id}`];
+                        if (stored) {
+                            stored.artSmall = match.images.small;
+                            stored.artLarge = match.images.large || match.images.small;
+                            saveCardToDB(c.id, stored);
+                        }
 
                         const artImg = document.getElementById(`tart-${c.id}`);
                         if (artImg) {

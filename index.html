@@ -2024,12 +2024,15 @@ fetchAllArt();
         }
 
         function clearPokedex() {
-            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, and saved data. This cannot be undone.')) return;
+            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, card art, and saved data. This cannot be undone.')) return;
             if (!confirm('Are you absolutely sure? All data will be lost.')) return;
             for (let i = 1; i <= config.total; i++) {
                 delete _memoryCache[`item-${i}`];
                 localStorage.removeItem(`item-${i}`);
             }
+            // Clear art cache and fetched page tracking
+            Object.keys(_artCache).forEach(k => delete _artCache[k]);
+            _fetchedPages.clear();
             localStorage.removeItem('lastUpdated');
             localStorage.removeItem('collapsedPages');
             openDB().then(db => {

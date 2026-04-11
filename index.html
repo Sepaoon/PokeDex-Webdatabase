@@ -3050,6 +3050,7 @@ fetchAllArt();
         async function fetchTCGPrice(id) {
             const btn       = document.getElementById(`price-btn-${id}`);
             const nameEl    = document.getElementById(`name-${id}`);
+            const setEl2    = document.getElementById(`set-${id}`);
             const snEl      = document.getElementById(`setNumber-${id}`);
             const valueEl   = document.getElementById(`value-${id}`);
             const holoEl    = document.getElementById(`cbHolo-${id}`);
@@ -3057,8 +3058,14 @@ fetchAllArt();
             const faEl      = document.getElementById(`cbFA-${id}`);
 
             const cardName = (nameEl?.value || '').trim();
+            const setName  = (setEl2?.value || '').trim();
             const snRaw    = (snEl?.value   || '').trim();
-            if (!cardName) { btn.classList.add('error'); btn.textContent = '?'; setTimeout(() => resetPriceBtn(id), 2000); return; }
+
+            // Require all three fields to identify a specific card
+            if (!cardName || !setName || !snRaw) {
+                if (btn) { btn.classList.add('error'); btn.textContent = '?'; btn.title = 'Fill in name, set, and set # first'; setTimeout(() => resetPriceBtn(id), 2500); }
+                return;
+            }
 
             // Extract card number from "013/217" or "013" or "13"
             const cardNum = snRaw.split('/')[0].replace(/^0+/, '') || '';
@@ -3154,14 +3161,14 @@ fetchAllArt();
                 alert('A bulk price update is already running.');
                 return;
             }
-            // Count eligible cards
+            // Count eligible cards (need name + set + set number to identify)
             let eligible = 0;
             for (let i = 1; i <= config.total; i++) {
                 const s = _memoryCache[`item-${i}`];
-                if (s && s.name && s.name.trim()) eligible++;
+                if (s && s.name && s.name.trim() && s.set && s.set.trim() && s.setNumber && s.setNumber.trim()) eligible++;
             }
             if (!eligible) {
-                alert('No cards with names entered yet — add some cards first.');
+                alert('No cards with complete data (name, set, and set #) to look up prices for.');
                 return;
             }
             if (!confirm(`Bulk Price Update\n\nThis will fetch current market prices for ${eligible} card${eligible !== 1 ? 's' : ''} with data entered.\n\nThis may take a while and uses the Pokémon TCG API.\n\nContinue?`)) return;
@@ -3176,7 +3183,7 @@ fetchAllArt();
             const eligible = [];
             for (let i = 1; i <= config.total; i++) {
                 const s = _memoryCache[`item-${i}`];
-                if (s && s.name && s.name.trim()) eligible.push(i);
+                if (s && s.name && s.name.trim() && s.set && s.set.trim() && s.setNumber && s.setNumber.trim()) eligible.push(i);
             }
 
             let done = 0, updated = 0, failed = 0;
@@ -3401,9 +3408,12 @@ fetchAllArt();
             const setEl   = document.getElementById(`set-${id}`);
             const valueEl = document.getElementById(`value-${id}`);
             const cardName = (nameEl?.value || '').trim();
-            if (!cardName) {
-                btn.classList.add('error'); btn.textContent = '?';
-                setTimeout(() => resetPriceBtn(id), 2000); return;
+            const setName  = (setEl?.value  || '').trim();
+            const snEl     = document.getElementById(`setNumber-${id}`);
+            const snRaw    = (snEl?.value   || '').trim();
+            if (!cardName || !setName || !snRaw) {
+                if (btn) { btn.classList.add('error'); btn.textContent = '?'; btn.title = 'Fill in name, set, and set # first'; setTimeout(() => resetPriceBtn(id), 2500); }
+                return;
             }
             btn.classList.remove('error'); btn.classList.add('loading'); btn.textContent = '…';
             try {

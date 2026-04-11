@@ -884,6 +884,10 @@
                     <span class="api-key-sublabel">Open Exchange Rates App ID &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a></span>
                     <input class="api-key-input" id="oxr-key" type="password" placeholder="Paste App ID…" autocomplete="off">
                 </div>
+                <div class="api-key-group">
+                    <span class="api-key-sublabel">Google Gemini API Key &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a></span>
+                    <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off">
+                </div>
                 <div class="api-key-group" id="cm-key-group" style="display:none">
                     <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
                     <input class="api-key-input" id="cm-app-token"    type="password" placeholder="App Token"    autocomplete="off">
@@ -2531,6 +2535,7 @@ fetchAllArt();
                 if (v) localStorage.setItem(storKey, v);
             };
             save('oxr-key',          'oxr_app_id');
+            save('gemini-key',       'gemini_api_key');
             save('cm-app-token',     'cm_app_token');
             save('cm-app-secret',    'cm_app_secret');
             save('cm-access-token',  'cm_access_token');
@@ -2547,6 +2552,7 @@ fetchAllArt();
                 if (el && v) el.value = v;
             };
             set('oxr-key',          'oxr_app_id');
+            set('gemini-key',       'gemini_api_key');
             set('cm-app-token',     'cm_app_token');
             set('cm-app-secret',    'cm_app_secret');
             set('cm-access-token',  'cm_access_token');
@@ -2859,31 +2865,97 @@ fetchAllArt();
             }
         }
 
-        /* ── OCR — Tesseract.js ── */
+        /* ── OCR — Gemini Vision (primary if key set) / Tesseract.js + TCG lookup (fallback) ── */
         let ocrTargetId = null;
 
         function openOCR(imageData) {
             const overlay = document.getElementById('ocr-overlay');
             document.getElementById('ocr-spinner').style.display = '';
-            document.getElementById('ocr-status').textContent    = 'Loading OCR engine…';
             document.getElementById('ocr-result').classList.remove('open');
-            // Show image preview so user can see the card while editing fields
+            // Show card image preview while scanning/editing
             const previewWrap = document.getElementById('ocr-preview-wrap');
             const previewImg  = document.getElementById('ocr-preview-img');
-            if (previewImg && imageData) {
-                previewImg.src = imageData;
-                previewWrap.classList.add('show');
-            }
+            if (previewImg && imageData) { previewImg.src = imageData; previewWrap.classList.add('show'); }
             overlay.classList.add('open');
-            loadTesseract()
-                .then(() => runOCR(imageData))
-                .catch(() => { document.getElementById('ocr-status').textContent = 'OCR unavailable — check connection.'; });
+
+            const geminiKey = localStorage.getItem('gemini_api_key') || '';
+            if (geminiKey) {
+                document.getElementById('ocr-status').textContent = 'Reading card with AI…';
+                runGeminiVisionOCR(imageData, geminiKey);
+            } else {
+                document.getElementById('ocr-status').textContent = 'Loading OCR engine…';
+                loadTesseract()
+                    .then(() => runTesseractOCR(imageData))
+                    .catch(() => {
+                        document.getElementById('ocr-status').textContent =
+                            'OCR failed — add a free Gemini API key in ⚙ Settings for better scanning.';
+                    });
+            }
         }
 
+        /* ── Gemini Vision path (free tier: 1,500 req/day, no credit card) ── */
+        async function runGeminiVisionOCR(imageDataUrl, apiKey) {
+            const statusEl = document.getElementById('ocr-status');
+            try {
+                // Resize to 1024px for a good balance of quality vs payload size
+                const resizedUrl = await resizeForOCR(imageDataUrl, 1024, 0.88);
+                const base64 = resizedUrl.split(',')[1];
+
+                const resp = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { inline_data: { mime_type: 'image/jpeg', data: base64 } },
+                                    { text: 'This is a Pokémon Trading Card Game card. Read it carefully and return ONLY a JSON object with these exact keys — no markdown, no explanation:\n{"name":"<card name>","set":"<set name>","number":"<NNN/NNN>"}\nIf a field is unreadable use an empty string. The number must be in NNN/NNN format (e.g. 025/198).' }
+                                ]
+                            }],
+                            generationConfig: { maxOutputTokens: 200, temperature: 0 }
+                        })
+                    }
+                );
+
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err?.error?.message || `HTTP ${resp.status}`);
+                }
+
+                const json    = await resp.json();
+                const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                const cleaned = rawText.replace(/```json|```/g, '').trim();
+                let parsed;
+                try { parsed = JSON.parse(cleaned); } catch { parsed = {}; }
+
+                // Normalise number format → NNN/NNN
+                let detectedNum = (parsed.number || '').trim();
+                const numMatch = detectedNum.match(/^(\d+)\s*\/\s*(\d+)$/);
+                if (numMatch) {
+                    detectedNum = `${String(numMatch[1]).padStart(3,'0')}/${String(numMatch[2]).padStart(3,'0')}`;
+                }
+
+                showOcrResult(parsed.name || '', parsed.set || '', detectedNum);
+
+            } catch(err) {
+                console.error('Gemini Vision error:', err);
+                // Gracefully fall back to the beefed-up Tesseract path
+                statusEl.textContent = `AI scan failed (${err.message}) — falling back to OCR…`;
+                loadTesseract()
+                    .then(() => runTesseractOCR(imageDataUrl))
+                    .catch(() => {
+                        statusEl.textContent = 'Scan failed — enter card details manually.';
+                        showOcrResult('', '', '');
+                    });
+            }
+        }
+
+        /* ── Tesseract path — beefed-up OCR + TCG API lookup ── */
         function loadTesseract() {
             if (window.Tesseract) return Promise.resolve();
             return new Promise((res, rej) => {
-                const s   = document.createElement('script');
+                const s = document.createElement('script');
                 s.src     = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
                 s.onload  = res;
                 s.onerror = rej;
@@ -2891,48 +2963,161 @@ fetchAllArt();
             });
         }
 
-        async function runOCR(imageData) {
+        /**
+         * Pre-process the image to improve Tesseract accuracy:
+         * – upscale to 900px (sweet spot: readable text without huge WASM memory spike)
+         * – boost contrast & convert to grayscale so dark text pops on light card backgrounds
+         */
+        function preprocessForOCR(dataUrl) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const MAX = 900;
+                    let w = img.width, h = img.height;
+                    if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+                    else        { w = Math.round(w * MAX / h); h = MAX; }
+
+                    const c   = document.createElement('canvas');
+                    c.width   = w; c.height = h;
+                    const ctx = c.getContext('2d');
+
+                    // Draw original
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    // Contrast / brightness boost via CSS filter (widely supported)
+                    const offscreen = document.createElement('canvas');
+                    offscreen.width = w; offscreen.height = h;
+                    const octx = offscreen.getContext('2d');
+                    octx.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
+                    octx.drawImage(c, 0, 0);
+
+                    resolve(offscreen.toDataURL('image/jpeg', 0.90));
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
+            });
+        }
+
+        // Pokémon words that look like card names but aren't — used to skip false positives
+        const OCR_SKIP_WORDS = new Set([
+            'The','You','For','Can','This','Has','Are','Put','And','Its','Use',
+            'Your','When','Once','Each','That','Then','Draw','Flip','Coin',
+            'Discard','Attach','Damage','Energy','Stage','Basic','Trainer',
+            'Item','Tool','Stadium','Supporter','Special','Water','Fire',
+            'Grass','Lightning','Psychic','Fighting','Darkness','Metal',
+            'Dragon','Colorless','Fairy','Weakness','Resistance','Retreat',
+            'Pokemon','Pokémon','Illustrated','Regulation','Mark',
+        ]);
+
+        async function runTesseractOCR(imageDataUrl) {
             const statusEl = document.getElementById('ocr-status');
             try {
+                statusEl.textContent = 'Preparing image…';
+                const processedUrl = await preprocessForOCR(imageDataUrl);
+
                 statusEl.textContent = 'Scanning card text…';
-                const result = await Tesseract.recognize(imageData, 'eng', {
+                const result = await Tesseract.recognize(processedUrl, 'eng', {
                     logger: m => {
                         if (m.status === 'recognizing text')
                             statusEl.textContent = `Scanning… ${Math.round((m.progress || 0) * 100)}%`;
                     }
                 });
+                try { await Tesseract.terminate(); } catch(_) {}
 
                 const allText = result.data.text;
+                const lines   = result.data.lines || [];
 
-                // Name heuristic: prefer short, high-confidence capitalized lines
-                const nameCandidates = result.data.lines
-                    .filter(l => l.confidence > 40)
+                /* ── Extract card name ──
+                   Pokémon card names sit at the top, in large type, and are
+                   proper nouns: capitalised, 3-30 chars, no digits, no punctuation
+                   except hyphens/apostrophes/accents. We pick from the first 8
+                   high-confidence lines and skip known game-text words. */
+                const WORD_RE = /^[A-ZÉ][a-zA-Zé\s\-'\.ex]+$/;
+                const nameCandidates = lines
+                    .slice(0, 8)
+                    .filter(l => l.confidence > 45)
                     .map(l => l.text.trim())
-                    .filter(t => /^[A-ZÉ][a-zA-Zé\s\-']+$/.test(t) && t.length >= 3 && t.length <= 28);
-                const detectedName = nameCandidates[0] || '';
+                    .filter(t =>
+                        WORD_RE.test(t) &&
+                        t.length >= 3 && t.length <= 30 &&
+                        !OCR_SKIP_WORDS.has(t.split(' ')[0])
+                    );
 
-                // Set number heuristic: look for NNN/NNN pattern
-                const numMatch = allText.match(/\b(\d{1,3})\/(\d{2,3})\b/);
+                let detectedName = '';
+                for (const c of nameCandidates) {
+                    // Prefer multi-word names or names that start with uppercase run
+                    if (/^[A-ZÉ][a-z]/.test(c)) { detectedName = c; break; }
+                }
+                if (!detectedName && nameCandidates.length) detectedName = nameCandidates[0];
+
+                /* ── Extract set number ──
+                   Allow optional spaces around the slash, handle OCR glitches like "O" → "0" */
+                const numMatch = allText.replace(/[Ol]/g, '0').match(/\b(\d{1,3})\s*\/\s*(\d{2,3})\b/);
                 const detectedNum = numMatch
                     ? `${String(numMatch[1]).padStart(3,'0')}/${String(numMatch[2]).padStart(3,'0')}`
                     : '';
 
-                document.getElementById('ocr-spinner').style.display = 'none';
-                statusEl.textContent = '';
-                document.getElementById('ocr-name-input').value  = detectedName;
-                document.getElementById('ocr-set-input').value   = '';
-                document.getElementById('ocr-num-input').value   = detectedNum;
-                document.getElementById('ocr-lookup-note').textContent = '';
-                document.getElementById('ocr-detected-note').textContent =
-                    detectedName ? 'Detected from photo — edit if needed:' : 'Could not detect name — enter manually:';
-                document.getElementById('ocr-result').classList.add('open');
+                /* ── TCG API cross-check ──
+                   If we got a name (and optionally a number), hit the API right away.
+                   showOcrResult will call lookupOcrSet, but we also do a quick pre-check
+                   here to validate/correct the name before showing it. */
+                if (detectedName) {
+                    statusEl.textContent = 'Cross-checking with TCG database…';
+                    try {
+                        const cardNum = detectedNum.split('/')[0].replace(/^0+/, '');
+                        let q = `name:"${detectedName.replace(/"/g,'')}"`;
+                        if (cardNum) q += ` number:${cardNum}`;
+                        const r = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=3&select=name,set,number`);
+                        if (r.ok) {
+                            const hits = (await r.json()).data || [];
+                            if (hits.length) {
+                                // Prefer the API's canonical spelling
+                                detectedName = hits[0].name;
+                            }
+                        }
+                    } catch(_) { /* leave detectedName as-is */ }
+                }
 
-                // Auto-lookup set via PTCG if we have at least a name
-                if (detectedName) lookupOcrSet(detectedName, detectedNum);
+                showOcrResult(detectedName, '', detectedNum);
 
             } catch(e) {
-                closeOCR();
+                console.error('Tesseract error:', e);
+                statusEl.textContent = 'Scan incomplete — enter details manually, or add a free Gemini key in ⚙ Settings for AI scanning.';
+                showOcrResult('', '', '');
             }
+        }
+
+        function resizeForOCR(dataUrl, maxPx, quality) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxPx || h > maxPx) {
+                        if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+                        else        { w = Math.round(w * maxPx / h); h = maxPx; }
+                    }
+                    const c = document.createElement('canvas');
+                    c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(c.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = () => resolve(dataUrl); // fallback: original
+                img.src = dataUrl;
+            });
+        }
+
+        /* ── Shared: populate the OCR result panel ── */
+        function showOcrResult(name, set, num) {
+            document.getElementById('ocr-spinner').style.display = 'none';
+            document.getElementById('ocr-status').textContent    = '';
+            document.getElementById('ocr-name-input').value  = name;
+            document.getElementById('ocr-set-input').value   = set;
+            document.getElementById('ocr-num-input').value   = num;
+            document.getElementById('ocr-lookup-note').textContent = '';
+            document.getElementById('ocr-detected-note').textContent =
+                name ? 'Detected from photo — edit if needed:' : 'Could not detect name — enter manually:';
+            document.getElementById('ocr-result').classList.add('open');
+            if (name) lookupOcrSet(name, num);
         }
 
         // Re-run set lookup whenever the user edits the name field manually

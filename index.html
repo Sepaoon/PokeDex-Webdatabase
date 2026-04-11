@@ -94,6 +94,9 @@
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
+        @media (max-width: 600px) {
+            #banner-container { height: clamp(72px, 22vw, 110px); }
+        }
         #banner-img {
             width: 100%; height: 100%;
             object-fit: cover; display: block;
@@ -214,7 +217,7 @@
         .price-btn {
             background: #1a3a1a; border: 1px solid #2a5a2a; color: #66bb6a;
             padding: 8px 9px; border-radius: 6px; font-size: 13px; cursor: pointer;
-            font-weight: bold; white-space: nowrap; min-height: 40px; min-width: 36px;
+            font-weight: bold; white-space: nowrap; min-height: 44px; min-width: 44px;
             transition: background 0.2s, border-color 0.2s, color 0.2s;
             -webkit-tap-highlight-color: transparent; flex-shrink: 0;
             display: inline-flex; align-items: center; justify-content: center;
@@ -272,7 +275,7 @@
         .settings-label { font-size: 0.68em; color: #666; text-transform: uppercase; font-weight: bold; letter-spacing: 0.07em; }
         .settings-apply {
             padding: 7px 14px; background: #007bff; color: #fff; border: none;
-            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; min-height: 38px;
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; min-height: 44px;
             -webkit-tap-highlight-color: transparent;
         }
         .nav-page-group { display: flex; align-items: center; gap: 6px; margin-left: auto; }
@@ -361,39 +364,60 @@
             .action-row-2   { flex-wrap: nowrap; flex: 0 0 auto; }
         }
 
-        /* ── MOBILE: ≤767px — hide location, stack action-rows vertically, short labels ── */
+        /* ── MOBILE: ≤767px — 2-row input layout, proper touch targets ── */
         @media (max-width: 767px) {
             .item-location  { display: none; }
             .item-number    { width: 30px; font-size: 0.9em; }
-            .item-name, .item-set, .item-set-number { min-width: 0; }
-            .set-autocomplete-wrapper, .name-ac-wrapper { min-width: 0; }
-            /* Stack action rows vertically */
-            .input-actions  { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .action-row-1   { width: 100%; flex-wrap: nowrap; justify-content: flex-start; }
-            .action-row-2   { flex-wrap: nowrap; gap: 10px; }
-            /* Full checkbox labels restored — room freed by removing W/C toggle pills */
-            .checkbox-label       { font-size: 0.82em; gap: 6px; min-height: 28px; }
-            .checkbox-label input { width: 17px; height: 17px; }
-            .toggle-label         { display: none; }
-            .status-toggle        { gap: 0; } /* no gap needed without external labels */
-            /* Slightly wider track on mobile so letter + circle both fit */
-            .toggle-track         { width: 52px; }
+
+            /* Input fields wrap into 2 rows of 2 */
+            .input-fields   { flex-wrap: wrap; gap: 6px; }
+
+            /* Row 1: Name (takes all space) + Value (fixed right) */
+            .name-ac-wrapper          { flex: 1 1 0; min-width: 0; }
+            .value-wrapper            { flex-shrink: 0; }
+
+            /* Row 2: Set (takes remaining) + Set# (compact fixed) */
+            .set-autocomplete-wrapper { flex: 1 1 0; min-width: 0; order: 3; }
+            .item-set-number          { flex: 0 0 84px; min-width: 0; order: 4; }
+
+            /* Push row 2 items to appear after row 1 */
+            .name-ac-wrapper          { order: 1; }
+            .value-wrapper            { order: 2; }
+
+            /* Action rows: stretch full width, evenly spaced */
+            .input-actions  { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .action-row-1   { width: 100%; display: flex; align-items: center; gap: 6px; }
+            .action-row-2   { display: flex; align-items: center; gap: 10px; }
+
+            /* Bigger, easier-to-hit checkboxes */
+            .checkbox-label       { font-size: 0.88em; gap: 8px; min-height: 44px; }
+            .checkbox-label input { width: 22px; height: 22px; }
+
+            /* Toggle: hide text labels, show letter inside track */
+            .toggle-label { display: none; }
+            .status-toggle { gap: 0; }
+            .toggle-track  { width: 52px; height: 30px; }
+            .toggle-track::after { top: 5px; left: 5px; width: 16px; height: 16px; }
+            .toggle-track.is-collected::after { transform: translateX(20px); }
+
+            /* Keep name dropdown wide on mobile */
+            .name-dropdown { left: 0; right: auto; min-width: 260px; max-width: calc(100vw - 32px); }
         }
 
         .item-name, .item-set {
             flex: 0.38; min-width: 40px; padding: 9px 10px;
             border: 1px solid #444; border-radius: 6px;
-            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 44px;
         }
         .item-set-number {
             flex: 0.22; min-width: 30px; padding: 9px 8px;
             border: 1px solid #444; border-radius: 6px;
-            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 44px;
         }
         .item-value {
             width: 76px; flex-shrink: 0; padding: 9px 8px 9px 20px;
             border: 1px solid #444; border-radius: 6px;
-            background: #2a2a2a; color: white; font-size: 16px; min-height: 40px;
+            background: #2a2a2a; color: white; font-size: 16px; min-height: 44px;
         }
         /* Remove spinner arrows from value field */
         .item-value::-webkit-outer-spin-button,
@@ -402,14 +426,14 @@
         .tcg-btn {
             background: #1a73e8; border: 1px solid #1558b0; color: #fff;
             padding: 8px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
-            font-weight: bold; white-space: nowrap; min-height: 40px; min-width: 44px;
+            font-weight: bold; white-space: nowrap; min-height: 44px; min-width: 44px;
             transition: background 0.2s; -webkit-tap-highlight-color: transparent;
         }
         .tcg-btn:active { background: #1558b0; }
         .photo-btn {
             background: #2a2a2a; border: 1px solid #444; color: #aaa;
             padding: 8px 10px; border-radius: 6px; font-size: 16px; cursor: pointer;
-            min-height: 40px; min-width: 44px;
+            min-height: 44px; min-width: 44px;
             display: inline-flex; align-items: center; justify-content: center;
             transition: color 0.2s, border-color 0.2s;
             -webkit-tap-highlight-color: transparent;
@@ -422,18 +446,19 @@
         .set-dropdown {
             position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 50;
             background: #1e1e1e; border: 1px solid #007bff; border-radius: 6px;
-            max-height: 180px; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-            display: none;
+            max-height: min(180px, 40vh); overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            display: none; -webkit-overflow-scrolling: touch;
         }
         .set-dropdown.open { display: block; }
         .set-dropdown-item {
-            padding: 8px 12px; font-size: 14px; color: #ccc; cursor: pointer;
-            border-bottom: 1px solid #2a2a2a;
+            padding: 11px 12px; font-size: 14px; color: #ccc; cursor: pointer;
+            border-bottom: 1px solid #2a2a2a; min-height: 44px;
+            display: flex; align-items: center;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .set-dropdown-item:last-child { border-bottom: none; }
         .set-dropdown-item:hover, .set-dropdown-item.active { background: #1a2a3a; color: #fff; }
-        .set-dropdown-item .set-count { float: right; color: #555; font-size: 12px; margin-left: 8px; }
+        .set-dropdown-item .set-count { margin-left: auto; color: #555; font-size: 12px; padding-left: 8px; flex-shrink: 0; }
 
         .checkbox-label {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
@@ -455,11 +480,6 @@
         .is-collected ~ .toggle-label.collected-lbl,
         .status-toggle:has(.is-collected) .toggle-label.collected-lbl { color: #66bb6a; border-color: #66bb6a; background: rgba(102,187,106,0.08); }
         .status-toggle:has(.is-collected) .toggle-label.wanted-lbl    { color: #444; border-color: transparent; background: transparent; }
-
-        /* On mobile, hide the external W / C pills — the letter is shown inside the track */
-        @media (max-width: 767px) {
-            .toggle-label { display: none; }
-        }
 
         /* ── Theme toggle (Dark / Light) ── */
         .theme-toggle { display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0; }
@@ -575,16 +595,19 @@
         /* ── Card name autocomplete ── */
         .name-ac-wrapper { position:relative; flex:0.38; min-width:40px; }
         .name-ac-wrapper .item-name { width:100%; flex:unset; }
-        .name-dropdown { position:absolute; top:calc(100% + 3px); left:0; right:0; z-index:52; background:#1e1e1e; border:1px solid #007bff; border-radius:6px; max-height:220px; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:none; }
+        .name-dropdown { position:absolute; top:calc(100% + 3px); left:0; right:0; z-index:52; background:#1e1e1e; border:1px solid #007bff; border-radius:6px; max-height:min(260px, 45vh); overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:none; -webkit-overflow-scrolling:touch; }
         .name-dropdown.open { display:block; }
-        .name-dd-item { display:flex; align-items:center; gap:8px; padding:7px 10px; font-size:13px; color:#ccc; cursor:pointer; border-bottom:1px solid #2a2a2a; }
+        .name-dd-header { padding:5px 10px; font-size:10px; color:#007bff; background:rgba(0,123,255,0.08); border-bottom:1px solid #2a2a2a; text-transform:uppercase; letter-spacing:0.07em; font-weight:bold; display:flex; align-items:center; gap:5px; }
+        .name-dd-item { display:flex; align-items:center; gap:9px; padding:8px 10px; font-size:13px; color:#ccc; cursor:pointer; border-bottom:1px solid #2a2a2a; min-height:52px; }
         .name-dd-item:last-child { border-bottom:none; }
         .name-dd-item:hover, .name-dd-item.active { background:#1a2a3a; color:#fff; }
-        .name-dd-thumb { width:26px; height:36px; object-fit:contain; border-radius:2px; flex-shrink:0; background:#2a2a2a; }
-        .name-dd-info { display:flex; flex-direction:column; gap:1px; min-width:0; overflow:hidden; }
+        .name-dd-thumb { width:30px; height:42px; object-fit:contain; border-radius:3px; flex-shrink:0; background:#2a2a2a; }
+        .name-dd-info { display:flex; flex-direction:column; gap:3px; min-width:0; overflow:hidden; flex:1; }
         .name-dd-name { font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
-        .name-dd-set  { font-size:11px; color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .name-dd-num  { font-size:10px; color:#555; }
+        .name-dd-set  { font-size:11px; color:#90caf9; background:rgba(0,123,255,0.15); border:1px solid rgba(0,123,255,0.25); border-radius:3px; padding:1px 5px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        .name-dd-num  { font-size:10px; color:#666; }
+        @keyframes sn-flash { 0%,100%{background:inherit} 30%{background:rgba(0,187,100,0.25)} }
+        .sn-flash { animation: sn-flash 0.7s ease; }
 
         /* ── Match-validation badge on name field ── */
         .match-badge {
@@ -626,9 +649,11 @@
         body.light .api-key-input { border-color:#a8c0d8; background:#d8ecf8; color:#1a1a1a; }
         body.light .api-keys-save { background:#c0d8ee; color:#334; border-color:#a0b8d0; }
         body.light .name-dropdown { background:#d8ecf8; border-color:#1a73e8; }
+        body.light .name-dd-header { color:#1a73e8; background:rgba(26,115,232,0.08); border-bottom-color:#c0d8ee; }
         body.light .name-dd-item  { color:#334; border-bottom-color:#c0d8ee; }
         body.light .name-dd-item:hover, body.light .name-dd-item.active { background:#bcd4f0; color:#1a1a1a; }
-        body.light .name-dd-set, body.light .name-dd-num { color:#7a9ab5; }
+        body.light .name-dd-set { color:#1a73e8; background:rgba(26,115,232,0.12); border-color:rgba(26,115,232,0.3); }
+        body.light .name-dd-num { color:#7a9ab5; }
         body.light #ocr-result { background:#d8ecf8; border-color:#b8cfe0; }
         body.light #ocr-result h3 { color:#1a1a1a; }
         body.light #ocr-name-input { background:#c8dcf0; border-color:#1a73e8; color:#1a1a1a; }
@@ -2065,55 +2090,6 @@ fetchAllArt();
             { name: 'XY',                        total: 146 }, // XY1
             { name: 'Kalos Starter Set',         total: 39  }, // XY0
             { name: 'XY Black Star Promos',      total: 216 }, // XY promos
-            { name: 'Silver Tempest',            total: 195 }, // SWSH12, Nov 2022
-            { name: 'Lost Origin',               total: 196 }, // SWSH11, Sep 2022
-            { name: 'Pokemon GO',                total: 78  }, // PGO, Jul 2022
-            { name: 'Astral Radiance',           total: 189 }, // SWSH10, May 2022
-            { name: 'Brilliant Stars',           total: 172 }, // SWSH9, Feb 2022
-            { name: 'Fusion Strike',             total: 264 }, // SWSH8, Nov 2021
-            { name: 'Celebrations',             total: 25  }, // CEL25, Oct 2021
-            { name: 'Evolving Skies',            total: 203 }, // SWSH7, Aug 2021
-            { name: 'Chilling Reign',            total: 198 }, // SWSH6, Jun 2021
-            { name: 'Battle Styles',             total: 163 }, // SWSH5, Mar 2021
-            { name: 'Shining Fates',             total: 72  }, // SWSH4.5, Feb 2021
-            { name: 'Vivid Voltage',             total: 185 }, // SWSH4, Nov 2020
-            { name: "Champion's Path",           total: 73  }, // SWSH3.5, Sep 2020
-            { name: 'Darkness Ablaze',           total: 189 }, // SWSH3, Aug 2020
-            { name: 'Rebel Clash',               total: 192 }, // SWSH2, May 2020
-            { name: 'Sword & Shield',            total: 202 }, // SWSH1, Feb 2020
-            // Sun & Moon Series (2017-2019)
-            { name: 'Cosmic Eclipse',            total: 236 }, // SM12
-            { name: 'Hidden Fates',              total: 68  }, // SM11.5
-            { name: 'Unified Minds',             total: 236 }, // SM11
-            { name: 'Unbroken Bonds',            total: 214 }, // SM10
-            { name: 'Detective Pikachu',         total: 18  }, // DET
-            { name: 'Team Up',                   total: 181 }, // SM9
-            { name: 'Lost Thunder',              total: 214 }, // SM8
-            { name: 'Dragon Majesty',            total: 70  }, // SM7.5
-            { name: 'Celestial Storm',           total: 168 }, // SM7
-            { name: 'Forbidden Light',           total: 131 }, // SM6
-            { name: 'Ultra Prism',               total: 156 }, // SM5
-            { name: 'Crimson Invasion',          total: 111 }, // SM4
-            { name: 'Shining Legends',           total: 73  }, // SM3.5
-            { name: 'Burning Shadows',           total: 147 }, // SM3
-            { name: 'Guardians Rising',          total: 145 }, // SM2
-            { name: 'Sun & Moon',                total: 149 }, // SM1
-            // XY Series (2014-2016)
-            { name: 'Evolutions',                total: 108 }, // XY12
-            { name: 'Steam Siege',               total: 114 }, // XY11
-            { name: 'Fates Collide',             total: 124 }, // XY10
-            { name: 'Generations',               total: 83  }, // G1
-            { name: 'BREAKpoint',                total: 122 }, // XY9
-            { name: 'BREAKthrough',              total: 162 }, // XY8
-            { name: 'Ancient Origins',           total: 98  }, // XY7
-            { name: 'Roaring Skies',             total: 108 }, // XY6
-            { name: 'Double Crisis',             total: 34  }, // DC1
-            { name: 'Primal Clash',              total: 160 }, // XY5
-            { name: 'Phantom Forces',            total: 119 }, // XY4
-            { name: 'Furious Fists',             total: 111 }, // XY3
-            { name: 'Flashfire',                 total: 106 }, // XY2
-            { name: 'XY',                        total: 146 }, // XY1
-            { name: 'Kalos Starter Set',         total: 39  }, // XY0
             // Black & White Series (2011-2013)
             { name: 'Legendary Treasures',       total: 113 }, // BW11
             { name: 'Plasma Blast',              total: 101 }, // BW10
@@ -2180,7 +2156,7 @@ fetchAllArt();
             { name: 'Fossil',                    total: 62  },
             { name: 'Jungle',                    total: 64  },
             { name: 'Base Set',                  total: 102 },
-        ];
+        ].filter((s, i, a) => a.findIndex(x => x.name === s.name) === i); // deduplicate by name
 
         /* ── Set Autocomplete ── */
         const _setAC = {}; // per-row state: { activeIdx }
@@ -2234,6 +2210,8 @@ fetchAllArt();
             if (snInput) {
                 const cur = snInput.value.trim();
                 const total = String(set.total).padStart(3, '0');
+                // Always update the placeholder to reflect this set's size
+                snInput.placeholder = `001/${total}`;
                 if (!cur) {
                     snInput.value = `/${total}`;
                 } else if (/^\d+$/.test(cur)) {
@@ -2246,6 +2224,16 @@ fetchAllArt();
             }
             closeSetDropdown(id);
             saveData(id);
+            // If name field already has a value, re-fetch name suggestions filtered by this new set
+            const nameEl = document.getElementById(`name-${id}`);
+            const nameVal = (nameEl?.value || '').trim();
+            if (nameVal.length >= 2) {
+                clearTimeout(_nameAC[id]?.timer);
+                _nameAC[id] = { ...(_nameAC[id] || {}), timer: setTimeout(() => fetchNameSuggestions(id, nameVal), 200) };
+            } else if (nameEl && !nameVal) {
+                // Name is empty — focus it so user continues filling in order
+                setTimeout(() => nameEl.focus(), 50);
+            }
         }
 
         function closeSetDropdown(id) {
@@ -2570,27 +2558,58 @@ fetchAllArt();
             _nameAC[id] = { ...(_nameAC[id] || {}), timer: setTimeout(() => fetchNameSuggestions(id, val), 380) };
         }
 
+        function renderNameDropdown(id, cards, filteredBySet) {
+            _nameAC[id] = { ...(_nameAC[id] || {}), results: cards, activeIdx: -1 };
+            const dd = document.getElementById(`name-dd-${id}`);
+            if (!dd) return;
+            const header = filteredBySet
+                ? `<div class="name-dd-header">🔍 Filtered by set</div>`
+                : '';
+            dd.innerHTML = header + cards.map((c, idx) => {
+                const numStr = c.number ? `#${c.number}${c.set?.total ? ' of ' + c.set.total : ''}` : '';
+                return `<div class="name-dd-item" data-idx="${idx}" onmousedown="selectNameCard(${id},${idx})">
+                    <img class="name-dd-thumb" src="${c.images?.small || ''}" alt="" loading="lazy" onerror="this.style.display='none'">
+                    <div class="name-dd-info">
+                        <span class="name-dd-name">${c.name}</span>
+                        <span class="name-dd-set">${c.set?.name || ''}</span>
+                        <span class="name-dd-num">${numStr}</span>
+                    </div>
+                </div>`;
+            }).join('');
+            dd.classList.add('open');
+        }
+
         async function fetchNameSuggestions(id, query) {
             try {
-                const url = `${PTCG_API}?q=name:"${encodeURIComponent(query)}*"&pageSize=8&select=name,set,number,images`;
+                const setVal = (document.getElementById(`set-${id}`)?.value || '').trim();
+                let q, filteredBySet = false;
+
+                if (setVal) {
+                    // Filter by set — much more useful when same-name cards appear in many sets
+                    q = `name:"${query}*" set.name:"${setVal}*"`;
+                    filteredBySet = true;
+                } else {
+                    q = `name:"${query}*"`;
+                }
+
+                const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=10&select=name,set,number,images`;
                 const r   = await fetch(url);
                 if (!r.ok) return;
                 const j = await r.json();
-                const cards = j.data || [];
+                let cards = j.data || [];
+
+                // If set-filtered search returned nothing, fall back to unfiltered (but tell user)
+                if (!cards.length && filteredBySet) {
+                    const url2 = `${PTCG_API}?q=${encodeURIComponent(`name:"${query}*"`)}&pageSize=10&select=name,set,number,images`;
+                    const r2   = await fetch(url2);
+                    if (!r2.ok) return;
+                    const j2   = await r2.json();
+                    cards = j2.data || [];
+                    filteredBySet = false;
+                }
+
                 if (!cards.length) { closeNameDropdown(id); return; }
-                _nameAC[id] = { ...(_nameAC[id] || {}), results: cards, activeIdx: -1 };
-                const dd = document.getElementById(`name-dd-${id}`);
-                if (!dd) return;
-                dd.innerHTML = cards.map((c, idx) => `
-                    <div class="name-dd-item" data-idx="${idx}" onmousedown="selectNameCard(${id},${idx})">
-                        <img class="name-dd-thumb" src="${c.images?.small || ''}" alt="" loading="lazy" onerror="this.style.display='none'">
-                        <div class="name-dd-info">
-                            <span class="name-dd-name">${c.name}</span>
-                            <span class="name-dd-set">${c.set?.name || ''}</span>
-                            <span class="name-dd-num">${c.number || ''}${c.set?.total ? ' / ' + c.set.total : ''}</span>
-                        </div>
-                    </div>`).join('');
-                dd.classList.add('open');
+                renderNameDropdown(id, cards, filteredBySet);
             } catch(e) { /* silently skip */ }
         }
 
@@ -2622,15 +2641,27 @@ fetchAllArt();
             const nameEl = document.getElementById(`name-${id}`);
             const setEl  = document.getElementById(`set-${id}`);
             const snEl   = document.getElementById(`setNumber-${id}`);
+            const valEl  = document.getElementById(`value-${id}`);
             if (nameEl) nameEl.value = card.name;
             if (setEl  && card.set?.name)  setEl.value = card.set.name;
             if (snEl   && card.number) {
                 const num   = String(card.number).padStart(3, '0');
                 const total = card.set?.total ? String(card.set.total).padStart(3, '0') : '';
                 snEl.value  = total ? `${num}/${total}` : num;
+                // Flash the setNumber field so the user sees it was auto-filled
+                snEl.classList.remove('sn-flash');
+                void snEl.offsetWidth; // reflow to restart animation
+                snEl.classList.add('sn-flash');
+                setTimeout(() => snEl.classList.remove('sn-flash'), 800);
+            }
+            // Update the setNumber placeholder to reflect this set's total for future reference
+            if (snEl && card.set?.total) {
+                snEl.placeholder = `001/${String(card.set.total).padStart(3,'0')}`;
             }
             closeNameDropdown(id);
             saveData(id);
+            // All three fields are now filled — jump straight to the value field
+            if (valEl) setTimeout(() => valEl.focus(), 50);
         }
 
         function closeNameDropdown(id) {

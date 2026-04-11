@@ -336,9 +336,139 @@
             border: 1px solid #2e2e2e; border-top: none;
             border-radius: 0 0 8px 8px;
         }
-        .page-body.open { max-height: 9999999px; padding-bottom: 4px; }
+        .page-body.open { max-height: 9999999px; }
 
-        /* ── Item rows ── */
+
+        /* ── Binder Grid ── */
+        .page-body.open { padding: 10px; }
+        .binder-grid { display: grid; gap: 10px; }
+        .tile {
+            border-radius: 10px; overflow: hidden; cursor: pointer; position: relative;
+            transition: transform 0.14s, box-shadow 0.14s;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .tile:active { transform: scale(0.96); }
+        .tile.highlight { box-shadow: 0 0 0 3px #ffaa00; }
+        .tile-img-wrap { position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden; }
+        .tile-bg { position: absolute; inset: 0; }
+        .tile-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+                    opacity: 0; transition: opacity 0.35s; display: block; }
+        .tile-img.ready { opacity: 1; }
+        .tile-photo { object-fit: cover; }
+        .tile-indicators { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 3px; }
+        .tile-ind { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center;
+                    justify-content: center; font-size: 10px; background: rgba(0,0,0,0.65);
+                    opacity: 0.35; transition: opacity 0.2s; }
+        .tile-ind.has { opacity: 1; }
+        .tile-collected-badge { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px;
+            border-radius: 50%; background: #43a047; display: none; align-items: center;
+            justify-content: center; font-size: 11px; color: #fff; font-weight: bold;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .tile-collected-badge.show { display: flex; }
+        .tile-value-badge { position: absolute; top: 6px; right: 6px;
+            background: rgba(0,0,0,0.7); color: #66bb6a; font-size: 0.65em; font-weight: bold;
+            padding: 2px 6px; border-radius: 4px; display: none; }
+        .tile-value-badge.show { display: block; }
+        .tile-info { padding: 6px 8px; background: rgba(0,0,0,0.4); }
+        .tile-id   { font-size: 0.6em; color: #555; }
+        .tile-name { font-size: 0.78em; font-weight: bold; color: #ccc;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tile-set  { font-size: 0.66em; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tile-empty .tile-info { background: rgba(0,0,0,0.2); }
+        .tile-empty .tile-name { color: #333; font-style: italic; }
+
+        /* Art loading status */
+        .art-status-bar { text-align: center; padding: 4px 10px; font-size: 0.72em; color: #444; }
+        .art-spin { display: inline-block; width: 10px; height: 10px; border: 2px solid #2a2a2a;
+                    border-top-color: #007bff; border-radius: 50%; animation: art-sp 0.7s linear infinite;
+                    vertical-align: middle; margin-right: 4px; }
+        @keyframes art-sp { to { transform: rotate(360deg); } }
+
+        /* ── Card Detail Modal ── */
+        #card-detail-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.82); z-index: 200;
+            justify-content: center; align-items: flex-start;
+            padding: 20px; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #card-detail-overlay.open { display: flex; }
+        #card-detail-modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 14px;
+            width: 100%; max-width: 520px; margin: auto;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+            animation: cd-slide-in 0.2s ease-out;
+        }
+        @keyframes cd-slide-in { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+        .cd-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 16px; border-bottom: 1px solid #2a2a2a;
+        }
+        .cd-header-num { font-size: 1.1em; font-weight: 800; color: #aaa; }
+        .cd-header-loc { font-size: 0.72em; color: #555; flex: 1; }
+        .cd-close {
+            background: none; border: 1px solid #333; border-radius: 8px;
+            color: #666; font-size: 1.2em; cursor: pointer; width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            transition: color 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .cd-close:active { color: #fff; border-color: #555; }
+
+        /* Art/Photo display area */
+        .cd-media {
+            display: flex; gap: 10px; padding: 12px 16px; justify-content: center;
+            min-height: 60px; flex-wrap: wrap;
+        }
+        .cd-media-img {
+            max-height: 220px; max-width: 48%; object-fit: contain; border-radius: 8px;
+            border: 1px solid #2a2a2a; cursor: pointer;
+        }
+        .cd-media-placeholder {
+            padding: 16px; text-align: center; color: #333; font-size: 0.85em;
+        }
+
+        /* Input fields area */
+        .cd-fields { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+        .cd-field-row { display: flex; gap: 8px; align-items: center; }
+        .cd-field-label { font-size: 0.68em; color: #666; text-transform: uppercase;
+                          font-weight: bold; letter-spacing: 0.05em; min-width: 50px; flex-shrink: 0; }
+        .cd-fields .item-name,
+        .cd-fields .item-set,
+        .cd-fields .item-set-number,
+        .cd-fields .item-value { flex: 1; min-width: 0; }
+        .cd-fields .name-ac-wrapper { flex: 1; min-width: 0; }
+        .cd-fields .set-autocomplete-wrapper { flex: 1; min-width: 0; }
+        .cd-fields .value-wrapper { width: 100px; }
+
+        /* Actions area */
+        .cd-actions {
+            padding: 10px 16px 16px; display: flex; flex-wrap: wrap; gap: 8px;
+            align-items: center; border-top: 1px solid #2a2a2a;
+        }
+        .cd-actions .price-btn,
+        .cd-actions .tcg-btn,
+        .cd-actions .photo-btn { flex-shrink: 0; }
+
+        .cd-checkboxes { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .cd-toggle-row { display: flex; align-items: center; gap: 10px; padding: 0 16px 10px; }
+
+        /* Light mode overrides for card detail */
+        body.light #card-detail-modal { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light .cd-header { border-bottom-color: #b8cfe0; }
+        body.light .cd-header-num { color: #334; }
+        body.light .cd-header-loc { color: #7a9ab5; }
+        body.light .cd-close { border-color: #a8c0d8; color: #7a9ab5; }
+        body.light .cd-actions { border-top-color: #b8cfe0; }
+        body.light .cd-media-img { border-color: #b8cfe0; }
+        body.light .tile { border-color: rgba(0,80,160,0.1); }
+        body.light .tile-info { background: rgba(200,220,240,0.85); }
+        body.light .tile-name { color: #1a1a1a; }
+        body.light .tile-set  { color: #5a7a99; }
+        body.light .tile-id   { color: #7a9ab5; }
+
+        /* ── Item rows (used in card detail modal) ── */
         .item-row {
             display: flex; flex-wrap: wrap; align-items: center;
             background-color: #1e1e1e; margin: 6px 4px; padding: 10px;
@@ -863,7 +993,7 @@
 
             <div class="nav-actions">
                 <div id="total-value-display">💰 <strong id="total-value-amt">$0.00</strong></div>
-                <button class="nav-btn btn-gallery hide-mobile" onclick="openGallery()">📸 Gallery</button>
+                
                 <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
                 <button class="nav-btn btn-save    hide-mobile" onclick="saveJSON()">⬇ Save</button>
                 <button class="nav-btn btn-load    hide-mobile" onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
@@ -875,7 +1005,7 @@
         <!-- Settings + mobile actions drawer -->
         <div class="nav-settings-bar" id="nav-settings-bar">
             <div id="mobile-actions">
-                <button class="nav-btn btn-gallery" onclick="openGallery()">📸 Gallery</button>
+                
                 <button class="nav-btn btn-print"   onclick="printWanted()">🖨 Wanted</button>
                 <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save</button>
                 <button class="nav-btn btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
@@ -944,6 +1074,24 @@
     </div>
 
     <div id="collection-list"></div>
+
+    <!-- Card Detail Modal -->
+    <div id="card-detail-overlay" onclick="if(event.target===this)closeCardDetail()">
+        <div id="card-detail-modal">
+            <div class="cd-header">
+                <span class="cd-header-num" id="cd-num"></span>
+                <span class="cd-header-loc" id="cd-loc"></span>
+                <span id="cd-match-badge" style="margin-left:auto;margin-right:8px;"></span>
+                <button class="cd-close" onclick="closeCardDetail()">✕</button>
+            </div>
+            <div class="cd-media" id="cd-media"></div>
+            <div class="cd-fields" id="cd-fields"></div>
+            <div class="cd-toggle-row" id="cd-toggle-row"></div>
+            <div class="cd-actions" id="cd-actions"></div>
+        </div>
+    </div>
+
+
 
     <script>
         'use strict';
@@ -1197,6 +1345,28 @@
                 await savePhoto(captureTargetId, dataUrl);
                 setPhotoBtn(captureTargetId, true);
 
+                // Update tile photo
+                const tilePhoto = document.getElementById(`tphoto-${captureTargetId}`);
+                if (tilePhoto) { tilePhoto.src = dataUrl; tilePhoto.style.display = ''; tilePhoto.classList.add('ready'); }
+                // Refresh modal media if open
+                if (_currentDetailId === captureTargetId) {
+                    const mediaEl = document.getElementById('cd-media');
+                    if (mediaEl) {
+                        let img = mediaEl.querySelector('.cd-media-img[alt="My photo"]');
+                        if (img) { img.src = dataUrl; }
+                        else {
+                            const newImg = document.createElement('img');
+                            newImg.className = 'cd-media-img';
+                            newImg.src = dataUrl;
+                            newImg.alt = 'My photo';
+                            newImg.onclick = () => window.open(dataUrl, '_blank');
+                            mediaEl.appendChild(newImg);
+                            const placeholder = mediaEl.querySelector('.cd-media-placeholder');
+                            if (placeholder) placeholder.remove();
+                        }
+                    }
+                }
+
                 const nameEl = document.getElementById(`name-${captureTargetId}`);
                 const setEl2 = document.getElementById(`set-${captureTargetId}`);
                 const snEl2  = document.getElementById(`setNumber-${captureTargetId}`);
@@ -1234,17 +1404,30 @@
         function setPhotoBtn(id, hasPhoto) {
             const btn    = document.getElementById(`photo-btn-${id}`);
             const delBtn = document.getElementById(`del-photo-btn-${id}`);
-            if (!btn) return;
-            btn.textContent = hasPhoto ? '📸' : '📷';
-            btn.title       = hasPhoto ? 'Tap to replace photo' : 'Take / add photo';
-            btn.classList.toggle('has-photo', hasPhoto);
+            if (btn) {
+                btn.textContent = hasPhoto ? '📸' : '📷';
+                btn.title       = hasPhoto ? 'Tap to replace photo' : 'Take / add photo';
+                btn.classList.toggle('has-photo', hasPhoto);
+            }
             if (delBtn) delBtn.style.display = hasPhoto ? '' : 'none';
+            // Update tile indicator
+            const tileInd = document.getElementById(`tind-ph-${id}`);
+            if (tileInd) tileInd.classList.toggle('has', hasPhoto);
+            const tilePhoto = document.getElementById(`tphoto-${id}`);
+            if (tilePhoto && !hasPhoto) { tilePhoto.style.display = 'none'; tilePhoto.src = ''; tilePhoto.classList.remove('ready'); }
         }
         async function initPhotoButtons() {
+            // Legacy - kept for compatibility. Tile photo indicators handled by initPhotoIndicators().
             try {
                 const photos = await getAllPhotos();
-                for (const id of Object.keys(photos)) setPhotoBtn(parseInt(id), true);
-            } catch (e) { /* silently skip if IndexedDB unavailable */ }
+                for (const [key, dataUrl] of Object.entries(photos)) {
+                    const id = String(key);
+                    const btn = document.getElementById(`photo-btn-${id}`);
+                    if (btn) btn.classList.toggle('has-photo', true);
+                    const delBtn = document.getElementById(`del-photo-btn-${id}`);
+                    if (delBtn) delBtn.style.display = '';
+                }
+            } catch(e) {}
         }
 
         /* ── Gallery ── */
@@ -1887,8 +2070,8 @@ fetchAllArt();
             for (const r of RARITY) { if (v >= r.min) return r.color; }
         }
         function applyRarityBorder(id, value) {
-            const row = document.getElementById(`row-${id}`);
-            if (row) row.style.borderLeftColor = getRarityColor(value);
+            const tile = document.getElementById(`tile-${id}`);
+            if (tile) tile.style.borderColor = getRarityColor(value);
         }
 
         /* ── Data ── */
@@ -1925,6 +2108,7 @@ fetchAllArt();
             updateTotalValue();
             touchLastUpdated();
             updatePageStats(id);
+            updateTile(id);
 
             // Badge validation
             const vName = item.name.trim();
@@ -1969,8 +2153,8 @@ fetchAllArt();
         function getTotalCollectionValue() {
             let total = 0;
             for (let i = 1; i <= config.total; i++) {
-                const el = document.getElementById(`value-${i}`);
-                if (el) total += parseFloat(el.value) || 0;
+                const saved = _memoryCache[`item-${i}`];
+                if (saved) total += parseFloat(saved.value) || 0;
             }
             return total;
         }
@@ -2186,9 +2370,10 @@ fetchAllArt();
             const collapsed = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
             collapsed[page] = !open;
             localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
+            if (open) fetchArtForPage(page);
         }
 
-        function setAllPages(expand) {
+        async function setAllPages(expand) {
             const totalPages = Math.ceil(config.total / (config.rows * config.cols));
             const collapsed  = {};
             for (let p = 1; p <= totalPages; p++) {
@@ -2199,11 +2384,152 @@ fetchAllArt();
                 body.classList.toggle('open', expand);
                 header.setAttribute('aria-expanded', expand ? 'true' : 'false');
                 collapsed[p] = !expand;
+                if (expand) {
+                    await fetchArtForPage(p);
+                    await new Promise(res => setTimeout(res, 300));
+                }
             }
             localStorage.setItem('collapsedPages', JSON.stringify(collapsed));
         }
         function collapseAll() { setAllPages(false); }
         function expandAll()   { setAllPages(true);  }
+
+
+        /* ── Card Detail Modal ── */
+        let _currentDetailId = null;
+
+        function openCardDetail(id) {
+            _currentDetailId = id;
+            const saved = _memoryCache[`item-${id}`] || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, holo:false, revHolo:false, wanted:true };
+            const pageSize = config.rows * config.cols;
+            const page     = Math.floor((id - 1) / pageSize) + 1;
+            const posInPage= (id - 1) % pageSize;
+            const rowNum   = Math.floor(posInPage / config.cols) + 1;
+            const colNum   = (posInPage % config.cols) + 1;
+            const safeValue = parseFloat(saved.value) || 0;
+
+            document.getElementById('cd-num').textContent = `#${id}`;
+            document.getElementById('cd-loc').textContent = `Page ${page} · Row ${rowNum} · Slot ${colNum}`;
+
+            // Media area
+            const mediaEl = document.getElementById('cd-media');
+            let mediaHtml = '';
+            const artData = _artCache[id];
+            if (artData) {
+                mediaHtml += `<img class="cd-media-img" src="${artData.large || artData.small}" alt="Card art" onclick="window.open(this.src,'_blank')">`;
+            }
+            const photoImg = document.getElementById(`tphoto-${id}`);
+            if (photoImg && photoImg.src && photoImg.style.display !== 'none') {
+                mediaHtml += `<img class="cd-media-img" src="${photoImg.src}" alt="My photo" onclick="window.open(this.src,'_blank')">`;
+            }
+            if (!mediaHtml) {
+                mediaHtml = `<div class="cd-media-placeholder">No card art or photo yet.<br>Fill in the details below, or take a photo!</div>`;
+            }
+            mediaEl.innerHTML = mediaHtml;
+
+            // Fields area
+            const safeName      = escapeHtml(saved.name);
+            const safeSet       = escapeHtml(saved.set);
+            const safeSetNumber = escapeHtml(saved.setNumber);
+            document.getElementById('cd-fields').innerHTML = `
+                <div class="cd-field-row">
+                    <span class="cd-field-label">Name</span>
+                    <div class="name-ac-wrapper">
+                        <input type="text" id="name-${id}" class="item-name" placeholder="Card name…" value="${safeName}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onNameInput(${id})" onkeydown="onNameKeydown(event,${id})" onblur="closeNameDropdown(${id})">
+                        <div class="name-dropdown" id="name-dd-${id}"></div>
+                        <div class="match-badge" id="mb-${id}"></div>
+                    </div>
+                </div>
+                <div class="cd-field-row">
+                    <span class="cd-field-label">Set</span>
+                    <div class="set-autocomplete-wrapper">
+                        <input type="text" id="set-${id}" class="item-set" placeholder="Set name…" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
+                            oninput="onSetInput(${id})" onkeydown="onSetKeydown(event,${id})" onblur="closeSetDropdown(${id})">
+                        <div class="set-dropdown" id="set-dd-${id}"></div>
+                    </div>
+                </div>
+                <div class="cd-field-row">
+                    <span class="cd-field-label">Set #</span>
+                    <input type="text" id="setNumber-${id}" class="item-set-number" placeholder="001/100" value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${id})">
+                    <span class="cd-field-label" style="min-width:auto;">Value</span>
+                    <div class="value-wrapper">
+                        <span class="value-prefix">${getCurrencySymbol()}</span>
+                        <input type="number" id="value-${id}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${id})">
+                    </div>
+                </div>`;
+
+            // Toggle row
+            document.getElementById('cd-toggle-row').innerHTML = `
+                <div class="status-toggle">
+                    <span class="toggle-label wanted-lbl">WANTED</span>
+                    <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${id}"
+                         onclick="toggleCollected(${id})" role="switch" aria-checked="${saved.collected}"
+                         title="Toggle Wanted / Collected"></div>
+                    <span class="toggle-label collected-lbl">COLLECTED</span>
+                </div>
+                <div class="cd-checkboxes" style="margin-left:auto;">
+                    <label class="checkbox-label"><input type="checkbox" id="cbFA-${id}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${id})"> Full Art</label>
+                    <label class="checkbox-label"><input type="checkbox" id="cbHolo-${id}" ${saved.holo ? 'checked' : ''} onchange="saveData(${id})"> Holo</label>
+                    <label class="checkbox-label"><input type="checkbox" id="cbRevHolo-${id}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${id})"> Rev-Holo</label>
+                </div>`;
+
+            // Actions
+            const hasPhoto = photoImg && photoImg.src && photoImg.style.display !== 'none';
+            document.getElementById('cd-actions').innerHTML = `
+                <button class="price-btn" id="price-btn-${id}" onclick="fetchPrice(${id})" title="Fetch price">${getPriceBtnIcon()}</button>
+                <button class="tcg-btn" onclick="searchTCGForItem(${id})" title="Search TCGPlayer">TCG</button>
+                <button class="photo-btn" id="photo-btn-${id}" onclick="openCamera(${id})" title="Take / add photo">📷</button>
+                <button class="photo-btn ${hasPhoto ? '' : 'style=display:none'}" id="del-photo-btn-${id}" onclick="deletePhoto(${id})" title="Delete photo" style="${hasPhoto ? 'color:#e57373;border-color:#e57373;' : 'display:none;color:#e57373;border-color:#e57373;'}">🗑</button>
+                <button class="nav-btn" style="margin-left:auto;background:#1a2a1a;color:#4caf50;border:1px solid #2a4a2a;font-size:12px;" onclick="navigateCard(-1)" title="Previous card">◀ Prev</button>
+                <button class="nav-btn" style="background:#1a2a1a;color:#4caf50;border:1px solid #2a4a2a;font-size:12px;" onclick="navigateCard(1)" title="Next card">Next ▶</button>`;
+
+            document.getElementById('card-detail-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            // Focus name field if empty
+            setTimeout(() => {
+                const nameField = document.getElementById(`name-${id}`);
+                if (nameField && !nameField.value) nameField.focus();
+            }, 100);
+        }
+
+        function closeCardDetail() {
+            document.getElementById('card-detail-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+            if (_currentDetailId) {
+                updateTile(_currentDetailId);
+                updatePageStats(_currentDetailId);
+            }
+            // Clean up dynamic elements
+            document.getElementById('cd-fields').innerHTML = '';
+            document.getElementById('cd-toggle-row').innerHTML = '';
+            document.getElementById('cd-actions').innerHTML = '';
+            _currentDetailId = null;
+        }
+
+        function navigateCard(dir) {
+            if (!_currentDetailId) return;
+            const newId = _currentDetailId + dir;
+            if (newId < 1 || newId > config.total) return;
+            // Save current first
+            if (document.getElementById(`name-${_currentDetailId}`)) {
+                updateTile(_currentDetailId);
+                updatePageStats(_currentDetailId);
+            }
+            openCardDetail(newId);
+        }
+
+        // Keyboard navigation in card detail
+        document.addEventListener('keydown', (e) => {
+            if (!_currentDetailId) return;
+            if (e.key === 'Escape') { closeCardDetail(); e.preventDefault(); }
+            // Don't navigate if typing in an input
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
+            if (e.key === 'ArrowLeft')  { navigateCard(-1); e.preventDefault(); }
+            if (e.key === 'ArrowRight') { navigateCard(1);  e.preventDefault(); }
+        });
+
+
 
         /* ── Pokémon TCG Set Database (verified from Bulbapedia) ── */
         const POKEMON_SETS = [
@@ -2869,6 +3195,12 @@ fetchAllArt();
         const _validCache  = {}; // keyed by id → { key, state, msg }
 
         function applyBadge(id, state, msg) {
+            // Also apply to card detail modal badge
+            const cdBadge = document.getElementById('cd-match-badge');
+            if (cdBadge && _currentDetailId === id) {
+                const mb = document.getElementById(`mb-${id}`);
+                if (mb) cdBadge.innerHTML = mb.outerHTML;
+            }
             const b = document.getElementById(`mb-${id}`);
             if (!b) return;
             b.className = 'match-badge' + (state ? ' ' + state : '');
@@ -3376,13 +3708,20 @@ fetchAllArt();
         }
 
         /* ── Render ── */
+        /* ── Art cache for main binder view ── */
+        const _artCache = {};
+        const _fetchedPages = new Set();
+
+        function tileColor(id) {
+            const h = (id * 137) % 360;
+            return `hsl(${h},22%,14%)`;
+        }
+
         function renderList() {
-            const container  = document.getElementById('collection-list');
+            const container = document.getElementById('collection-list');
             container.innerHTML = '';
-            const pageSize   = config.rows * config.cols;
-            const totalPages = Math.ceil(config.total / pageSize);
-            const collapsed  = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
-            document.getElementById('gotoPage').max = totalPages;
+            const pageSize = config.rows * config.cols;
+            const collapsed = JSON.parse(localStorage.getItem('collapsedPages') || '{}');
 
             // Pre-scan stats
             const pageStats = {};
@@ -3399,12 +3738,10 @@ fetchAllArt();
             for (let i = 1; i <= config.total; i++) {
                 const page      = Math.floor((i - 1) / pageSize) + 1;
                 const posInPage = (i - 1) % pageSize;
-                const rowNum    = Math.floor(posInPage / config.cols) + 1;
-                const colNum    = (posInPage % config.cols) + 1;
 
                 if (page !== currentPage) {
                     currentPage = page;
-                    const isOpen = collapsed[page] === false; // default: collapsed
+                    const isOpen = !collapsed[page];
                     const stats  = pageStats[page] || { total:0, collected:0, wanted:0 };
 
                     const section = document.createElement('div');
@@ -3412,12 +3749,12 @@ fetchAllArt();
 
                     const header = document.createElement('div');
                     header.className = 'page-header' + (isOpen ? ' open' : '');
-                    header.id        = `page-header-${page}`;
+                    header.id = `page-header-${page}`;
                     header.setAttribute('role', 'button');
                     header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                    header.onclick   = () => togglePage(page);
+                    header.onclick = () => togglePage(page);
                     header.innerHTML = `
-                        <span class="page-caret" aria-hidden="true">▶</span>
+                        <span class="page-caret">▶</span>
                         <span class="page-header-label">Page ${page}</span>
                         <div class="page-header-line"></div>
                         <div class="page-header-stats">
@@ -3428,79 +3765,159 @@ fetchAllArt();
 
                     const body = document.createElement('div');
                     body.className = 'page-body' + (isOpen ? ' open' : '');
-                    body.id        = `page-body-${page}`;
+                    body.id = `page-body-${page}`;
+
+                    const grid = document.createElement('div');
+                    grid.className = 'binder-grid';
+                    grid.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+                    body.appendChild(grid);
 
                     section.appendChild(header);
                     section.appendChild(body);
                     container.appendChild(section);
-                    currentBody = body;
+                    currentBody = grid;
+
+                    // Trigger art fetch for initially open pages
+                    if (isOpen) fetchArtForPage(page);
                 }
 
-                const saved       = _memoryCache[`item-${i}`] || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
-                const safeName      = (saved.name      || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-                const safeSet       = (saved.set       || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-                const safeSetNumber = (saved.setNumber || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-                const safeValue   = parseFloat(saved.value) || 0;
+                const saved = _memoryCache[`item-${i}`] || {};
+                const bg = tileColor(i);
+                const hasData = !!(saved.name);
+                const val = parseFloat(saved.value) || 0;
 
-                const row = document.createElement('div');
-                row.className = 'item-row';
-                row.id        = `row-${i}`;
-                row.style.borderLeftColor = getRarityColor(safeValue);
-                row.innerHTML = `
-                    <div class="item-number">#${i}</div>
-                    <div class="item-location">Page ${page}<br>Row${rowNum}&middot;Slot${colNum}</div>
-                    <div class="input-group">
-                        <div class="input-fields">
-                            <div class="name-ac-wrapper">
-                                <input type="text" id="name-${i}" class="item-name" placeholder="Name" value="${safeName}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onNameInput(${i})" onkeydown="onNameKeydown(event,${i})" onblur="closeNameDropdown(${i})">
-                                <div class="name-dropdown" id="name-dd-${i}"></div>
-                                <div class="match-badge" id="mb-${i}"></div>
-                            </div>
-                            <div class="set-autocomplete-wrapper">
-                                <input type="text" id="set-${i}" class="item-set" placeholder="Set" value="${safeSet}" autocomplete="off" autocorrect="off" spellcheck="false"
-                                    oninput="onSetInput(${i})" onkeydown="onSetKeydown(event,${i})" onblur="closeSetDropdown(${i})">
-                                <div class="set-dropdown" id="set-dd-${i}"></div>
-                            </div>
-                            <input type="text"   id="setNumber-${i}"  class="item-set-number" placeholder="001/100"    value="${safeSetNumber}" autocomplete="off" autocorrect="off" spellcheck="false" oninput="saveData(${i})">
-                            <div class="value-wrapper">
-                                <span class="value-prefix">${getCurrencySymbol()}</span>
-                                <input type="number" id="value-${i}" class="item-value" placeholder="0.00" value="${safeValue > 0 ? safeValue : ''}" min="0" step="0.01" inputmode="decimal" oninput="saveData(${i})">
-                            </div>
+                const tile = document.createElement('div');
+                tile.className = 'tile' + (!hasData ? ' tile-empty' : '');
+                tile.id = `tile-${i}`;
+                tile.onclick = () => openCardDetail(i);
+                tile.innerHTML = `
+                    <div class="tile-img-wrap">
+                        <div class="tile-bg" style="background:${bg}"></div>
+                        <img class="tile-img tile-photo" id="tphoto-${i}" src="" alt="" style="display:none">
+                        <img class="tile-img" id="tart-${i}" src="" alt="" style="display:none">
+                        <div class="tile-collected-badge ${saved.collected ? 'show' : ''}" id="tcoll-${i}">✓</div>
+                        <div class="tile-value-badge ${val > 0 ? 'show' : ''}" id="tval-${i}">${getCurrencySymbol()}${val > 0 ? val.toFixed(2) : ''}</div>
+                        <div class="tile-indicators">
+                            <div class="tile-ind" id="tind-art-${i}" title="Card art">🎨</div>
+                            <div class="tile-ind" id="tind-ph-${i}" title="My photo">📸</div>
                         </div>
-                        <div class="input-actions">
-                            <div class="action-row-1">
-                                <button class="price-btn" id="price-btn-${i}" onclick="fetchPrice(${i})" title="Fetch price">${getPriceBtnIcon()}</button>
-                                <button class="tcg-btn"   onclick="searchTCGForItem(${i})" title="Search TCGPlayer">TCG</button>
-                                <button class="photo-btn" id="photo-btn-${i}"     onclick="openCamera(${i})"  title="Take / add photo">&#128247;</button>
-                                <button class="photo-btn" id="del-photo-btn-${i}" onclick="deletePhoto(${i})" title="Delete photo" style="display:none;color:#e57373;border-color:#e57373;">&#128465;</button>
-                                <div class="status-toggle">
-                                    <span class="toggle-label wanted-lbl">WANTED</span>
-                                    <div class="toggle-track ${saved.collected ? 'is-collected' : ''}" id="toggle-${i}"
-                                         onclick="toggleCollected(${i})" role="switch" aria-checked="${saved.collected}"
-                                         title="Toggle Wanted / Collected"></div>
-                                    <span class="toggle-label collected-lbl">COLLECTED</span>
-                                </div>
-                            </div>
-                            <div class="action-row-2">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="cbFA-${i}" ${saved.fullArt ? 'checked' : ''} onchange="saveData(${i})">
-                                    Full Art
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="cbHolo-${i}" ${saved.holo ? 'checked' : ''} onchange="saveData(${i})">
-                                    Holo
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="cbRevHolo-${i}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${i})">
-                                    Rev-Holo
-                                </label>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="tile-info">
+                        <div class="tile-id">#${i}</div>
+                        <div class="tile-name">${hasData ? escapeHtml(saved.name) : 'Empty slot'}</div>
+                        <div class="tile-set">${hasData ? escapeHtml(saved.set || '') : ''}</div>
                     </div>`;
-                currentBody.appendChild(row);
+
+                currentBody.appendChild(tile);
             }
+
             updateTotalValue();
-            initPhotoButtons();
+            initPhotoIndicators();
+        }
+
+        function escapeHtml(s) {
+            return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        /* ── Update a single tile after data changes ── */
+        function updateTile(id) {
+            const tile = document.getElementById(`tile-${id}`);
+            if (!tile) return;
+            const saved = _memoryCache[`item-${id}`] || {};
+            const hasData = !!(saved.name);
+            const val = parseFloat(saved.value) || 0;
+
+            tile.className = 'tile' + (!hasData ? ' tile-empty' : '');
+
+            const nameEl = tile.querySelector('.tile-name');
+            const setEl  = tile.querySelector('.tile-set');
+            if (nameEl) nameEl.textContent = hasData ? (saved.name || '') : 'Empty slot';
+            if (setEl)  setEl.textContent  = hasData ? (saved.set || '') : '';
+
+            const collBadge = document.getElementById(`tcoll-${id}`);
+            if (collBadge) collBadge.className = 'tile-collected-badge' + (saved.collected ? ' show' : '');
+
+            const valBadge = document.getElementById(`tval-${id}`);
+            if (valBadge) {
+                valBadge.className = 'tile-value-badge' + (val > 0 ? ' show' : '');
+                valBadge.textContent = val > 0 ? getCurrencySymbol() + val.toFixed(2) : '';
+            }
+        }
+
+        /* ── Init photo indicators on tiles ── */
+        async function initPhotoIndicators() {
+            try {
+                const photos = await getAllPhotos();
+                for (const [key, dataUrl] of Object.entries(photos)) {
+                    const id = String(key);
+                    const photoImg = document.getElementById(`tphoto-${id}`);
+                    if (photoImg) {
+                        photoImg.src = dataUrl;
+                        photoImg.style.display = '';
+                        photoImg.classList.add('ready');
+                    }
+                    const ind = document.getElementById(`tind-ph-${id}`);
+                    if (ind) ind.classList.add('has');
+                }
+            } catch(e) {}
+        }
+
+        /* ── Lazy Load Art by Page ── */
+        async function fetchArtForPage(page) {
+            if (_fetchedPages.has(page)) return;
+            _fetchedPages.add(page);
+
+            const pageSize = config.rows * config.cols;
+            const start = (page - 1) * pageSize + 1;
+            const end = Math.min(page * pageSize, config.total);
+
+            const eligible = [];
+            for (let i = start; i <= end; i++) {
+                const saved = _memoryCache[`item-${i}`];
+                if (saved && saved.name && saved.set && saved.setNumber) {
+                    eligible.push({ id: i, ...saved });
+                }
+            }
+            if (!eligible.length) return;
+
+            const BATCH = 4;
+            for (let startIdx = 0; startIdx < eligible.length; startIdx += BATCH) {
+                const batch = eligible.slice(startIdx, startIdx + BATCH);
+                await Promise.allSettled(batch.map(async c => {
+                    try {
+                        const rawNum = (c.setNumber || '').split('/')[0].replace(/^0+/, '');
+                        if (!rawNum) return;
+                        const safeName = c.name.replace(/"/g,'');
+                        const q = `name:"${safeName}" number:${rawNum}`;
+                        const r = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images`);
+                        if (!r.ok) return;
+                        const j = await r.json();
+                        const hits = j.data || [];
+                        if (!hits.length) return;
+
+                        const resolvedSet = resolveSetName(c.set);
+                        const match = hits.find(h => {
+                            const nameOk = normalizeStr(h.name) === normalizeStr(c.name);
+                            const setOk  = setNamesMatch(h.set?.name, resolvedSet);
+                            const numOk  = String(h.number || '').replace(/^0+/,'') === rawNum;
+                            return nameOk && setOk && numOk;
+                        });
+                        if (!match?.images?.small) return;
+
+                        _artCache[c.id] = { small: match.images.small, large: match.images.large || match.images.small };
+
+                        const artImg = document.getElementById(`tart-${c.id}`);
+                        if (artImg) {
+                            artImg.style.display = '';
+                            artImg.src = match.images.small;
+                            artImg.onload = () => artImg.classList.add('ready');
+                        }
+                        const indArt = document.getElementById(`tind-art-${c.id}`);
+                        if (indArt) indArt.classList.add('has');
+                    } catch(e) {}
+                }));
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
         }
 
         /* ── Navigation ── */
@@ -3520,9 +3937,10 @@ fetchAllArt();
             const num = parseInt(query);
             if (!isNaN(num) && num >= 1 && num <= config.total && query === String(num)) { scrollToRow(num); return; }
             for (let i = 1; i <= config.total; i++) {
-                const n  = normalizeStr(document.getElementById(`name-${i}`)?.value      || '');
-                const s  = normalizeStr(document.getElementById(`set-${i}`)?.value       || '');
-                const sn = normalizeStr(document.getElementById(`setNumber-${i}`)?.value || '');
+                const saved = _memoryCache[`item-${i}`] || {};
+                const n  = normalizeStr(saved.name      || '');
+                const s  = normalizeStr(saved.set       || '');
+                const sn = normalizeStr(saved.setNumber || '');
                 if (n.includes(query) || s.includes(query) || sn.includes(query)) { scrollToRow(i); return; }
             }
             alert(`"${query}" not found.`);
@@ -3532,12 +3950,13 @@ fetchAllArt();
             const page     = Math.floor((id - 1) / pageSize) + 1;
             const body     = document.getElementById(`page-body-${page}`);
             if (body && !body.classList.contains('open')) togglePage(page);
-            const el = document.getElementById(`row-${id}`);
-            if (el) {
+            const tile = document.getElementById(`tile-${id}`);
+            if (tile) {
                 setTimeout(() => {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el.classList.add('highlight');
-                    setTimeout(() => el.classList.remove('highlight'), 2000);
+                    tile.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    tile.classList.add('highlight');
+                    setTimeout(() => tile.classList.remove('highlight'), 2000);
+                    openCardDetail(id);
                 }, 50);
             }
         }

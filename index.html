@@ -952,6 +952,7 @@
         const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80';
         const DB_NAME        = 'CardCollectionDB';
         const PHOTO_STORE    = 'photos';
+        const DATA_STORE     = 'card_data';
 
         /* ── Accent-insensitive string normalizer ── */
         function normalizeStr(s) {
@@ -1066,14 +1067,74 @@
 
         /* ── IndexedDB (cached connection) ── */
         let _db = null;
+        const _memoryCache = {};
+
         function openDB() {
             if (_db) return Promise.resolve(_db);
             return new Promise((resolve, reject) => {
-                const req = indexedDB.open(DB_NAME, 1);
-                req.onupgradeneeded = (e) => e.target.result.createObjectStore(PHOTO_STORE);
+                const req = indexedDB.open(DB_NAME, 2);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(PHOTO_STORE)) db.createObjectStore(PHOTO_STORE);
+                    if (!db.objectStoreNames.contains(DATA_STORE))  db.createObjectStore(DATA_STORE);
+                };
                 req.onsuccess  = (e) => { _db = e.target.result; resolve(_db); };
                 req.onerror    = (e) => reject(e.target.error);
             });
+        }
+
+        // Load all card data from IndexedDB into _memoryCache at boot
+        async function bootDatabase() {
+            const db = await openDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(DATA_STORE, 'readonly');
+                const req = tx.objectStore(DATA_STORE).openCursor();
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        _memoryCache[cursor.key] = cursor.value;
+                        cursor.continue();
+                    } else {
+                        resolve();
+                    }
+                };
+                req.onerror = () => resolve(); // proceed even on error
+            });
+        }
+
+        // Migrate existing localStorage card data into IndexedDB (one-time)
+        async function migrateLocalStorageToIDB() {
+            const migrated = localStorage.getItem('_idb_migrated');
+            if (migrated) return;
+            const db = await openDB();
+            const tx = db.transaction(DATA_STORE, 'readwrite');
+            const store = tx.objectStore(DATA_STORE);
+            for (let i = 1; i <= 2000; i++) {
+                const raw = localStorage.getItem(`item-${i}`);
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        store.put(parsed, `item-${i}`);
+                        _memoryCache[`item-${i}`] = parsed;
+                    } catch(e) {}
+                }
+            }
+            return new Promise((resolve) => {
+                tx.oncomplete = () => {
+                    localStorage.setItem('_idb_migrated', '1');
+                    resolve();
+                };
+                tx.onerror = () => resolve();
+            });
+        }
+
+        // Write card to memory + persist to IndexedDB in background
+        function saveCardToDB(id, itemData) {
+            _memoryCache[`item-${id}`] = itemData;
+            openDB().then(db => {
+                const tx = db.transaction(DATA_STORE, 'readwrite');
+                tx.objectStore(DATA_STORE).put(itemData, `item-${id}`);
+            }).catch(() => {});
         }
         function savePhoto(id, dataUrl) {
             return openDB().then(db => new Promise((res, rej) => {
@@ -1188,9 +1249,15 @@
 
         /* ── Gallery ── */
         async function openGallery() {
+            // Open window immediately to bypass popup blocker
+            const win = window.open('', '_blank');
+            if (!win) { alert('Please allow popups to view the gallery.'); return; }
+            win.document.write('<html><head><title>Loading Gallery...</title></head><body style="background:#121212;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h2>Loading Gallery Data...</h2></body></html>');
+            win.document.close();
+
             const allCards = [];
             for (let i = 1; i <= config.total; i++) {
-                const saved = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                const saved = _memoryCache[`item-${i}`] || {};
                 if (saved.name) allCards.push({
                     id: i, name: saved.name || '', set: saved.set || '',
                     setNumber: saved.setNumber || '', value: saved.value || 0,
@@ -1201,6 +1268,7 @@
             try { photos = await getAllPhotos(); } catch(e) {}
 
             if (!allCards.length && !Object.keys(photos).length) {
+                win.close();
                 alert('No entries yet — add some cards first.'); return;
             }
 
@@ -1516,7 +1584,7 @@ function togglePage(pg) {
 async function fetchAllArt() {
   const status = document.getElementById('art-status');
   let done = 0, skipped = 0;
-  const BATCH = 8;
+  const BATCH = 4;
 
   // Only process cards with all three fields filled
   const eligible = CARDS.filter(c => c.name && c.set && c.setNumber);
@@ -1572,6 +1640,8 @@ async function fetchAllArt() {
         done++;
       } catch(e) { /* skip */ }
     }));
+    // API safety valve: 400ms delay between batches
+    await new Promise(resolve => setTimeout(resolve, 400));
     status.innerHTML = \`<span class="spin"></span>\${Math.min(start + BATCH, eligible.length)} / \${eligible.length} checked\`;
   }
   status.textContent = done + ' art loaded · ' + skipped + ' skipped (incomplete info) · ' + Object.keys(PHOTOS).length + ' photos';
@@ -1681,11 +1751,9 @@ fetchAllArt();
 </body>
 </html>`;
 
-            const blob = new Blob([html], { type: 'text/html' });
-            const url  = URL.createObjectURL(blob);
-            const win  = window.open(url, '_blank');
-            if (!win) alert('Please allow popups to view the gallery.');
-            setTimeout(() => URL.revokeObjectURL(url), 60000);
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
         }
 
         /* ── Settings ── */
@@ -1694,12 +1762,12 @@ fetchAllArt();
             let fixed = 0;
             for (let i = 1; i <= config.total; i++) {
                 try {
-                    const stored = JSON.parse(localStorage.getItem(`item-${i}`));
+                    const stored = _memoryCache[`item-${i}`];
                     if (!stored || !stored.set) continue;
                     const resolved = resolveSetName(stored.set);
                     if (resolved !== stored.set) {
                         stored.set = resolved;
-                        localStorage.setItem(`item-${i}`, JSON.stringify(stored));
+                        saveCardToDB(i, stored);
                         // Update visible field if rendered
                         const el = document.getElementById(`set-${i}`);
                         if (el) el.value = resolved;
@@ -1724,12 +1792,16 @@ fetchAllArt();
         function clearPokedex() {
             if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, and saved data. This cannot be undone.')) return;
             if (!confirm('Are you absolutely sure? All data will be lost.')) return;
-            for (let i = 1; i <= config.total; i++) localStorage.removeItem(`item-${i}`);
+            for (let i = 1; i <= config.total; i++) {
+                delete _memoryCache[`item-${i}`];
+                localStorage.removeItem(`item-${i}`);
+            }
             localStorage.removeItem('lastUpdated');
             localStorage.removeItem('collapsedPages');
             openDB().then(db => {
-                const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                const tx = db.transaction([PHOTO_STORE, DATA_STORE], 'readwrite');
                 tx.objectStore(PHOTO_STORE).clear();
+                tx.objectStore(DATA_STORE).clear();
             }).catch(() => {});
             renderList();
             touchLastUpdated();
@@ -1848,7 +1920,7 @@ fetchAllArt();
                 revHolo:   revHoloEl ? revHoloEl.checked : false,
                 wanted:    !collected,
             };
-            localStorage.setItem(`item-${id}`, JSON.stringify(item));
+            saveCardToDB(id, item);
             applyRarityBorder(id, item.value);
             updateTotalValue();
             touchLastUpdated();
@@ -1879,7 +1951,7 @@ fetchAllArt();
             const end      = Math.min(page * pageSize, config.total);
             let collected = 0, wanted = 0, total = 0;
             for (let i = start; i <= end; i++) {
-                const s = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                const s = _memoryCache[`item-${i}`] || {};
                 total++;
                 if (s.collected) collected++; else wanted++;
             }
@@ -1947,7 +2019,7 @@ fetchAllArt();
         function printWanted() {
             const wanted = [];
             for (let i = 1; i <= config.total; i++) {
-                const saved = JSON.parse(localStorage.getItem(`item-${i}`));
+                const saved = _memoryCache[`item-${i}`];
                 if (saved && !saved.collected) wanted.push({ id: i, ...saved });
             }
             if (!wanted.length) { alert('No entries marked as Wanted.'); return; }
@@ -2063,7 +2135,7 @@ fetchAllArt();
             const blank = { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, holo:false, revHolo:false, wanted:true };
             const data  = { config, items: {} };
             for (let i = 1; i <= config.total; i++) {
-                data.items[i] = JSON.parse(localStorage.getItem(`item-${i}`)) || { ...blank };
+                data.items[i] = _memoryCache[`item-${i}`] || { ...blank };
             }
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a    = document.createElement('a');
@@ -2092,7 +2164,7 @@ fetchAllArt();
                         applyBanner(config.bannerUrl);
                     }
                     for (const [id, item] of Object.entries(data.items)) {
-                        localStorage.setItem(`item-${id}`, JSON.stringify(item));
+                        saveCardToDB(id, item);
                     }
                     renderList();
                     touchLastUpdated();
@@ -3316,7 +3388,7 @@ fetchAllArt();
             const pageStats = {};
             for (let i = 1; i <= config.total; i++) {
                 const pg    = Math.floor((i - 1) / pageSize) + 1;
-                const saved = JSON.parse(localStorage.getItem(`item-${i}`)) || {};
+                const saved = _memoryCache[`item-${i}`] || {};
                 if (!pageStats[pg]) pageStats[pg] = { total:0, collected:0, wanted:0 };
                 pageStats[pg].total++;
                 if (saved.collected) pageStats[pg].collected++; else pageStats[pg].wanted++;
@@ -3364,7 +3436,7 @@ fetchAllArt();
                     currentBody = body;
                 }
 
-                const saved       = JSON.parse(localStorage.getItem(`item-${i}`)) || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
+                const saved       = _memoryCache[`item-${i}`] || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, wanted:true };
                 const safeName      = (saved.name      || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
                 const safeSet       = (saved.set       || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
                 const safeSetNumber = (saved.setNumber || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
@@ -3489,8 +3561,12 @@ fetchAllArt();
         /* ── Init ── */
         applyPriceSourceUI();
         loadApiKeyInputs();
-        renderList();
-        loadLastUpdated();
+        (async () => {
+            await migrateLocalStorageToIDB();
+            await bootDatabase();
+            renderList();
+            loadLastUpdated();
+        })();
     </script>
 </body>
 </html>

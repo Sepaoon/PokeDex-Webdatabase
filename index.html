@@ -468,6 +468,51 @@
         body.light .tile-set  { color: #5a7a99; }
         body.light .tile-id   { color: #7a9ab5; }
 
+        /* ── Art Refresh / Picker ── */
+        .cd-art-refresh-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 12px; border-radius: 6px; border: 1px solid #2a4a5a;
+            background: #1a2a3a; color: #64b5f6; font-size: 12px; font-weight: bold;
+            cursor: pointer; min-height: 36px; transition: background 0.15s;
+            -webkit-tap-highlight-color: transparent; white-space: nowrap;
+        }
+        .cd-art-refresh-btn:active { background: #2a3a4a; }
+        .cd-art-refresh-btn.loading { color: #555; border-color: #333; background: #1e1e1e; cursor: wait; }
+        .cd-art-picker {
+            padding: 10px 16px; border-top: 1px solid #2a2a2a;
+        }
+        .cd-art-picker-title {
+            font-size: 0.78em; color: #888; margin-bottom: 8px; font-weight: bold;
+        }
+        .cd-art-picker-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+        }
+        .cd-art-pick {
+            border-radius: 8px; overflow: hidden; cursor: pointer; position: relative;
+            border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+            aspect-ratio: 3/4; background: #1a1a1a;
+        }
+        .cd-art-pick:hover, .cd-art-pick:active { border-color: #007bff; transform: scale(0.97); }
+        .cd-art-pick img { width: 100%; height: 100%; object-fit: contain; }
+        .cd-art-pick-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.75); padding: 3px 5px;
+            font-size: 0.6em; color: #aaa; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .cd-art-error {
+            padding: 12px; text-align: center; color: #e57373; font-size: 0.85em;
+            background: rgba(229,115,115,0.08); border-radius: 8px; border: 1px solid rgba(229,115,115,0.2);
+        }
+        .cd-art-success {
+            padding: 8px 12px; text-align: center; color: #66bb6a; font-size: 0.82em;
+        }
+        body.light .cd-art-refresh-btn { background: #c8dcf0; border-color: #a8c0d8; color: #1a73e8; }
+        body.light .cd-art-picker { border-top-color: #b8cfe0; }
+        body.light .cd-art-pick { background: #dce8f5; }
+        body.light .cd-art-error { background: rgba(229,115,115,0.1); color: #c62828; }
+
         /* ── Item rows (used in card detail modal) ── */
         .item-row {
             display: flex; flex-wrap: wrap; align-items: center;
@@ -1085,6 +1130,7 @@
                 <button class="cd-close" onclick="closeCardDetail()">✕</button>
             </div>
             <div class="cd-media" id="cd-media"></div>
+            <div id="cd-art-picker"></div>
             <div class="cd-fields" id="cd-fields"></div>
             <div class="cd-toggle-row" id="cd-toggle-row"></div>
             <div class="cd-actions" id="cd-actions"></div>
@@ -2425,7 +2471,13 @@ fetchAllArt();
             if (!mediaHtml) {
                 mediaHtml = `<div class="cd-media-placeholder">No card art or photo yet.<br>Fill in the details below, or take a photo!</div>`;
             }
+            mediaHtml += `<div style="width:100%;display:flex;justify-content:center;gap:8px;margin-top:4px;">
+                <button class="cd-art-refresh-btn" id="cd-art-refresh-${id}" onclick="refreshCardArt(${id})">🔄 ${artData ? 'Refresh Art' : 'Fetch Art'}</button>
+            </div>`;
             mediaEl.innerHTML = mediaHtml;
+
+            // Art picker area (populated by refreshCardArt)
+            document.getElementById('cd-art-picker').innerHTML = '';
 
             // Fields area
             const safeName      = escapeHtml(saved.name);
@@ -2504,7 +2556,190 @@ fetchAllArt();
             document.getElementById('cd-fields').innerHTML = '';
             document.getElementById('cd-toggle-row').innerHTML = '';
             document.getElementById('cd-actions').innerHTML = '';
+            document.getElementById('cd-art-picker').innerHTML = '';
             _currentDetailId = null;
+        }
+
+
+        /* ── Art Refresh / Picker ── */
+        async function refreshCardArt(id) {
+            const btn = document.getElementById(`cd-art-refresh-${id}`);
+            const pickerEl = document.getElementById('cd-art-picker');
+            if (!btn || !pickerEl) return;
+
+            // Read current values from the modal inputs
+            const nameEl = document.getElementById(`name-${id}`);
+            const setEl  = document.getElementById(`set-${id}`);
+            const snEl   = document.getElementById(`setNumber-${id}`);
+
+            const cardName = (nameEl?.value || '').trim();
+            const cardSet  = (setEl?.value  || '').trim();
+            const snRaw    = (snEl?.value   || '').trim();
+
+            if (!cardName) {
+                pickerEl.innerHTML = `<div class="cd-art-error">Enter a card name first, then try again.</div>`;
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.innerHTML = '⏳ Searching…';
+            pickerEl.innerHTML = '';
+
+            try {
+                const rawNum = snRaw.split('/')[0].replace(/^0+/, '');
+                const safeName = cardName.replace(/"/g, '');
+
+                // Build query — name always, number if available
+                let q = `name:"${safeName}"`;
+                if (rawNum) q += ` number:${rawNum}`;
+
+                const resp = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=12&select=name,set,number,images`);
+                if (!resp.ok) throw new Error(`API error ${resp.status}`);
+                const json = await resp.json();
+                const hits = json.data || [];
+
+                if (!hits.length) {
+                    pickerEl.innerHTML = `<div class="cd-art-error">
+                        No results found for "<strong>${escapeHtml(cardName)}</strong>"${rawNum ? ` #${rawNum}` : ''}.<br>
+                        <span style="font-size:0.9em;color:#999;">Try adjusting the name, set, or set number.</span>
+                    </div>`;
+                    btn.classList.remove('loading');
+                    btn.innerHTML = '🔄 Try Again';
+                    return;
+                }
+
+                // Sort: exact matches first, then by set relevance
+                const resolvedSet = resolveSetName(cardSet);
+                hits.sort((a, b) => {
+                    const aMatch = setNamesMatch(a.set?.name, resolvedSet) ? 0 : 1;
+                    const bMatch = setNamesMatch(b.set?.name, resolvedSet) ? 0 : 1;
+                    return aMatch - bMatch;
+                });
+
+                // If exactly 1 result and it matches well, auto-apply
+                if (hits.length === 1 && hits[0].images?.small) {
+                    const h = hits[0];
+                    const nameOk = normalizeStr(h.name) === normalizeStr(cardName);
+                    const setOk  = !resolvedSet || setNamesMatch(h.set?.name, resolvedSet);
+                    const numOk  = !rawNum || String(h.number || '').replace(/^0+/, '') === rawNum;
+                    if (nameOk && setOk && numOk) {
+                        applyArtChoice(id, h);
+                        pickerEl.innerHTML = `<div class="cd-art-success">✓ Art updated!</div>`;
+                        setTimeout(() => { if (pickerEl) pickerEl.innerHTML = ''; }, 2000);
+                        btn.classList.remove('loading');
+                        btn.innerHTML = '🔄 Refresh Art';
+                        return;
+                    }
+                }
+
+                // Multiple results or uncertain match — show picker
+                const withImages = hits.filter(h => h.images?.small);
+                if (!withImages.length) {
+                    pickerEl.innerHTML = `<div class="cd-art-error">
+                        Found ${hits.length} result${hits.length !== 1 ? 's' : ''} but none had images available.
+                    </div>`;
+                    btn.classList.remove('loading');
+                    btn.innerHTML = '🔄 Try Again';
+                    return;
+                }
+
+                pickerEl.innerHTML = `
+                    <div class="cd-art-picker">
+                        <div class="cd-art-picker-title">
+                            Found ${withImages.length} result${withImages.length !== 1 ? 's' : ''} — tap the correct card:
+                        </div>
+                        <div class="cd-art-picker-grid">
+                            ${withImages.map((h, idx) => {
+                                const small = h.images.small;
+                                const large = h.images.large || small;
+                                const setName = h.set?.name || '?';
+                                const num = h.number || '?';
+                                const isMatch = normalizeStr(h.name) === normalizeStr(cardName) &&
+                                    setNamesMatch(h.set?.name, resolvedSet);
+                                return `<div class="cd-art-pick${isMatch ? ' recommended' : ''}"
+                                             onclick="applyArtChoice(${id}, _artPickerResults[${idx}])"
+                                             title="${escapeHtml(h.name)} — ${escapeHtml(setName)} #${num}">
+                                    <img src="${small}" alt="" loading="lazy">
+                                    <div class="cd-art-pick-label">${escapeHtml(setName)}<br>#${num}</div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+
+                // Store results for onclick access
+                window._artPickerResults = withImages;
+
+                btn.classList.remove('loading');
+                btn.innerHTML = '🔄 Refresh Art';
+
+            } catch (err) {
+                console.error('Art refresh failed:', err);
+                pickerEl.innerHTML = `<div class="cd-art-error">
+                    Failed to fetch art. Check your connection and try again.
+                </div>`;
+                btn.classList.remove('loading');
+                btn.innerHTML = '🔄 Try Again';
+            }
+        }
+
+        function applyArtChoice(id, cardData) {
+            if (!cardData?.images?.small) return;
+
+            // Update art cache
+            _artCache[id] = {
+                small: cardData.images.small,
+                large: cardData.images.large || cardData.images.small
+            };
+
+            // Update tile art
+            const tileArt = document.getElementById(`tart-${id}`);
+            if (tileArt) {
+                tileArt.src = cardData.images.small;
+                tileArt.style.display = '';
+                tileArt.onload = () => tileArt.classList.add('ready');
+            }
+            const tileInd = document.getElementById(`tind-art-${id}`);
+            if (tileInd) tileInd.classList.add('has');
+
+            // Update modal media display
+            const mediaEl = document.getElementById('cd-media');
+            if (mediaEl && _currentDetailId === id) {
+                let artImg = mediaEl.querySelector('img[alt="Card art"]');
+                const largeUrl = cardData.images.large || cardData.images.small;
+                if (artImg) {
+                    artImg.src = largeUrl;
+                } else {
+                    const newImg = document.createElement('img');
+                    newImg.className = 'cd-media-img';
+                    newImg.src = largeUrl;
+                    newImg.alt = 'Card art';
+                    newImg.onclick = () => window.open(largeUrl, '_blank');
+                    const placeholder = mediaEl.querySelector('.cd-media-placeholder');
+                    if (placeholder) placeholder.remove();
+                    mediaEl.insertBefore(newImg, mediaEl.firstChild);
+                }
+                // Update button text
+                const btn = document.getElementById(`cd-art-refresh-${id}`);
+                if (btn) btn.innerHTML = '🔄 Refresh Art';
+            }
+
+            // Auto-correct set name if the API returned a better one
+            const apiSetName = cardData.set?.name;
+            if (apiSetName) {
+                const setEl = document.getElementById(`set-${id}`);
+                if (setEl && setEl.value && apiSetName !== setEl.value &&
+                    normalizeStr(apiSetName) === normalizeStr(setEl.value)) {
+                    setEl.value = apiSetName;
+                    saveData(id);
+                }
+            }
+
+            // Clear picker
+            const pickerEl = document.getElementById('cd-art-picker');
+            if (pickerEl) {
+                pickerEl.innerHTML = `<div class="cd-art-success">✓ Art updated!</div>`;
+                setTimeout(() => { if (pickerEl) pickerEl.innerHTML = ''; }, 2000);
+            }
         }
 
         function navigateCard(dir) {

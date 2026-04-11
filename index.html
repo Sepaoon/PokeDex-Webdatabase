@@ -625,16 +625,75 @@
         body.light .match-badge.ok   { background:rgba(56,142,60,0.10); border-color:rgba(56,142,60,0.3); }
         body.light .match-badge.warn { background:rgba(230,81,0,0.10);  border-color:rgba(230,81,0,0.3);  color:#e65100; }
 
+        /* ── Camera action sheet ── */
+        #cam-sheet-overlay {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.65); z-index:400;
+            align-items:flex-end; justify-content:center;
+            -webkit-tap-highlight-color:transparent;
+        }
+        #cam-sheet-overlay.open { display:flex; }
+        #cam-sheet {
+            background:#1e1e1e; border:1px solid #3a3a3a; border-bottom:none;
+            border-radius:18px 18px 0 0; padding:10px 16px 36px;
+            width:100%; max-width:480px;
+            box-shadow:0 -4px 32px rgba(0,0,0,0.6);
+            animation:sheetUp 0.22s ease;
+        }
+        @keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+        .cam-sheet-handle {
+            width:40px; height:4px; background:#3a3a3a; border-radius:2px;
+            margin:0 auto 18px; cursor:pointer;
+        }
+        .cam-sheet-title {
+            text-align:center; font-size:0.72em; color:#555; font-weight:bold;
+            text-transform:uppercase; letter-spacing:0.09em; margin-bottom:16px;
+        }
+        .cam-sheet-btn {
+            display:flex; align-items:center; gap:14px; width:100%;
+            padding:14px 16px; margin-bottom:10px; border-radius:12px;
+            border:1px solid #3a3a3a; background:#252525;
+            color:#fff; font-size:15px; font-weight:600; cursor:pointer;
+            text-align:left; -webkit-tap-highlight-color:transparent;
+            transition:background 0.15s, border-color 0.15s;
+        }
+        .cam-sheet-btn:active { filter:brightness(0.85); }
+        .cam-sheet-btn.primary { background:#007bff; border-color:#0069d9; }
+        .cam-sheet-btn-icon { font-size:1.6em; flex-shrink:0; }
+        .cam-sheet-btn-text { display:flex; flex-direction:column; gap:2px; }
+        .cam-sheet-btn-sub { font-size:0.72em; color:rgba(255,255,255,0.55); font-weight:400; }
+        .cam-sheet-btn.primary .cam-sheet-btn-sub { color:rgba(255,255,255,0.65); }
+        .cam-sheet-cancel {
+            display:block; width:100%; padding:15px; margin-top:4px;
+            background:#2a2a2a; border:1px solid #3a3a3a; border-radius:12px;
+            color:#aaa; font-size:15px; font-weight:600; cursor:pointer;
+            min-height:52px; -webkit-tap-highlight-color:transparent;
+            transition:background 0.15s;
+        }
+        .cam-sheet-cancel:active { background:#3a3a3a; color:#fff; }
+        body.light #cam-sheet { background:#d8ecf8; border-color:#b8cfe0; }
+        body.light .cam-sheet-handle { background:#b8cfe0; }
+        body.light .cam-sheet-title { color:#8aaac5; }
+        body.light .cam-sheet-btn { background:#c8dcf0; border-color:#a8c0d8; color:#1a1a1a; }
+        body.light .cam-sheet-btn-sub { color:rgba(0,0,0,0.45); }
+        body.light .cam-sheet-btn.primary { background:#1a73e8; border-color:#1558b0; color:#fff; }
+        body.light .cam-sheet-btn.primary .cam-sheet-btn-sub { color:rgba(255,255,255,0.65); }
+        body.light .cam-sheet-cancel { background:#c0d8ee; border-color:#a8c0d8; color:#5a7a99; }
+
         /* ── OCR overlay ── */
         #ocr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; }
         #ocr-overlay.open { display:flex; }
         .ocr-spinner { width:44px; height:44px; border:3px solid #2a2a2a; border-top-color:#007bff; border-radius:50%; animation:ocrspin 0.75s linear infinite; }
         @keyframes ocrspin { to { transform:rotate(360deg); } }
         #ocr-status { font-size:0.88em; color:#777; }
-        #ocr-result { background:#1e1e1e; border:1px solid #3a3a3a; border-radius:12px; padding:18px 20px; max-width:340px; width:100%; display:none; }
+        #ocr-result { background:#1e1e1e; border:1px solid #3a3a3a; border-radius:12px; padding:18px 20px; max-width:360px; width:100%; display:none; }
         #ocr-result.open { display:block; }
         #ocr-result h3 { margin:0 0 4px; font-size:0.95em; color:#ccc; }
         #ocr-detected-note { font-size:0.72em; color:#555; margin:0 0 10px; }
+        /* Card image preview inside OCR panel */
+        #ocr-preview-wrap { display:none; justify-content:center; margin-bottom:12px; }
+        #ocr-preview-wrap.show { display:flex; }
+        #ocr-preview-img { max-height:120px; max-width:90px; border-radius:6px; object-fit:contain; box-shadow:0 2px 12px rgba(0,0,0,0.5); }
         #ocr-name-input { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #007bff; background:#252525; color:#fff; font-size:16px; margin-bottom:10px; }
         #ocr-set-input  { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #444;    background:#252525; color:#ccc; font-size:14px; margin-bottom:6px;  }
         #ocr-num-input  { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #444;    background:#252525; color:#ccc; font-size:14px; margin-bottom:12px; }
@@ -659,6 +718,7 @@
         body.light #ocr-name-input { background:#c8dcf0; border-color:#1a73e8; color:#1a1a1a; }
         body.light #ocr-set-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
         body.light #ocr-num-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
+        body.light #ocr-preview-img { box-shadow:0 2px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -678,6 +738,29 @@
         </div>
     </div>
 
+    <!-- Camera Action Sheet -->
+    <div id="cam-sheet-overlay" onclick="if(event.target===this)closeCamSheet()">
+        <div id="cam-sheet">
+            <div class="cam-sheet-handle" onclick="closeCamSheet()"></div>
+            <div class="cam-sheet-title" id="cam-sheet-title">Add Photo</div>
+            <button class="cam-sheet-btn primary" onclick="triggerCapture('camera')">
+                <span class="cam-sheet-btn-icon">📷</span>
+                <span class="cam-sheet-btn-text">
+                    Take Photo &amp; Auto-Fill
+                    <span class="cam-sheet-btn-sub">Open camera → scan card → fill name, set &amp; number</span>
+                </span>
+            </button>
+            <button class="cam-sheet-btn" onclick="triggerCapture('gallery')">
+                <span class="cam-sheet-btn-icon">🖼️</span>
+                <span class="cam-sheet-btn-text">
+                    Choose from Library
+                    <span class="cam-sheet-btn-sub">Pick an existing photo (auto-fills if entry is blank)</span>
+                </span>
+            </button>
+            <button class="cam-sheet-cancel" onclick="closeCamSheet()">Cancel</button>
+        </div>
+    </div>
+
     <!-- OCR Overlay (Tesseract.js) -->
     <div id="ocr-overlay">
         <div class="ocr-spinner" id="ocr-spinner"></div>
@@ -685,6 +768,9 @@
         <div id="ocr-result">
             <h3>📷 Card Detected</h3>
             <p id="ocr-detected-note"></p>
+            <div id="ocr-preview-wrap">
+                <img id="ocr-preview-img" src="" alt="Card photo">
+            </div>
             <input id="ocr-name-input" type="text" placeholder="Card name…" autocomplete="off" spellcheck="false" oninput="onOcrNameChange()">
             <div style="position:relative;">
                 <input id="ocr-set-input" type="text" placeholder="Set name…" autocomplete="off" spellcheck="false" style="padding-right:28px;">
@@ -701,9 +787,9 @@
         </div>
     </div>
 
-    <!-- Hidden file input for photos -->
-    <input type="file" id="camera-input" accept="image/*"
-           style="display:none" onchange="handlePhotoCapture(event)">
+    <!-- Hidden file inputs: camera (with capture) and gallery -->
+    <input type="file" id="camera-input"  accept="image/*" capture="environment" style="display:none" onchange="handlePhotoCapture(event,'camera')">
+    <input type="file" id="gallery-input" accept="image/*"                       style="display:none" onchange="handlePhotoCapture(event,'gallery')">
 
     <!-- Banner -->
     <div id="banner-container" onclick="openBannerModal()">
@@ -1006,23 +1092,44 @@
 
         /* ── Photo capture ── */
         let captureTargetId = null;
+
         function openCamera(id) {
             captureTargetId = id;
-            document.getElementById('camera-input').click();
+            // Show the action sheet so user can choose camera vs gallery
+            const title = document.getElementById('cam-sheet-title');
+            if (title) title.textContent = `Card #${id}`;
+            document.getElementById('cam-sheet-overlay').classList.add('open');
         }
-        async function handlePhotoCapture(event) {
+
+        function closeCamSheet() {
+            document.getElementById('cam-sheet-overlay').classList.remove('open');
+        }
+
+        function triggerCapture(mode) {
+            closeCamSheet();
+            // Small delay so the sheet animation closes cleanly before the OS dialog opens
+            setTimeout(() => {
+                const inputId = mode === 'camera' ? 'camera-input' : 'gallery-input';
+                document.getElementById(inputId).click();
+            }, 180);
+        }
+
+        async function handlePhotoCapture(event, mode) {
             const file = event.target.files[0];
             if (!file || captureTargetId === null) return;
             try {
                 const dataUrl = await compressImage(file, 900, 0.78);
                 await savePhoto(captureTargetId, dataUrl);
                 setPhotoBtn(captureTargetId, true);
-                // Auto-offer OCR if entry is blank (name, set, and set number all empty)
-                const nameEl  = document.getElementById(`name-${captureTargetId}`);
-                const setEl2  = document.getElementById(`set-${captureTargetId}`);
-                const snEl2   = document.getElementById(`setNumber-${captureTargetId}`);
+
+                const nameEl = document.getElementById(`name-${captureTargetId}`);
+                const setEl2 = document.getElementById(`set-${captureTargetId}`);
+                const snEl2  = document.getElementById(`setNumber-${captureTargetId}`);
                 const isBlank = !nameEl?.value.trim() && !setEl2?.value.trim() && !snEl2?.value.trim();
-                if (isBlank) {
+
+                // Camera mode → always scan (that's the whole point)
+                // Gallery mode → scan only if entry is blank
+                if (mode === 'camera' || isBlank) {
                     ocrTargetId = captureTargetId;
                     openOCR(dataUrl);
                 }
@@ -2760,6 +2867,13 @@ fetchAllArt();
             document.getElementById('ocr-spinner').style.display = '';
             document.getElementById('ocr-status').textContent    = 'Loading OCR engine…';
             document.getElementById('ocr-result').classList.remove('open');
+            // Show image preview so user can see the card while editing fields
+            const previewWrap = document.getElementById('ocr-preview-wrap');
+            const previewImg  = document.getElementById('ocr-preview-img');
+            if (previewImg && imageData) {
+                previewImg.src = imageData;
+                previewWrap.classList.add('show');
+            }
             overlay.classList.add('open');
             loadTesseract()
                 .then(() => runOCR(imageData))
@@ -2913,6 +3027,11 @@ fetchAllArt();
 
         function closeOCR() {
             document.getElementById('ocr-overlay').classList.remove('open');
+            // Reset preview
+            const previewWrap = document.getElementById('ocr-preview-wrap');
+            const previewImg  = document.getElementById('ocr-preview-img');
+            if (previewWrap) previewWrap.classList.remove('show');
+            if (previewImg)  previewImg.src = '';
             ocrTargetId = null;
         }
 

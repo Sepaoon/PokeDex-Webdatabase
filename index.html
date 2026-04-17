@@ -1232,6 +1232,53 @@
             'pgo':   'Pok\u00e9mon GO',
             'cel':   'Celebrations',  'cel25': 'Celebrations',
             'det':   'Detective Pikachu',
+            // ── Japanese Scarlet & Violet ──
+            'sv1s':  'Scarlet ex',
+            'sv1v':  'Violet ex',
+            'sv1a':  'Triplet Beat',
+            'sv2p':  'Snow Hazard',
+            'sv2d':  'Clay Burst',
+            'sv3jp': 'Ruler of the Black Flame',
+            'sv3a':  'Raging Surf',
+            'sv4k':  'Ancient Roar',
+            'sv4m':  'Future Flash',
+            'sv5k':  'Wild Force',
+            'sv5m':  'Cyber Judge',
+            'sv5a':  'Crimson Haze',
+            'sv6jp': 'Mask of Change',
+            'sv6a':  'Night Wanderer',
+            'sv7jp': 'Stellar Miracle',
+            'sv7a':  'Paradise Dragona',
+            'sv8jp': 'Super Electric Breaker',
+            'sv8a':  'Terastal Festival ex',
+            'sv9jp': 'Battle Partners',
+            'svpjp': 'Scarlet & Violet Japanese Promos',
+            // ── Japanese Sword & Shield ──
+            's12a':  'VMAX Climax',
+            's12':   'Paradigm Trigger',
+            's11':   'Lost Abyss',
+            's10a':  'Dark Phantasma',
+            's10p':  'Space Juggler',
+            's10d':  'Time Gazer',
+            's9':    'Star Birth',
+            's8a':   '25th Anniversary Collection',
+            's8':    'Fusion Arts',
+            's7r':   'Towering Perfection',
+            's7d':   'Blue Sky Stream',
+            's6h':   'Silver Lance',
+            's6k':   'Jet Black Spirit',
+            's6a':   'Eevee Heroes',
+            's5a':   'Peerless Fighters',
+            's5r':   'Rapid Strike Master',
+            's5i':   'Single Strike Master',
+            's4a':   'Shiny Star V',
+            's4':    'Amazing Volt Tackle',
+            's3a':   'Legendary Heartbeat',
+            's3':    'Infinity Zone',
+            's2':    'Rebellion Crash',
+            's1a':   'VMAX Rising',
+            's1h':   'Shield (Japanese)',
+            's1w':   'Sword (Japanese)',
         };
 
         /** Resolve a raw set field value to a proper API set name if it's a known code. */
@@ -2981,6 +3028,53 @@ fetchAllArt();
             { name: 'Fossil',                    total: 62  },
             { name: 'Jungle',                    total: 64  },
             { name: 'Base Set',                  total: 102 },
+            // ── Japanese Scarlet & Violet Series ──
+            { name: 'Scarlet ex',                    total: 78  }, // SV1S — Japanese SV base set (Scarlet)
+            { name: 'Violet ex',                     total: 78  }, // SV1V — Japanese SV base set (Violet)
+            { name: 'Triplet Beat',                  total: 65  }, // SV1a — first Japanese SV mini-set
+            { name: 'Snow Hazard',                   total: 66  }, // SV2P — Palafin / Ice Rider
+            { name: 'Clay Burst',                    total: 66  }, // SV2D — Miraidon / future
+            { name: 'Ruler of the Black Flame',      total: 108 }, // SV3  — Charizard ex, Tyranitar
+            { name: 'Raging Surf',                   total: 60  }, // SV3a — Garchomp ex
+            { name: 'Ancient Roar',                  total: 62  }, // SV4K — ancient Paradox Pokemon
+            { name: 'Future Flash',                  total: 62  }, // SV4M — future Paradox Pokemon
+            { name: 'Wild Force',                    total: 62  }, // SV5K — Ogerpon ex
+            { name: 'Cyber Judge',                   total: 62  }, // SV5M — Iron Thorns ex
+            { name: 'Crimson Haze',                  total: 66  }, // SV5a — Pecharunt, Munkidori
+            { name: 'Mask of Change',                total: 101 }, // SV6  — Ogerpon Teal Mask ex
+            { name: 'Night Wanderer',                total: 64  }, // SV6a — Pecharunt, Darkrai
+            { name: 'Stellar Miracle',               total: 102 }, // SV7  — Stellar Tera type ex
+            { name: 'Paradise Dragona',              total: 64  }, // SV7a — Gouging Fire ex, Raging Bolt
+            { name: 'Super Electric Breaker',        total: 98  }, // SV8  — Pikachu ex, Zekrom
+            { name: 'Terastal Festival ex',          total: 73  }, // SV8a — Japanese Prismatic Evolutions equiv
+            { name: 'Battle Partners',               total: 66  }, // SV9  — Japanese Journey Together equiv
+            { name: 'Scarlet & Violet Japanese Promos', total: 400 }, // SVP-JP promos
+            // ── Japanese Sword & Shield Series ──
+            { name: 'VMAX Climax',                   total: 184 }, // S12a — fan-favourite Japanese exclusive
+            { name: 'Paradigm Trigger',              total: 100 }, // S12  — Lugia V/VSTAR
+            { name: 'Lost Abyss',                    total: 100 }, // S11  — Giratina V, Lost Zone mechanic
+            { name: 'Dark Phantasma',                total: 68  }, // S10a — Darkrai, Sneasler
+            { name: 'Space Juggler',                 total: 68  }, // S10P — Ultra Beasts
+            { name: 'Time Gazer',                    total: 68  }, // S10D — Dialga V/VSTAR
+            { name: 'Star Birth',                    total: 100 }, // S9   — Arceus V/VSTAR
+            { name: '25th Anniversary Collection',   total: 28  }, // S8a  — Pikachu & Mimikyu 25th
+            { name: 'Fusion Arts',                   total: 100 }, // S8   — Genesect V, Mew VMAX
+            { name: 'Towering Perfection',           total: 98  }, // S7R  — Tsareena, Inteleon VMAX
+            { name: 'Blue Sky Stream',               total: 100 }, // S7D  — Rayquaza VMAX
+            { name: 'Eevee Heroes',                  total: 69  }, // S6a  — all Eeveelution VMAXes
+            { name: 'Silver Lance',                  total: 100 }, // S6H  — White Kyurem VMAX
+            { name: 'Jet Black Spirit',              total: 100 }, // S6K  — Black Kyurem VMAX
+            { name: 'Peerless Fighters',             total: 68  }, // S5a  — Rapid/Single Strike promos
+            { name: 'Rapid Strike Master',           total: 70  }, // S5R  — Rapid Strike Urshifu
+            { name: 'Single Strike Master',          total: 70  }, // S5I  — Single Strike Urshifu
+            { name: 'Shiny Star V',                  total: 307 }, // S4a  — massive shiny Pokemon set
+            { name: 'Amazing Volt Tackle',           total: 100 }, // S4   — Amazing Rare mechanic debut
+            { name: 'Legendary Heartbeat',           total: 76  }, // S3a  — Amazing Rares, Dialga/Palkia
+            { name: 'Infinity Zone',                 total: 100 }, // S3   — Eternatus VMAX
+            { name: 'Rebellion Crash',               total: 100 }, // S2   — Inteleon VMAX, Sword & Shield
+            { name: 'VMAX Rising',                   total: 90  }, // S1a  — Charizard VMAX, Boltund
+            { name: 'Shield (Japanese)',             total: 60  }, // S1H  — Japanese Sword & Shield base (Shield)
+            { name: 'Sword (Japanese)',              total: 60  }, // S1W  — Japanese Sword & Shield base (Sword)
         ].filter((s, i, a) => a.findIndex(x => x.name === s.name) === i); // deduplicate by name
 
         /* ── Set Autocomplete ── */

@@ -26,7 +26,7 @@
 
         /* ── Light Mode ── */
         body.light { background-color: #dce8f5; color: #1a1a1a; }
-        body.light #banner-container { background-color: #c8dcf0; border-bottom-color: rgba(0,0,0,0.15); }
+        body.light #banner-container { background-color: #c8dcf0; border-bottom-color: #1a73e8; }
         body.light #last-updated-bar { background: #ccdeed; border-bottom-color: #b8cfe0; color: #777; }
         body.light #last-updated-bar span { color: #444; }
         body.light .header { background-color: #d0e4f4; border-bottom-color: #b8cfe0; box-shadow: 0 2px 12px rgba(0,80,160,0.1); }
@@ -89,7 +89,7 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            border-bottom: 2px solid rgba(0,0,0,0.3);
+            border-bottom: 2px solid #007bff;
             position: relative;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
@@ -1216,6 +1216,18 @@
             'sm9':  'Team Up',              'sm10': 'Unbroken Bonds',
             'sm11': 'Unified Minds',        'sm115':'Hidden Fates',
             'sm12': 'Cosmic Eclipse',       'smp':  'Sun & Moon Black Star Promos',
+            // McDonald's Collections
+            'mcd23': "McDonald's Collection 2023",
+            'mcd22': "McDonald's Collection 2022",
+            'mcd21': "McDonald's Collection 2021",
+            'mcd19': "McDonald's Collection 2019",
+            'mcd18': "McDonald's Collection 2018",
+            'mcd17': "McDonald's Collection 2017",
+            'mcd16': "McDonald's Collection 2016",
+            'mcd15': "McDonald's Collection 2015",
+            'mcd14': "McDonald's Collection 2014",
+            'mcd12': "McDonald's Collection 2012",
+            'mcd11': "McDonald's Collection 2011",
             // Other shorthands
             'pgo':   'Pok\u00e9mon GO',
             'cel':   'Celebrations',  'cel25': 'Celebrations',
@@ -1727,6 +1739,17 @@ const SET_CODE_MAP = {
   'sm11':'Unified Minds','sm115':'Hidden Fates','sm12':'Cosmic Eclipse',
   'smp':'Sun & Moon Black Star Promos',
   'pgo':'Pok\u00e9mon GO','cel':'Celebrations','cel25':'Celebrations','det':'Detective Pikachu',
+  'mcd23':"McDonald's Collection 2023",
+  'mcd22':"McDonald's Collection 2022",
+  'mcd21':"McDonald's Collection 2021",
+  'mcd19':"McDonald's Collection 2019",
+  'mcd18':"McDonald's Collection 2018",
+  'mcd17':"McDonald's Collection 2017",
+  'mcd16':"McDonald's Collection 2016",
+  'mcd15':"McDonald's Collection 2015",
+  'mcd14':"McDonald's Collection 2014",
+  'mcd12':"McDonald's Collection 2012",
+  'mcd11':"McDonald's Collection 2011",
 };
 function resolveSetName(raw) {
   if (!raw) return raw;
@@ -2024,15 +2047,12 @@ fetchAllArt();
         }
 
         function clearPokedex() {
-            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, card art, and saved data. This cannot be undone.')) return;
+            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, and saved data. This cannot be undone.')) return;
             if (!confirm('Are you absolutely sure? All data will be lost.')) return;
             for (let i = 1; i <= config.total; i++) {
                 delete _memoryCache[`item-${i}`];
                 localStorage.removeItem(`item-${i}`);
             }
-            // Clear art cache and fetched page tracking
-            Object.keys(_artCache).forEach(k => delete _artCache[k]);
-            _fetchedPages.clear();
             localStorage.removeItem('lastUpdated');
             localStorage.removeItem('collapsedPages');
             openDB().then(db => {
@@ -2729,14 +2749,6 @@ fetchAllArt();
                 large: cardData.images.large || cardData.images.small
             };
 
-            // Persist art URLs to card data
-            const stored = _memoryCache[`item-${id}`];
-            if (stored) {
-                stored.artSmall = cardData.images.small;
-                stored.artLarge = cardData.images.large || cardData.images.small;
-                saveCardToDB(id, stored);
-            }
-
             // Update tile art
             const tileArt = document.getElementById(`tart-${id}`);
             if (tileArt) {
@@ -2814,6 +2826,19 @@ fetchAllArt();
 
         /* ── Pokémon TCG Set Database (verified from Bulbapedia) ── */
         const POKEMON_SETS = [
+            // McDonald's Collections (Happy Meal promos)
+            { name: "McDonald's Collection 2023",    total: 15  }, // mcd23
+            { name: "McDonald's Collection 2022",    total: 15  }, // mcd22
+            { name: "McDonald's Match Battle 2022",  total: 4   }, // mcd22mb
+            { name: "McDonald's Collection 2021",    total: 25  }, // mcd21
+            { name: "McDonald's Collection 2019",    total: 12  }, // mcd19
+            { name: "McDonald's Collection 2018",    total: 12  }, // mcd18
+            { name: "McDonald's Collection 2017",    total: 12  }, // mcd17
+            { name: "McDonald's Collection 2016",    total: 12  }, // mcd16
+            { name: "McDonald's Collection 2015",    total: 12  }, // mcd15
+            { name: "McDonald's Collection 2014",    total: 12  }, // mcd14
+            { name: "McDonald's Collection 2012",    total: 12  }, // mcd12
+            { name: "McDonald's Collection 2011",    total: 12  }, // mcd11
             // Mega Evolution Series (2025-2026)
             { name: 'Chaos Rising',              total: 88  }, // ME4, Apr 2026 – confirmed 88 base
             { name: 'Perfect Order',             total: 88  }, // ME3, Mar 2026
@@ -3050,7 +3075,6 @@ fetchAllArt();
         async function fetchTCGPrice(id) {
             const btn       = document.getElementById(`price-btn-${id}`);
             const nameEl    = document.getElementById(`name-${id}`);
-            const setEl2    = document.getElementById(`set-${id}`);
             const snEl      = document.getElementById(`setNumber-${id}`);
             const valueEl   = document.getElementById(`value-${id}`);
             const holoEl    = document.getElementById(`cbHolo-${id}`);
@@ -3058,14 +3082,8 @@ fetchAllArt();
             const faEl      = document.getElementById(`cbFA-${id}`);
 
             const cardName = (nameEl?.value || '').trim();
-            const setName  = (setEl2?.value || '').trim();
             const snRaw    = (snEl?.value   || '').trim();
-
-            // Require all three fields to identify a specific card
-            if (!cardName || !setName || !snRaw) {
-                if (btn) { btn.classList.add('error'); btn.textContent = '?'; btn.title = 'Fill in name, set, and set # first'; setTimeout(() => resetPriceBtn(id), 2500); }
-                return;
-            }
+            if (!cardName) { btn.classList.add('error'); btn.textContent = '?'; setTimeout(() => resetPriceBtn(id), 2000); return; }
 
             // Extract card number from "013/217" or "013" or "13"
             const cardNum = snRaw.split('/')[0].replace(/^0+/, '') || '';
@@ -3161,14 +3179,14 @@ fetchAllArt();
                 alert('A bulk price update is already running.');
                 return;
             }
-            // Count eligible cards (need name + set + set number to identify)
+            // Count eligible cards
             let eligible = 0;
             for (let i = 1; i <= config.total; i++) {
                 const s = _memoryCache[`item-${i}`];
-                if (s && s.name && s.name.trim() && s.set && s.set.trim() && s.setNumber && s.setNumber.trim()) eligible++;
+                if (s && s.name && s.name.trim()) eligible++;
             }
             if (!eligible) {
-                alert('No cards with complete data (name, set, and set #) to look up prices for.');
+                alert('No cards with names entered yet — add some cards first.');
                 return;
             }
             if (!confirm(`Bulk Price Update\n\nThis will fetch current market prices for ${eligible} card${eligible !== 1 ? 's' : ''} with data entered.\n\nThis may take a while and uses the Pokémon TCG API.\n\nContinue?`)) return;
@@ -3183,7 +3201,7 @@ fetchAllArt();
             const eligible = [];
             for (let i = 1; i <= config.total; i++) {
                 const s = _memoryCache[`item-${i}`];
-                if (s && s.name && s.name.trim() && s.set && s.set.trim() && s.setNumber && s.setNumber.trim()) eligible.push(i);
+                if (s && s.name && s.name.trim()) eligible.push(i);
             }
 
             let done = 0, updated = 0, failed = 0;
@@ -3408,12 +3426,9 @@ fetchAllArt();
             const setEl   = document.getElementById(`set-${id}`);
             const valueEl = document.getElementById(`value-${id}`);
             const cardName = (nameEl?.value || '').trim();
-            const setName  = (setEl?.value  || '').trim();
-            const snEl     = document.getElementById(`setNumber-${id}`);
-            const snRaw    = (snEl?.value   || '').trim();
-            if (!cardName || !setName || !snRaw) {
-                if (btn) { btn.classList.add('error'); btn.textContent = '?'; btn.title = 'Fill in name, set, and set # first'; setTimeout(() => resetPriceBtn(id), 2500); }
-                return;
+            if (!cardName) {
+                btn.classList.add('error'); btn.textContent = '?';
+                setTimeout(() => resetPriceBtn(id), 2000); return;
             }
             btn.classList.remove('error'); btn.classList.add('loading'); btn.textContent = '…';
             try {
@@ -3474,9 +3489,15 @@ fetchAllArt();
 
         function onNameInput(id) {
             saveData(id);
-            const val = (document.getElementById(`name-${id}`)?.value || '').trim();
+            const val    = (document.getElementById(`name-${id}`)?.value    || '').trim();
+            const setVal = (document.getElementById(`set-${id}`)?.value     || '').trim();
+            const snVal  = (document.getElementById(`setNumber-${id}`)?.value || '').trim();
             clearTimeout(_nameAC[id]?.timer);
             if (val.length < 2) { closeNameDropdown(id); return; }
+            // Wait until at least 2 of 3 fields have content — prevents overwhelming
+            // results for cards with many variants (e.g. "Pikachu" across 100+ sets)
+            const filledCount = [val, setVal, snVal].filter(Boolean).length;
+            if (filledCount < 2) { closeNameDropdown(id); return; }
             _nameAC[id] = { ...(_nameAC[id] || {}), timer: setTimeout(() => fetchNameSuggestions(id, val), 380) };
         }
 
@@ -4187,12 +4208,6 @@ fetchAllArt();
                 const hasData = !!(saved.name);
                 const val = parseFloat(saved.value) || 0;
 
-                // Restore cached art URLs
-                const hasArt = !!(saved.artSmall);
-                if (hasArt && !_artCache[i]) {
-                    _artCache[i] = { small: saved.artSmall, large: saved.artLarge || saved.artSmall };
-                }
-
                 const tile = document.createElement('div');
                 tile.className = 'tile' + (!hasData ? ' tile-empty' : '');
                 tile.id = `tile-${i}`;
@@ -4201,11 +4216,11 @@ fetchAllArt();
                     <div class="tile-img-wrap">
                         <div class="tile-bg" style="background:${bg}"></div>
                         <img class="tile-img tile-photo" id="tphoto-${i}" src="" alt="" style="display:none">
-                        <img class="tile-img${hasArt ? ' ready' : ''}" id="tart-${i}" src="${hasArt ? saved.artSmall : ''}" alt="" style="${hasArt ? '' : 'display:none'}">
+                        <img class="tile-img" id="tart-${i}" src="" alt="" style="display:none">
                         <div class="tile-collected-badge ${saved.collected ? 'show' : ''}" id="tcoll-${i}">✓</div>
                         <div class="tile-value-badge ${val > 0 ? 'show' : ''}" id="tval-${i}">${getCurrencySymbol()}${val > 0 ? val.toFixed(2) : ''}</div>
                         <div class="tile-indicators">
-                            <div class="tile-ind${hasArt ? ' has' : ''}" id="tind-art-${i}" title="Card art">🎨</div>
+                            <div class="tile-ind" id="tind-art-${i}" title="Card art">🎨</div>
                             <div class="tile-ind" id="tind-ph-${i}" title="My photo">📸</div>
                         </div>
                     </div>
@@ -4281,7 +4296,7 @@ fetchAllArt();
             const eligible = [];
             for (let i = start; i <= end; i++) {
                 const saved = _memoryCache[`item-${i}`];
-                if (saved && saved.name && saved.set && saved.setNumber && !saved.artSmall) {
+                if (saved && saved.name && saved.set && saved.setNumber) {
                     eligible.push({ id: i, ...saved });
                 }
             }
@@ -4313,14 +4328,6 @@ fetchAllArt();
 
                         _artCache[c.id] = { small: match.images.small, large: match.images.large || match.images.small };
 
-                        // Persist art URLs to card data
-                        const stored = _memoryCache[`item-${c.id}`];
-                        if (stored) {
-                            stored.artSmall = match.images.small;
-                            stored.artLarge = match.images.large || match.images.small;
-                            saveCardToDB(c.id, stored);
-                        }
-
                         const artImg = document.getElementById(`tart-${c.id}`);
                         if (artImg) {
                             artImg.style.display = '';
@@ -4346,7 +4353,29 @@ fetchAllArt();
             if (body && !body.classList.contains('open')) togglePage(page);
             if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        function findItem() {
+        /* ── Toast notification helper ── */
+        function showToast(msg, duration = 3000) {
+            let toast = document.getElementById('app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-toast';
+                toast.style.cssText = [
+                    'position:fixed','bottom:80px','left:50%','transform:translateX(-50%)',
+                    'background:#1a2a3a','color:#90caf9','border:1px solid #007bff',
+                    'border-radius:10px','padding:10px 20px','font-size:0.88em',
+                    'font-weight:bold','z-index:9999','pointer-events:none',
+                    'box-shadow:0 4px 18px rgba(0,0,0,0.5)',
+                    'transition:opacity 0.3s','white-space:nowrap'
+                ].join(';');
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+        }
+
+        async function findItem() {
             const query = normalizeStr(document.getElementById('searchInput').value || '');
             if (!query) return;
             const num = parseInt(query);
@@ -4358,7 +4387,26 @@ fetchAllArt();
                 const sn = normalizeStr(saved.setNumber || '');
                 if (n.includes(query) || s.includes(query) || sn.includes(query)) { scrollToRow(i); return; }
             }
-            alert(`"${query}" not found.`);
+            // ── Pokédex binder-spot lookup ──
+            // No filled card matched — try PokéAPI to get the national Pokédex number
+            // so we can navigate to the corresponding empty binder slot.
+            const rawQuery = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            try {
+                showToast('🔍 Looking up Pokédex number…', 5000);
+                const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(rawQuery)}`);
+                if (resp.ok) {
+                    const data    = await resp.json();
+                    const dexNum  = data.id;
+                    const dispName = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+                    if (dexNum >= 1 && dexNum <= config.total) {
+                        showToast(`📍 Binder spot #${dexNum} — ${dispName} (Pokédex #${dexNum})`);
+                        scrollToRow(dexNum);
+                        return;
+                    }
+                }
+            } catch(e) { /* network error — fall through to alert */ }
+            showToast('');
+            alert(`"${rawQuery}" not found.`);
         }
         function scrollToRow(id) {
             const pageSize = config.rows * config.cols;

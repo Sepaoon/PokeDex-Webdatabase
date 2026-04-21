@@ -173,8 +173,26 @@
             padding: 8px 12px; flex-wrap: nowrap; min-height: 54px;
         }
         .nav-brand { display: flex; flex-direction: column; line-height: 1.15; flex-shrink: 0; }
-        .nav-brand .brand-name { font-size: 1.05em; font-weight: 800; color: #fff; white-space: nowrap; }
+        .nav-brand .brand-name {
+            font-size: 1.05em; font-weight: 800; color: #fff; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
         .nav-brand .brand-sub  { font-size: 0.6em; color: #555; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+
+        /* ── Inline Poké-Ball logo ──
+           Sized in em so it scales with .brand-name font-size. The
+           equator stroke, top half (red) and bottom half (white) share
+           a common clipPath so the edges stay crisp. */
+        .pokeball-logo {
+            width: 1.15em; height: 1.15em;
+            flex-shrink: 0; display: inline-block;
+            vertical-align: -0.18em;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+        }
+        /* Light-mode: slightly reduce the drop-shadow */
+        body.light .pokeball-logo {
+            filter: drop-shadow(0 1px 1.5px rgba(0,0,0,0.18));
+        }
         .nav-divider { width: 1px; height: 28px; background: #333; flex-shrink: 0; }
 
         .nav-search {
@@ -450,6 +468,20 @@
         .cd-actions .price-btn,
         .cd-actions .tcg-btn,
         .cd-actions .photo-btn { flex-shrink: 0; }
+
+        /* Clear-entry button — warning-coloured so it stands apart from other actions */
+        .cd-clear-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 8px 11px; border-radius: 6px;
+            border: 1px solid #5a2a2a; background: #3a1a1a; color: #e57373;
+            font-size: 12px; font-weight: bold; cursor: pointer;
+            min-height: 44px; white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .cd-clear-btn:active { background: #5a2a2a; color: #fff; border-color: #8a3a3a; }
+        body.light .cd-clear-btn { background: #fbe9e9; border-color: #e8b0b0; color: #c62828; }
+        body.light .cd-clear-btn:active { background: #f5caca; color: #8e0000; border-color: #c62828; }
 
         .cd-checkboxes { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .cd-toggle-row { display: flex; align-items: center; gap: 10px; padding: 0 16px 10px; }
@@ -767,6 +799,129 @@
         .api-keys-save { padding:5px 12px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:5px; color:#aaa; font-size:12px; font-weight:bold; cursor:pointer; min-height:32px; align-self:flex-end; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background 0.15s; }
         .api-keys-save:active { background:#3a3a3a; color:#fff; }
 
+        /* ── API Keys section header with help button ── */
+        .api-keys-header {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 4px 0 2px;
+        }
+        .api-keys-header .settings-label { flex-shrink: 0; }
+        .api-keys-info-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            border: 1px solid #3a3a3a; background: #252525; color: #666;
+            font-size: 11px; font-weight: 900; cursor: pointer; flex-shrink: 0;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent; line-height: 1;
+        }
+        .api-keys-info-btn:active, .api-keys-info-btn:hover { background: #1a2a3a; color: #64b5f6; border-color: #2a4a6a; }
+        body.light .api-keys-info-btn { background: #c8dcf0; border-color: #a8c0d8; color: #5a7a99; }
+
+        /* Required / Recommended / Optional badges on key fields */
+        .api-key-badge {
+            display: inline-block; padding: 1px 6px; border-radius: 3px;
+            font-size: 0.55em; font-weight: 800; letter-spacing: 0.05em;
+            text-transform: uppercase; margin-left: 6px; vertical-align: middle;
+        }
+        .api-key-badge.req  { background: rgba(229,115,115,0.15); color: #e57373; border: 1px solid rgba(229,115,115,0.3); }
+        .api-key-badge.rec  { background: rgba(100,181,246,0.12); color: #64b5f6; border: 1px solid rgba(100,181,246,0.3); }
+        .api-key-badge.opt  { background: rgba(158,158,158,0.12); color: #9e9e9e; border: 1px solid rgba(158,158,158,0.25); }
+        body.light .api-key-badge.req { background: rgba(198,40,40,0.1); color: #c62828; border-color: rgba(198,40,40,0.25); }
+        body.light .api-key-badge.rec { background: rgba(26,115,232,0.1); color: #1558b0; border-color: rgba(26,115,232,0.25); }
+        body.light .api-key-badge.opt { background: rgba(90,122,153,0.1); color: #5a7a99; border-color: rgba(90,122,153,0.25); }
+
+        /* ── API Keys Info Modal ── */
+        #akinfo-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 310;
+            justify-content: center; align-items: flex-start;
+            padding: 20px; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #akinfo-overlay.open { display: flex; }
+        #akinfo-modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 14px;
+            width: 100%; max-width: 600px; margin: auto;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+            animation: wiz-slide-in 0.22s ease-out;
+            overflow: hidden;
+        }
+        .akinfo-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px; border-bottom: 1px solid #2a2a2a;
+            background: #151515;
+        }
+        .akinfo-header h3 { margin: 0; font-size: 1.05em; color: #fff; font-weight: 800; flex: 1; }
+        .akinfo-close {
+            background: none; border: 1px solid #333; border-radius: 8px;
+            color: #666; font-size: 1.2em; cursor: pointer;
+            width: 36px; height: 36px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .akinfo-close:active { color: #fff; border-color: #555; }
+        .akinfo-body {
+            padding: 16px 20px 4px; max-height: calc(100vh - 140px);
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .akinfo-intro {
+            font-size: 0.85em; color: #aaa; line-height: 1.55; margin: 0 0 14px;
+            padding: 10px 12px; border-radius: 8px;
+            background: rgba(0,123,255,0.06); border: 1px solid rgba(0,123,255,0.2);
+        }
+        .akinfo-card {
+            padding: 12px 14px; margin-bottom: 10px;
+            border-radius: 10px; border: 1px solid #2a2a2a; background: #151515;
+        }
+        .akinfo-card-title {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            font-size: 0.95em; font-weight: 700; color: #fff; margin: 0 0 8px;
+        }
+        .akinfo-card-title .akinfo-link {
+            font-size: 0.7em; color: #64b5f6; font-weight: 600; text-decoration: none;
+        }
+        .akinfo-card-title .akinfo-link:hover { text-decoration: underline; }
+        .akinfo-card p { font-size: 0.82em; color: #aaa; line-height: 1.55; margin: 0 0 6px; }
+        .akinfo-card p:last-child { margin-bottom: 0; }
+        .akinfo-card strong { color: #ddd; }
+        .akinfo-card .akinfo-row {
+            display: flex; gap: 8px; align-items: baseline;
+            font-size: 0.8em; color: #888; line-height: 1.5; margin-top: 4px;
+        }
+        .akinfo-card .akinfo-row-label {
+            flex-shrink: 0; font-weight: 700; color: #777;
+            text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85em;
+            min-width: 80px;
+        }
+        .akinfo-card .akinfo-row-val { color: #bbb; }
+        .akinfo-card.req { border-color: rgba(229,115,115,0.35); }
+        .akinfo-card.rec { border-color: rgba(100,181,246,0.35); }
+        .akinfo-footer {
+            display: flex; gap: 10px; padding: 12px 20px 16px;
+            border-top: 1px solid #2a2a2a;
+        }
+        .akinfo-btn {
+            flex: 1; padding: 11px 16px; border-radius: 8px; border: none;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            min-height: 44px; -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .akinfo-btn:active { filter: brightness(0.85); }
+        .akinfo-btn-primary { background: #007bff; color: #fff; }
+        body.light #akinfo-modal { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light .akinfo-header { background: #cde2f2; border-bottom-color: #b8cfe0; }
+        body.light .akinfo-header h3 { color: #1a1a1a; }
+        body.light .akinfo-close { border-color: #a8c0d8; color: #5a7a99; }
+        body.light .akinfo-intro { background: rgba(26,115,232,0.08); border-color: rgba(26,115,232,0.25); color: #334; }
+        body.light .akinfo-card { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .akinfo-card-title { color: #1a1a1a; }
+        body.light .akinfo-card-title .akinfo-link { color: #1558b0; }
+        body.light .akinfo-card p { color: #334; }
+        body.light .akinfo-card strong { color: #1a1a1a; }
+        body.light .akinfo-card .akinfo-row { color: #5a7a99; }
+        body.light .akinfo-card .akinfo-row-label { color: #445; }
+        body.light .akinfo-card .akinfo-row-val { color: #334; }
+        body.light .akinfo-footer { border-top-color: #b8cfe0; }
+
         /* ── Card name autocomplete ── */
         .name-ac-wrapper { position:relative; flex:0.38; min-width:40px; }
         .name-ac-wrapper .item-name { width:100%; flex:unset; }
@@ -904,9 +1059,721 @@
         body.light #ocr-set-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
         body.light #ocr-num-input  { background:#c8dcf0; border-color:#a8c0d8; color:#334; }
         body.light #ocr-preview-img { box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+
+        /* ───────────────────────────────────────────── */
+        /* ──           SETUP WIZARD MODAL           ── */
+        /* ───────────────────────────────────────────── */
+        #wizard-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88); z-index: 300;
+            justify-content: center; align-items: flex-start;
+            padding: 20px; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #wizard-overlay.open { display: flex; }
+        #wizard-modal {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 14px;
+            width: 100%; max-width: 600px; margin: auto;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+            animation: wiz-slide-in 0.25s ease-out;
+            display: flex; flex-direction: column;
+            max-height: calc(100vh - 40px);
+        }
+        @keyframes wiz-slide-in { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+        .wiz-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 18px; border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+        .wiz-header-icon {
+            font-size: 1.6em; display: inline-flex; align-items: center;
+            flex-shrink: 0;
+        }
+        .wiz-header-icon svg {
+            width: 1em; height: 1em;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+        }
+        body.light .wiz-header-icon svg {
+            filter: drop-shadow(0 1px 1.5px rgba(0,0,0,0.18));
+        }
+        .wiz-header-text { flex: 1; min-width: 0; }
+        .wiz-header-title { font-size: 1.05em; font-weight: 800; color: #fff; margin: 0; }
+        .wiz-header-sub { font-size: 0.72em; color: #777; margin-top: 2px; }
+        .wiz-close {
+            background: none; border: 1px solid #333; border-radius: 8px;
+            color: #666; font-size: 1.2em; cursor: pointer;
+            width: 36px; height: 36px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: color 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wiz-close:active { color: #fff; border-color: #555; }
+
+        /* Step indicator */
+        .wiz-steps {
+            display: flex; align-items: center; gap: 6px;
+            padding: 10px 18px; background: #151515;
+            border-bottom: 1px solid #2a2a2a; flex-shrink: 0;
+        }
+        .wiz-step-dot {
+            flex: 1; height: 4px; border-radius: 2px;
+            background: #2a2a2a; transition: background 0.2s;
+        }
+        .wiz-step-dot.active { background: #007bff; }
+        .wiz-step-dot.done { background: #2e5a8e; }
+
+        /* Body content */
+        .wiz-body {
+            padding: 18px; overflow-y: auto; flex: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+        .wiz-panel { display: none; animation: wiz-fade 0.2s ease; }
+        .wiz-panel.active { display: block; }
+        @keyframes wiz-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+        .wiz-q {
+            font-size: 1em; font-weight: 700; color: #fff;
+            margin: 0 0 4px;
+        }
+        .wiz-q-sub {
+            font-size: 0.82em; color: #888; margin: 0 0 16px;
+        }
+
+        /* Big 2-col choice cards */
+        .wiz-choice-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-bottom: 14px;
+        }
+        @media (max-width: 500px) {
+            .wiz-choice-grid { grid-template-columns: 1fr; }
+        }
+        .wiz-choice {
+            padding: 20px 14px; border: 2px solid #2e2e2e; border-radius: 12px;
+            background: #202020; color: #ccc; cursor: pointer; text-align: center;
+            transition: border-color 0.15s, background 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .wiz-choice:hover { border-color: #3a3a3a; background: #242424; }
+        .wiz-choice:active { transform: scale(0.97); }
+        .wiz-choice.selected { border-color: #007bff; background: #1a2a3a; color: #fff; }
+        .wiz-choice-icon { font-size: 2.2em; line-height: 1; }
+        .wiz-choice-title { font-size: 0.95em; font-weight: 700; }
+        .wiz-choice-desc { font-size: 0.72em; color: #888; line-height: 1.35; }
+        .wiz-choice.selected .wiz-choice-desc { color: #aaa; }
+
+        /* Dex grid (more compact, 3 cols) */
+        .wiz-dex-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin-bottom: 14px;
+        }
+        @media (max-width: 500px) {
+            .wiz-dex-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .wiz-dex-card {
+            padding: 12px 10px; border: 2px solid #2e2e2e; border-radius: 10px;
+            background: #202020; cursor: pointer; text-align: center;
+            transition: border-color 0.15s, background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wiz-dex-card:active { transform: scale(0.97); }
+        .wiz-dex-card.selected { border-color: #007bff; background: #1a2a3a; }
+        .wiz-dex-name { font-size: 0.88em; font-weight: 700; color: #fff; }
+        .wiz-dex-count { font-size: 0.7em; color: #888; margin-top: 2px; }
+        .wiz-dex-card.selected .wiz-dex-count { color: #aaa; }
+
+        /* Search inputs */
+        .wiz-search-wrap { position: relative; margin-bottom: 12px; }
+        .wiz-search-input {
+            width: 100%; padding: 12px 14px; border-radius: 8px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; /* no iOS zoom */
+            transition: border-color 0.15s;
+        }
+        .wiz-search-input:focus { outline: none; border-color: #007bff; }
+        .wiz-search-spinner {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            width: 18px; height: 18px; border: 2px solid #2a2a2a;
+            border-top-color: #007bff; border-radius: 50%;
+            animation: art-sp 0.7s linear infinite; display: none;
+        }
+        .wiz-search-spinner.show { display: block; }
+
+        /* Result list (sets / pokemon) */
+        .wiz-results {
+            max-height: 320px; overflow-y: auto;
+            border: 1px solid #2a2a2a; border-radius: 8px;
+            background: #151515;
+            -webkit-overflow-scrolling: touch;
+        }
+        .wiz-results-empty {
+            padding: 20px; text-align: center; color: #666; font-size: 0.85em;
+        }
+        .wiz-result-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; cursor: pointer;
+            border-bottom: 1px solid #252525;
+            transition: background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wiz-result-item:last-child { border-bottom: none; }
+        .wiz-result-item:hover, .wiz-result-item:active { background: #202020; }
+        .wiz-result-item.selected { background: #1a2a3a; border-left: 3px solid #007bff; padding-left: 9px; }
+        .wiz-result-img {
+            width: 36px; height: 36px; border-radius: 4px;
+            background: #2a2a2a; object-fit: contain; flex-shrink: 0;
+        }
+        .wiz-result-text { flex: 1; min-width: 0; }
+        .wiz-result-name {
+            font-size: 0.9em; font-weight: 600; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .wiz-result-meta {
+            font-size: 0.72em; color: #888; margin-top: 2px;
+        }
+
+        /* Layout inputs (rows/cols/total) */
+        .wiz-layout-row {
+            display: flex; gap: 10px; margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .wiz-layout-field {
+            flex: 1; min-width: 110px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .wiz-layout-label {
+            font-size: 0.7em; color: #888; text-transform: uppercase;
+            font-weight: bold; letter-spacing: 0.06em;
+        }
+        .wiz-layout-input {
+            padding: 10px 12px; border-radius: 8px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; /* no iOS zoom */
+            -moz-appearance: textfield;
+        }
+        .wiz-layout-input::-webkit-outer-spin-button,
+        .wiz-layout-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .wiz-layout-preview {
+            margin-top: 8px; padding: 14px; border-radius: 10px;
+            background: #151515; border: 1px solid #2a2a2a;
+            /* Safety: contain any layout overflow so cells never bleed
+               into surrounding elements — this was the root cause of the
+               "cells spilling into info banner" bug on 4×4+ layouts. */
+            overflow: hidden;
+        }
+        .wiz-layout-preview-label {
+            font-size: 0.72em; color: #888; margin-bottom: 8px;
+            text-align: center;
+        }
+        /* Preview grid: size the container so its aspect ratio matches the
+           actual rows×cols of card-shaped (3:4) cells. JS sets --wiz-preview-ratio
+           on the element each time the layout changes. Cells fill their tracks
+           with no aspect-ratio of their own, so the grid stays tight.
+           Both max-width AND max-height are bounded so tall layouts (e.g. 12×3)
+           don't blow out vertically — the grid just shrinks to fit. */
+        .wiz-preview-grid {
+            display: grid; gap: 4px; margin: 0 auto;
+            width: auto;
+            max-width: 220px;
+            max-height: 260px;
+            aspect-ratio: var(--wiz-preview-ratio, 3 / 4);
+        }
+        .wiz-preview-cell {
+            background: #2a2a2a; border-radius: 3px;
+            /* no aspect-ratio — the grid's row/column tracks already
+               give each cell the correct shape. */
+        }
+
+        /* Layout preset buttons */
+        .wiz-layout-presets {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .wiz-preset-btn {
+            padding: 6px 12px; border-radius: 6px;
+            border: 1px solid #3a3a3a; background: #252525; color: #ccc;
+            font-size: 0.78em; font-weight: 600; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .wiz-preset-btn:active, .wiz-preset-btn.active {
+            border-color: #007bff; background: #1a2a3a; color: #fff;
+        }
+
+        /* Toggle option (e.g. "Pre-fill names") */
+        .wiz-toggle-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px; border-radius: 8px;
+            background: #151515; border: 1px solid #2a2a2a;
+            margin-bottom: 12px; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wiz-toggle-row input[type="checkbox"] {
+            width: 20px; height: 20px; accent-color: #007bff;
+            cursor: pointer; flex-shrink: 0; margin-top: 1px;
+        }
+        .wiz-toggle-text { flex: 1; min-width: 0; }
+        .wiz-toggle-title { font-size: 0.9em; font-weight: 600; color: #fff; }
+        .wiz-toggle-desc { font-size: 0.75em; color: #888; margin-top: 2px; line-height: 1.4; }
+
+        /* Review / summary */
+        .wiz-review-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 10px 12px; border-bottom: 1px solid #2a2a2a;
+            gap: 12px;
+        }
+        .wiz-review-row:last-child { border-bottom: none; }
+        .wiz-review-label {
+            font-size: 0.72em; color: #888; text-transform: uppercase;
+            font-weight: bold; letter-spacing: 0.05em;
+        }
+        .wiz-review-value {
+            font-size: 0.92em; color: #fff; font-weight: 600;
+            text-align: right; word-break: break-word;
+        }
+        .wiz-review-box {
+            background: #151515; border: 1px solid #2a2a2a; border-radius: 10px;
+            margin-bottom: 14px;
+        }
+
+        /* Warning/Info banners */
+        .wiz-banner {
+            padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;
+            font-size: 0.82em; line-height: 1.45;
+        }
+        .wiz-banner-info {
+            background: rgba(0,123,255,0.08); border: 1px solid rgba(0,123,255,0.3);
+            color: #8ab4ff;
+        }
+        .wiz-banner-warn {
+            background: rgba(255,152,0,0.08); border: 1px solid rgba(255,152,0,0.3);
+            color: #ffb74d;
+        }
+        .wiz-banner-err {
+            background: rgba(229,115,115,0.08); border: 1px solid rgba(229,115,115,0.3);
+            color: #e57373;
+        }
+
+        /* Footer / actions */
+        .wiz-footer {
+            display: flex; gap: 10px; justify-content: space-between;
+            padding: 14px 18px; border-top: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+        .wiz-btn {
+            padding: 11px 18px; border-radius: 8px; border: none;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s, background 0.15s;
+        }
+        .wiz-btn:active { filter: brightness(0.85); }
+        .wiz-btn-back { background: #2a2a2a; color: #bbb; }
+        .wiz-btn-next { background: #007bff; color: #fff; margin-left: auto; }
+        .wiz-btn-apply { background: #2e7d32; color: #fff; margin-left: auto; }
+        .wiz-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+
+        /* Progress area for applying (final step) */
+        .wiz-progress {
+            margin-top: 12px; padding: 14px;
+            border-radius: 10px; background: #151515; border: 1px solid #2a2a2a;
+            display: none;
+        }
+        .wiz-progress.show { display: block; }
+        .wiz-progress-label {
+            font-size: 0.82em; color: #bbb; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .wiz-progress-bar-wrap {
+            width: 100%; height: 6px; background: #2a2a2a; border-radius: 3px; overflow: hidden;
+        }
+        .wiz-progress-bar {
+            height: 100%; background: #007bff; border-radius: 3px;
+            width: 0%; transition: width 0.2s;
+        }
+
+        /* Light-mode overrides */
+        body.light #wizard-modal { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light .wiz-header { border-bottom-color: #b8cfe0; }
+        body.light .wiz-header-title { color: #1a1a1a; }
+        body.light .wiz-header-sub { color: #5a7a99; }
+        body.light .wiz-close { border-color: #a8c0d8; color: #5a7a99; }
+        body.light .wiz-steps { background: #cde2f2; border-bottom-color: #b8cfe0; }
+        body.light .wiz-step-dot { background: #b8cfe0; }
+        body.light .wiz-step-dot.active { background: #1a73e8; }
+        body.light .wiz-step-dot.done { background: #5a92d0; }
+        body.light .wiz-q { color: #1a1a1a; }
+        body.light .wiz-q-sub { color: #5a7a99; }
+        body.light .wiz-choice { background: #c8dcf0; border-color: #a8c0d8; color: #334; }
+        body.light .wiz-choice:hover { background: #bcd4f0; }
+        body.light .wiz-choice.selected { border-color: #1a73e8; background: #bcd4f0; color: #1a1a1a; }
+        body.light .wiz-choice-desc { color: #5a7a99; }
+        body.light .wiz-dex-card { background: #c8dcf0; border-color: #a8c0d8; }
+        body.light .wiz-dex-card.selected { border-color: #1a73e8; background: #bcd4f0; }
+        body.light .wiz-dex-name { color: #1a1a1a; }
+        body.light .wiz-dex-count { color: #5a7a99; }
+        body.light .wiz-search-input { background: #c8dcf0; border-color: #a8c0d8; color: #1a1a1a; }
+        body.light .wiz-search-input:focus { border-color: #1a73e8; }
+        body.light .wiz-results { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-result-item { border-bottom-color: #b8cfe0; }
+        body.light .wiz-result-item:hover, body.light .wiz-result-item:active { background: #bcd4f0; }
+        body.light .wiz-result-item.selected { background: #aeccee; border-left-color: #1a73e8; }
+        body.light .wiz-result-img { background: #b8cfe0; }
+        body.light .wiz-result-name { color: #1a1a1a; }
+        body.light .wiz-result-meta { color: #5a7a99; }
+        body.light .wiz-results-empty { color: #7a9ab5; }
+        body.light .wiz-layout-label { color: #5a7a99; }
+        body.light .wiz-layout-input { background: #c8dcf0; border-color: #a8c0d8; color: #1a1a1a; }
+        body.light .wiz-layout-preview { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-layout-preview-label { color: #5a7a99; }
+        body.light .wiz-preview-cell { background: #a8c0d8; }
+        body.light .wiz-preset-btn { background: #c8dcf0; border-color: #a8c0d8; color: #334; }
+        body.light .wiz-preset-btn:active, body.light .wiz-preset-btn.active { background: #bcd4f0; border-color: #1a73e8; color: #1a1a1a; }
+        body.light .wiz-toggle-row { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-toggle-title { color: #1a1a1a; }
+        body.light .wiz-toggle-desc { color: #5a7a99; }
+        body.light .wiz-review-row { border-bottom-color: #b8cfe0; }
+        body.light .wiz-review-label { color: #5a7a99; }
+        body.light .wiz-review-value { color: #1a1a1a; }
+        body.light .wiz-review-box { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-footer { border-top-color: #b8cfe0; }
+        body.light .wiz-btn-back { background: #c0d8ee; color: #445; }
+        body.light .wiz-progress { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-progress-label { color: #334; }
+        body.light .wiz-progress-bar-wrap { background: #b8cfe0; }
+        body.light .wiz-progress-bar { background: #1a73e8; }
+
+        /* Setup button in settings drawer */
+        .settings-apply.wiz-launch-btn {
+            background: #1a2a3a; color: #64b5f6; border: 1px solid #2a4a6a;
+        }
+        body.light .settings-apply.wiz-launch-btn {
+            background: #bcd4f0; color: #1558b0; border-color: #a0c0e0;
+        }
+
+        /* ── Wizard banner step ── */
+        .wiz-banner-preview {
+            width: 100%; aspect-ratio: 16 / 5;
+            border-radius: 10px; overflow: hidden;
+            background: #151515; border: 1px solid #2a2a2a;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; margin-bottom: 12px;
+        }
+        .wiz-banner-preview img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .wiz-banner-preview .wiz-banner-placeholder {
+            color: #555; font-size: 0.85em; padding: 16px; text-align: center;
+        }
+        .wiz-banner-preview-label {
+            position: absolute; top: 8px; left: 8px;
+            padding: 3px 8px; border-radius: 4px;
+            background: rgba(0,0,0,0.65); color: #fff;
+            font-size: 0.7em; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        body.light .wiz-banner-preview { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-banner-preview .wiz-banner-placeholder { color: #7a9ab5; }
+
+        .wiz-banner-mode-row {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 500px) {
+            .wiz-banner-mode-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        .wiz-banner-mode {
+            padding: 10px 6px; border: 2px solid #2e2e2e; border-radius: 8px;
+            background: #202020; color: #ccc; cursor: pointer; text-align: center;
+            transition: border-color 0.15s, background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 0.78em; font-weight: 700;
+        }
+        .wiz-banner-mode:active { transform: scale(0.97); }
+        .wiz-banner-mode.selected { border-color: #007bff; background: #1a2a3a; color: #fff; }
+        .wiz-banner-mode-icon { font-size: 1.4em; line-height: 1; }
+        body.light .wiz-banner-mode { background: #c8dcf0; border-color: #a8c0d8; color: #334; }
+        body.light .wiz-banner-mode.selected { background: #bcd4f0; border-color: #1a73e8; color: #1a1a1a; }
+
+        .wiz-banner-input-area { margin-bottom: 12px; min-height: 4px; }
+        .wiz-banner-input-area input[type="text"] {
+            width: 100%; padding: 11px 12px; border-radius: 8px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; /* no iOS zoom */
+        }
+        .wiz-banner-input-area input[type="text"]:focus { outline: none; border-color: #007bff; }
+        .wiz-banner-input-area input[type="file"] {
+            color: #ccc; font-size: 13px; padding: 6px 0;
+        }
+        body.light .wiz-banner-input-area input[type="text"] { background: #c8dcf0; border-color: #a8c0d8; color: #1a1a1a; }
+
+        /* Quick presets — thumbnail row */
+        .wiz-banner-presets {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 500px) {
+            .wiz-banner-presets { grid-template-columns: repeat(3, 1fr); }
+        }
+        .wiz-banner-preset {
+            border-radius: 6px; overflow: hidden; cursor: pointer;
+            border: 2px solid #2e2e2e; aspect-ratio: 16/9;
+            background: #151515; transition: border-color 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .wiz-banner-preset:active { transform: scale(0.95); }
+        .wiz-banner-preset.selected { border-color: #007bff; box-shadow: 0 0 0 1px #007bff; }
+        .wiz-banner-preset img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        body.light .wiz-banner-preset { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-banner-preset.selected { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+
+        .wiz-review-banner-thumb {
+            width: 72px; height: 24px; border-radius: 4px; object-fit: cover;
+            border: 1px solid #2a2a2a; margin-left: auto;
+        }
+        body.light .wiz-review-banner-thumb { border-color: #b8cfe0; }
+
+        /* ── Wizard: API keys step ── */
+        .wiz-keys-card {
+            padding: 12px 14px; margin-bottom: 10px;
+            border-radius: 10px; border: 1px solid #2a2a2a; background: #151515;
+        }
+        .wiz-keys-card.rec { border-color: rgba(100,181,246,0.3); }
+        body.light .wiz-keys-card { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .wiz-keys-card.rec { border-color: rgba(26,115,232,0.35); }
+
+        /* Collapsible header row */
+        .wiz-keys-head {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .wiz-keys-caret {
+            display: inline-block; width: 10px; color: #777; font-size: 0.8em;
+            transition: transform 0.15s; flex-shrink: 0;
+        }
+        .wiz-keys-card.open .wiz-keys-caret { transform: rotate(90deg); }
+        .wiz-keys-icon { font-size: 1.15em; flex-shrink: 0; }
+        .wiz-keys-title {
+            font-size: 0.95em; font-weight: 700; color: #fff;
+            flex: 1; min-width: 0;
+        }
+        body.light .wiz-keys-title { color: #1a1a1a; }
+        .wiz-keys-saved {
+            display: none; padding: 2px 7px; border-radius: 3px;
+            background: rgba(76,175,80,0.15); color: #81c784;
+            border: 1px solid rgba(76,175,80,0.3);
+            font-size: 0.6em; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .wiz-keys-saved.show { display: inline-block; }
+        body.light .wiz-keys-saved { background: rgba(46,125,50,0.1); color: #2e7d32; border-color: rgba(46,125,50,0.3); }
+
+        /* Collapsible body */
+        .wiz-keys-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        .wiz-keys-card.open .wiz-keys-body { max-height: 700px; }
+        .wiz-keys-body-inner { padding-top: 10px; }
+        .wiz-keys-body p {
+            font-size: 0.82em; color: #aaa; line-height: 1.5; margin: 0 0 8px;
+        }
+        body.light .wiz-keys-body p { color: #334; }
+        .wiz-keys-body strong { color: #ddd; }
+        body.light .wiz-keys-body strong { color: #1a1a1a; }
+
+        /* Step-by-step instructions */
+        .wiz-keys-steps {
+            margin: 10px 0; padding-left: 0; list-style: none;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .wiz-keys-steps li {
+            display: flex; gap: 8px; align-items: flex-start;
+            font-size: 0.82em; color: #bbb; line-height: 1.5;
+        }
+        body.light .wiz-keys-steps li { color: #334; }
+        .wiz-keys-steps .wiz-keys-num {
+            flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+            background: #2a4a6a; color: #64b5f6; font-size: 0.7em; font-weight: 800;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-top: 1px;
+        }
+        body.light .wiz-keys-steps .wiz-keys-num { background: #bcd4f0; color: #1558b0; }
+        .wiz-keys-steps a { color: #64b5f6; text-decoration: none; font-weight: 600; }
+        .wiz-keys-steps a:hover { text-decoration: underline; }
+        body.light .wiz-keys-steps a { color: #1558b0; }
+
+        /* Inline key input */
+        .wiz-keys-input-row {
+            display: flex; gap: 8px; align-items: stretch;
+            margin-top: 8px; flex-wrap: wrap;
+        }
+        .wiz-keys-input {
+            flex: 1; min-width: 0;
+            padding: 10px 12px; border-radius: 7px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; /* no iOS zoom */
+        }
+        .wiz-keys-input:focus { outline: none; border-color: #007bff; }
+        body.light .wiz-keys-input { background: #c8dcf0; border-color: #a8c0d8; color: #1a1a1a; }
+        body.light .wiz-keys-input:focus { border-color: #1a73e8; }
+        .wiz-keys-save-btn {
+            padding: 10px 14px; border-radius: 7px; border: none;
+            background: #007bff; color: #fff; font-size: 13px; font-weight: bold;
+            cursor: pointer; min-height: 44px; white-space: nowrap; flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .wiz-keys-save-btn:active { filter: brightness(0.85); }
+        .wiz-keys-save-btn.saved { background: #2e7d32; }
+
+        /* "Perk" chip showing what the user unlocks */
+        .wiz-keys-perk {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 10px;
+            background: rgba(100,181,246,0.1); color: #64b5f6;
+            border: 1px solid rgba(100,181,246,0.25);
+            font-size: 0.68em; font-weight: 600; margin: 2px 2px 0 0;
+        }
+        body.light .wiz-keys-perk { background: rgba(26,115,232,0.08); color: #1558b0; border-color: rgba(26,115,232,0.2); }
     </style>
 </head>
 <body>
+
+    <!-- API Keys Info Modal -->
+    <div id="akinfo-overlay" onclick="if(event.target===this)closeApiKeysInfo()">
+        <div id="akinfo-modal" role="dialog" aria-labelledby="akinfo-title">
+            <div class="akinfo-header">
+                <h3 id="akinfo-title">🔑 API Keys — What's Needed &amp; What's Optional</h3>
+                <button class="akinfo-close" onclick="closeApiKeysInfo()" aria-label="Close">✕</button>
+            </div>
+
+            <div class="akinfo-body">
+                <p class="akinfo-intro">
+                    <strong>None of these keys are required</strong> to use PokéDexCheck. The app works out of the box
+                    with sensible free fallbacks. Adding keys unlocks better rate limits and extra features — each key
+                    below explains what it does, whether it's optional, and how it improves performance.
+                </p>
+
+                <!-- Pokémon TCG API -->
+                <div class="akinfo-card rec">
+                    <div class="akinfo-card-title">
+                        🃏 Pokémon TCG API Key
+                        <span class="api-key-badge rec">Recommended</span>
+                        <a class="akinfo-link" href="https://dev.pokemontcg.io" target="_blank">↗ dev.pokemontcg.io</a>
+                    </div>
+                    <p>
+                        Powers virtually every card-data feature in the app: the name/set autocomplete, card
+                        validation badges, card art on every tile, price lookups, set-info for the Setup Wizard,
+                        and the Master Set pre-fill.
+                    </p>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Without key</span>
+                        <span class="akinfo-row-val">1,000 requests/day · 30 per minute. <strong>Bulk price updates and large
+                        collections will hit this limit.</strong></span>
+                    </div>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">With key</span>
+                        <span class="akinfo-row-val">20,000 requests/day — 20× more. Free signup, no credit card.</span>
+                    </div>
+                </div>
+
+                <!-- Google Gemini -->
+                <div class="akinfo-card rec">
+                    <div class="akinfo-card-title">
+                        🤖 Google Gemini API Key
+                        <span class="api-key-badge rec">Recommended for scanning</span>
+                        <a class="akinfo-link" href="https://aistudio.google.com/app/apikey" target="_blank">↗ Google AI Studio</a>
+                    </div>
+                    <p>
+                        Powers the <strong>📷 camera card scan</strong> — reads the card's name, set, and number
+                        from a photo. Gemini gives the highest accuracy of the available options.
+                    </p>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Without key</span>
+                        <span class="akinfo-row-val">Scanning falls back to OCR.Space if that key is set, otherwise
+                        to manual entry.</span>
+                    </div>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">With key</span>
+                        <span class="akinfo-row-val">Generous free tier (check current limits at Google AI Studio). Zero setup beyond pasting the key.</span>
+                    </div>
+                </div>
+
+                <!-- OCR.Space -->
+                <div class="akinfo-card">
+                    <div class="akinfo-card-title">
+                        🔤 OCR.Space API Key
+                        <span class="api-key-badge opt">Optional alternative</span>
+                        <a class="akinfo-link" href="https://ocr.space/ocrapi/freekey" target="_blank">↗ ocr.space</a>
+                    </div>
+                    <p>
+                        An alternative OCR provider for card scanning. Useful if you don't want to use Google.
+                        Less accurate than Gemini for card images but still workable.
+                    </p>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Fallback order</span>
+                        <span class="akinfo-row-val">Gemini (if key) → OCR.Space (if key) → manual entry.</span>
+                    </div>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Free tier</span>
+                        <span class="akinfo-row-val">500 requests/day. No credit card required.</span>
+                    </div>
+                </div>
+
+                <!-- Open Exchange Rates -->
+                <div class="akinfo-card">
+                    <div class="akinfo-card-title">
+                        💱 Open Exchange Rates App ID
+                        <span class="api-key-badge opt">Optional</span>
+                        <a class="akinfo-link" href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a>
+                    </div>
+                    <p>
+                        Provides a live USD ↔ EUR rate for the Cardmarket price source and total-value display.
+                    </p>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Default</span>
+                        <span class="akinfo-row-val">App uses the <strong>Frankfurter API</strong> (free, no key, ECB data).
+                        Accurate and updates daily — most users never need to add an OXR key.</span>
+                    </div>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">With key</span>
+                        <span class="akinfo-row-val">Uses Open Exchange Rates as primary (hourly updates). Free tier: 1,000 requests/month.</span>
+                    </div>
+                </div>
+
+                <!-- Cardmarket (brief) -->
+                <div class="akinfo-card">
+                    <div class="akinfo-card-title">
+                        🇪🇺 Cardmarket Credentials
+                        <span class="api-key-badge opt">Optional</span>
+                        <a class="akinfo-link" href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a>
+                    </div>
+                    <p>
+                        Enables <strong>Cardmarket (EUR)</strong> as an alternative price source for European
+                        collectors. Appears as a new row when you select Cardmarket in the Price Source row above.
+                    </p>
+                    <div class="akinfo-row">
+                        <span class="akinfo-row-label">Default</span>
+                        <span class="akinfo-row-val">TCGPlayer USD prices via Pokémon TCG API — works for everyone.</span>
+                    </div>
+                </div>
+
+                <p class="akinfo-intro" style="margin-top:6px;margin-bottom:10px;background:rgba(158,158,158,0.06);border-color:rgba(158,158,158,0.2);color:#888;">
+                    <strong>Privacy note:</strong> all keys are stored only in your browser's local storage on this
+                    device. They're never sent anywhere except to the service they belong to. If you export a
+                    JSON backup, keys are <em>not</em> included.
+                </p>
+            </div>
+
+            <div class="akinfo-footer">
+                <button class="akinfo-btn akinfo-btn-primary" onclick="closeApiKeysInfo()">Got it</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Price Source Info Modal -->
     <div id="psrc-info-overlay" onclick="if(event.target===this)closePsrcInfo()">
@@ -1013,6 +1880,382 @@
         </div>
     </div>
 
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- ══              SETUP WIZARD MODAL             ══ -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <div id="wizard-overlay" onclick="if(event.target===this)closeSetupWizard()">
+        <div id="wizard-modal" role="dialog" aria-labelledby="wiz-title">
+            <div class="wiz-header">
+                <span class="wiz-header-icon"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Poké Ball" role="img">
+                    <circle cx="16" cy="16" r="15" fill="#f5f5f5" stroke="#1a1a1a" stroke-width="2"/>
+                    <path d="M 1 16 A 15 15 0 0 1 31 16 Z" fill="#ee1515"/>
+                    <rect x="1" y="14.25" width="30" height="3.5" fill="#1a1a1a"/>
+                    <circle cx="16" cy="16" r="4.5" fill="#1a1a1a"/>
+                    <circle cx="16" cy="16" r="3.2" fill="#f5f5f5"/>
+                    <circle cx="16" cy="16" r="1.8" fill="#1a1a1a"/>
+                    <circle cx="16" cy="16" r="1.0" fill="#f5f5f5"/>
+                </svg></span>
+                <div class="wiz-header-text">
+                    <div class="wiz-header-title" id="wiz-title">Binder Setup</div>
+                    <div class="wiz-header-sub" id="wiz-subtitle">Let's build your collection</div>
+                </div>
+                <button class="wiz-close" onclick="closeSetupWizard()" aria-label="Close">✕</button>
+            </div>
+
+            <div class="wiz-steps" id="wiz-steps">
+                <div class="wiz-step-dot active" data-step="1"></div>
+                <div class="wiz-step-dot"        data-step="2"></div>
+                <div class="wiz-step-dot"        data-step="3"></div>
+                <div class="wiz-step-dot"        data-step="4"></div>
+                <div class="wiz-step-dot"        data-step="5"></div>
+                <div class="wiz-step-dot"        data-step="6"></div>
+            </div>
+
+            <div class="wiz-body">
+
+                <!-- ── STEP 1: Binder type ── -->
+                <div class="wiz-panel active" data-panel="binderType">
+                    <h3 class="wiz-q">What kind of binder do you want to build?</h3>
+                    <p class="wiz-q-sub">Pick a Pokédex to track species you've caught, or a Master Set to complete an entire card set.</p>
+                    <div class="wiz-choice-grid">
+                        <div class="wiz-choice" data-val="pokedex" onclick="wizSelectBinderType('pokedex')">
+                            <span class="wiz-choice-icon">📘</span>
+                            <span class="wiz-choice-title">Pokédex</span>
+                            <span class="wiz-choice-desc">One slot per Pokémon species (National or regional dex).</span>
+                        </div>
+                        <div class="wiz-choice" data-val="masterSet" onclick="wizSelectBinderType('masterSet')">
+                            <span class="wiz-choice-icon">🃏</span>
+                            <span class="wiz-choice-title">Master Set</span>
+                            <span class="wiz-choice-desc">One slot per card — complete a specific set or every card of a single Pokémon.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── STEP 2: API Keys (optional) ── -->
+                <div class="wiz-panel" data-panel="apiKeys">
+                    <h3 class="wiz-q">API keys <span style="font-weight:400;color:#888;">(optional)</span></h3>
+                    <p class="wiz-q-sub">
+                        BinderDéx works out of the box without any keys — free fallbacks handle everything.
+                        Adding a key takes 1–2 minutes and unlocks better rate limits and card scanning. You can
+                        skip this step and add keys later from Settings.
+                    </p>
+
+                    <div class="wiz-banner wiz-banner-info" style="margin-bottom:14px;">
+                        <strong>Already have keys set up?</strong> We'll detect that — just tap Next to continue.
+                    </div>
+
+                    <!-- PTCG card -->
+                    <div class="wiz-keys-card rec" id="wiz-keys-card-ptcg">
+                        <div class="wiz-keys-head" onclick="wizToggleKeyCard('ptcg')">
+                            <span class="wiz-keys-caret">▶</span>
+                            <span class="wiz-keys-icon">🃏</span>
+                            <span class="wiz-keys-title">Pokémon TCG API Key</span>
+                            <span class="api-key-badge rec">Recommended</span>
+                            <span class="wiz-keys-saved" id="wiz-keys-saved-ptcg">✓ Saved</span>
+                        </div>
+                        <div class="wiz-keys-body">
+                            <div class="wiz-keys-body-inner">
+                                <p>Powers card art, name/set autocomplete, price lookups, and the set searches used later in this wizard.</p>
+                                <p>
+                                    <span class="wiz-keys-perk">⚡ 20× rate limit</span>
+                                    <span class="wiz-keys-perk">🎨 Faster art loading</span>
+                                    <span class="wiz-keys-perk">📦 Bulk price updates</span>
+                                </p>
+                                <ol class="wiz-keys-steps">
+                                    <li><span class="wiz-keys-num">1</span><span>Go to <a href="https://dev.pokemontcg.io" target="_blank" rel="noopener">dev.pokemontcg.io</a> and sign in with email or GitHub — no credit card.</span></li>
+                                    <li><span class="wiz-keys-num">2</span><span>After login, your API key appears on the dashboard.</span></li>
+                                    <li><span class="wiz-keys-num">3</span><span>Copy it and paste it below, then tap Save.</span></li>
+                                </ol>
+                                <div class="wiz-keys-input-row">
+                                    <input type="password" class="wiz-keys-input" id="wiz-key-ptcg"
+                                           placeholder="Paste API key here" autocomplete="off"
+                                           data-1p-ignore data-lpignore="true" data-form-type="other">
+                                    <button class="wiz-keys-save-btn" onclick="wizSaveKeyInline('ptcg')">💾 Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gemini card -->
+                    <div class="wiz-keys-card rec" id="wiz-keys-card-gemini">
+                        <div class="wiz-keys-head" onclick="wizToggleKeyCard('gemini')">
+                            <span class="wiz-keys-caret">▶</span>
+                            <span class="wiz-keys-icon">🤖</span>
+                            <span class="wiz-keys-title">Google Gemini API Key</span>
+                            <span class="api-key-badge rec">For card scanning</span>
+                            <span class="wiz-keys-saved" id="wiz-keys-saved-gemini">✓ Saved</span>
+                        </div>
+                        <div class="wiz-keys-body">
+                            <div class="wiz-keys-body-inner">
+                                <p>Enables the <strong>📷 camera scan</strong> feature — point at a card, get name/set/number auto-filled.</p>
+                                <p>
+                                    <span class="wiz-keys-perk">📷 Photo → fields</span>
+                                    <span class="wiz-keys-perk">🎯 Highest accuracy</span>
+                                </p>
+                                <ol class="wiz-keys-steps">
+                                    <li><span class="wiz-keys-num">1</span><span>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a> and sign in with a Google account.</span></li>
+                                    <li><span class="wiz-keys-num">2</span><span>Click <strong>Create API key</strong> — the key starts with <code>AIza…</code>.</span></li>
+                                    <li><span class="wiz-keys-num">3</span><span>Copy and paste it below. Free tier is generous; most users never hit the limit.</span></li>
+                                </ol>
+                                <div class="wiz-keys-input-row">
+                                    <input type="password" class="wiz-keys-input" id="wiz-key-gemini"
+                                           placeholder="AIza…" autocomplete="off"
+                                           data-1p-ignore data-lpignore="true" data-form-type="other">
+                                    <button class="wiz-keys-save-btn" onclick="wizSaveKeyInline('gemini')">💾 Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OCR.Space card -->
+                    <div class="wiz-keys-card" id="wiz-keys-card-ocrspace">
+                        <div class="wiz-keys-head" onclick="wizToggleKeyCard('ocrspace')">
+                            <span class="wiz-keys-caret">▶</span>
+                            <span class="wiz-keys-icon">🔤</span>
+                            <span class="wiz-keys-title">OCR.Space API Key</span>
+                            <span class="api-key-badge opt">Alternative to Gemini</span>
+                            <span class="wiz-keys-saved" id="wiz-keys-saved-ocrspace">✓ Saved</span>
+                        </div>
+                        <div class="wiz-keys-body">
+                            <div class="wiz-keys-body-inner">
+                                <p>Fallback card scanner if you'd rather not use Google. Less accurate than Gemini but works.</p>
+                                <p>
+                                    <span class="wiz-keys-perk">📧 Email-based</span>
+                                    <span class="wiz-keys-perk">500/day free</span>
+                                </p>
+                                <ol class="wiz-keys-steps">
+                                    <li><span class="wiz-keys-num">1</span><span>Go to <a href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">ocr.space/ocrapi/freekey</a> and submit your email.</span></li>
+                                    <li><span class="wiz-keys-num">2</span><span>Check your inbox — the key arrives within a minute.</span></li>
+                                    <li><span class="wiz-keys-num">3</span><span>Paste it below and save. Only used when no Gemini key is set.</span></li>
+                                </ol>
+                                <div class="wiz-keys-input-row">
+                                    <input type="password" class="wiz-keys-input" id="wiz-key-ocrspace"
+                                           placeholder="Paste OCR.Space key" autocomplete="off"
+                                           data-1p-ignore data-lpignore="true" data-form-type="other">
+                                    <button class="wiz-keys-save-btn" onclick="wizSaveKeyInline('ocrspace')">💾 Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OXR card -->
+                    <div class="wiz-keys-card" id="wiz-keys-card-oxr">
+                        <div class="wiz-keys-head" onclick="wizToggleKeyCard('oxr')">
+                            <span class="wiz-keys-caret">▶</span>
+                            <span class="wiz-keys-icon">💱</span>
+                            <span class="wiz-keys-title">Open Exchange Rates App ID</span>
+                            <span class="api-key-badge opt">Optional</span>
+                            <span class="wiz-keys-saved" id="wiz-keys-saved-oxr">✓ Saved</span>
+                        </div>
+                        <div class="wiz-keys-body">
+                            <div class="wiz-keys-body-inner">
+                                <p>USD ↔ EUR currency conversion. <strong>Most users don't need this</strong> — the app uses the free Frankfurter API by default, which is accurate and updates daily.</p>
+                                <p>
+                                    <span class="wiz-keys-perk">⏱ Hourly updates (vs daily)</span>
+                                </p>
+                                <ol class="wiz-keys-steps">
+                                    <li><span class="wiz-keys-num">1</span><span>Sign up free at <a href="https://openexchangerates.org/signup/free" target="_blank" rel="noopener">openexchangerates.org/signup/free</a>.</span></li>
+                                    <li><span class="wiz-keys-num">2</span><span>Your App ID shows on the dashboard.</span></li>
+                                    <li><span class="wiz-keys-num">3</span><span>Paste it below if you want hourly-refreshed rates.</span></li>
+                                </ol>
+                                <div class="wiz-keys-input-row">
+                                    <input type="password" class="wiz-keys-input" id="wiz-key-oxr"
+                                           placeholder="Paste App ID" autocomplete="off"
+                                           data-1p-ignore data-lpignore="true" data-form-type="other">
+                                    <button class="wiz-keys-save-btn" onclick="wizSaveKeyInline('oxr')">💾 Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="wiz-q-sub" style="margin-top:14px;font-size:0.74em;">
+                        🔒 Keys are stored only in your browser on this device. They're never sent anywhere except to the service they belong to, and are <em>not</em> included in JSON backups.
+                    </p>
+                </div>
+
+                <!-- ── STEP 3a: Pokédex — pick region ── -->
+                <div class="wiz-panel" data-panel="dexRegion">
+                    <h3 class="wiz-q">Which Pokédex?</h3>
+                    <p class="wiz-q-sub">National covers every Pokémon. Regional dexes have just the species from that region.</p>
+                    <div class="wiz-dex-grid" id="wiz-dex-grid"><!-- filled by JS --></div>
+                    <label class="wiz-toggle-row" for="wiz-prefill-names">
+                        <input type="checkbox" id="wiz-prefill-names">
+                        <span class="wiz-toggle-text">
+                            <span class="wiz-toggle-title">Pre-fill Pokémon names</span>
+                            <span class="wiz-toggle-desc">Auto-label each slot with the correct species name using PokéAPI. You still pick the set &amp; number per card yourself.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- ── STEP 2b: Master Set — by set or by pokemon ── -->
+                <div class="wiz-panel" data-panel="masterKind">
+                    <h3 class="wiz-q">What kind of master set?</h3>
+                    <p class="wiz-q-sub">Complete every card from one TCG set, or chase every card ever printed of a specific Pokémon.</p>
+                    <div class="wiz-choice-grid">
+                        <div class="wiz-choice" data-val="set" onclick="wizSelectMasterKind('set')">
+                            <span class="wiz-choice-icon">📦</span>
+                            <span class="wiz-choice-title">A specific Set</span>
+                            <span class="wiz-choice-desc">e.g. "Prismatic Evolutions", "151", "Surging Sparks". One slot per card in that set.</span>
+                        </div>
+                        <div class="wiz-choice" data-val="pokemon" onclick="wizSelectMasterKind('pokemon')">
+                            <span class="wiz-choice-icon">⚡</span>
+                            <span class="wiz-choice-title">A specific Pokémon</span>
+                            <span class="wiz-choice-desc">e.g. every Pikachu or Charizard card ever printed. One slot per card.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── STEP 3a: Pick a set ── -->
+                <div class="wiz-panel" data-panel="pickSet">
+                    <h3 class="wiz-q">Pick a set</h3>
+                    <p class="wiz-q-sub">Search by name, symbol, or series. Tap a set to select it.</p>
+                    <div class="wiz-search-wrap">
+                        <input type="text" class="wiz-search-input" id="wiz-set-search"
+                               placeholder="Search sets (e.g. Evolving Skies, 151)…"
+                               autocomplete="off" spellcheck="false"
+                               data-1p-ignore data-lpignore="true" oninput="wizFilterSets()">
+                        <div class="wiz-search-spinner" id="wiz-set-spinner"></div>
+                    </div>
+                    <div class="wiz-results" id="wiz-set-results">
+                        <div class="wiz-results-empty">Loading sets…</div>
+                    </div>
+                </div>
+
+                <!-- ── STEP 3b: Pick a pokemon ── -->
+                <div class="wiz-panel" data-panel="pickPokemon">
+                    <h3 class="wiz-q">Pick a Pokémon</h3>
+                    <p class="wiz-q-sub">Enter the Pokémon you want to master. We'll look up every printed card.</p>
+                    <div class="wiz-search-wrap">
+                        <input type="text" class="wiz-search-input" id="wiz-poke-search"
+                               placeholder="e.g. Pikachu, Charizard, Gardevoir…"
+                               autocomplete="off" spellcheck="false"
+                               data-1p-ignore data-lpignore="true"
+                               oninput="wizDebouncePokemonSearch()">
+                        <div class="wiz-search-spinner" id="wiz-poke-spinner"></div>
+                    </div>
+                    <div class="wiz-banner wiz-banner-info" id="wiz-poke-info" style="display:none;"></div>
+                    <div class="wiz-results" id="wiz-poke-results" style="display:none;"></div>
+                </div>
+
+                <!-- ── STEP 4: Layout ── -->
+                <div class="wiz-panel" data-panel="layout">
+                    <h3 class="wiz-q">Page layout</h3>
+                    <p class="wiz-q-sub">Choose how many cards fit on a page. Most physical binders use 3×3 or 4×3.</p>
+
+                    <div class="wiz-layout-presets">
+                        <button class="wiz-preset-btn" data-r="3" data-c="3" onclick="wizApplyLayoutPreset(this)">3 × 3 (9)</button>
+                        <button class="wiz-preset-btn" data-r="4" data-c="3" onclick="wizApplyLayoutPreset(this)">4 × 3 (12)</button>
+                        <button class="wiz-preset-btn" data-r="4" data-c="4" onclick="wizApplyLayoutPreset(this)">4 × 4 (16)</button>
+                        <button class="wiz-preset-btn" data-r="5" data-c="4" onclick="wizApplyLayoutPreset(this)">5 × 4 (20)</button>
+                        <button class="wiz-preset-btn" data-r="5" data-c="5" onclick="wizApplyLayoutPreset(this)">5 × 5 (25)</button>
+                    </div>
+
+                    <div class="wiz-layout-row">
+                        <div class="wiz-layout-field">
+                            <label class="wiz-layout-label" for="wiz-rows">Rows per page</label>
+                            <input type="number" class="wiz-layout-input" id="wiz-rows" min="1" max="12" value="4" inputmode="numeric" oninput="wizUpdatePreview()">
+                        </div>
+                        <div class="wiz-layout-field">
+                            <label class="wiz-layout-label" for="wiz-cols">Slots per row</label>
+                            <input type="number" class="wiz-layout-input" id="wiz-cols" min="1" max="12" value="3" inputmode="numeric" oninput="wizUpdatePreview()">
+                        </div>
+                        <div class="wiz-layout-field">
+                            <label class="wiz-layout-label" for="wiz-total">Total slots</label>
+                            <input type="number" class="wiz-layout-input" id="wiz-total" min="1" value="151" inputmode="numeric">
+                        </div>
+                    </div>
+
+                    <div class="wiz-layout-preview">
+                        <div class="wiz-layout-preview-label" id="wiz-preview-label">Page preview</div>
+                        <div class="wiz-preview-grid" id="wiz-preview-grid"></div>
+                    </div>
+
+                    <div class="wiz-banner wiz-banner-info" id="wiz-total-info" style="margin-top:12px;">
+                        Total slots is set automatically based on your previous choice. You can override it here if you want more (or fewer) slots than the default.
+                    </div>
+                </div>
+
+                <!-- ── STEP 5: Banner image ── -->
+                <div class="wiz-panel" data-panel="banner">
+                    <h3 class="wiz-q">Banner image</h3>
+                    <p class="wiz-q-sub">Pick a banner for the top of your binder. You can always change it later by tapping the banner.</p>
+
+                    <div class="wiz-banner-preview" id="wiz-banner-preview">
+                        <span class="wiz-banner-preview-label">Preview</span>
+                        <img id="wiz-banner-preview-img" src="" alt="" style="display:none;">
+                        <div class="wiz-banner-placeholder" id="wiz-banner-placeholder">No banner selected yet</div>
+                    </div>
+
+                    <div class="wiz-banner-mode-row">
+                        <div class="wiz-banner-mode selected" data-mode="default" onclick="wizSelectBannerMode('default')">
+                            <span class="wiz-banner-mode-icon">⭐</span>
+                            <span>Default</span>
+                        </div>
+                        <div class="wiz-banner-mode" data-mode="preset" onclick="wizSelectBannerMode('preset')">
+                            <span class="wiz-banner-mode-icon">🎨</span>
+                            <span>Preset</span>
+                        </div>
+                        <div class="wiz-banner-mode" data-mode="link" onclick="wizSelectBannerMode('link')">
+                            <span class="wiz-banner-mode-icon">🔗</span>
+                            <span>Image URL</span>
+                        </div>
+                        <div class="wiz-banner-mode" data-mode="local" onclick="wizSelectBannerMode('local')">
+                            <span class="wiz-banner-mode-icon">📁</span>
+                            <span>Upload</span>
+                        </div>
+                    </div>
+
+                    <div class="wiz-banner-input-area" id="wiz-banner-input-area"></div>
+
+                    <label class="wiz-toggle-row" for="wiz-banner-skip" style="margin-top:4px;">
+                        <input type="checkbox" id="wiz-banner-skip" onchange="wizToggleBannerSkip(this.checked)">
+                        <span class="wiz-toggle-text">
+                            <span class="wiz-toggle-title">Keep my current banner</span>
+                            <span class="wiz-toggle-desc">Don't change the banner — leave whatever's already set in place.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- ── STEP 6: Review & Apply ── -->
+                <div class="wiz-panel" data-panel="review">
+                    <h3 class="wiz-q">Review your setup</h3>
+                    <p class="wiz-q-sub">Double-check everything, then tap Apply to build your binder.</p>
+
+                    <div class="wiz-review-box" id="wiz-review-box"><!-- filled by JS --></div>
+
+                    <div class="wiz-banner wiz-banner-warn" id="wiz-overwrite-warn" style="display:none;">
+                        ⚠ You already have entries filled in. Applying this setup will reset slot count and may overwrite data in slots that exceed the new total. Save a JSON backup first if you want to keep your current binder.
+                    </div>
+
+                    <label class="wiz-toggle-row" for="wiz-clear-existing" id="wiz-clear-row" style="display:none;">
+                        <input type="checkbox" id="wiz-clear-existing">
+                        <span class="wiz-toggle-text">
+                            <span class="wiz-toggle-title">Clear all existing entries first</span>
+                            <span class="wiz-toggle-desc">Recommended for a fresh binder. This wipes all saved card data and photos before applying the new setup.</span>
+                        </span>
+                    </label>
+
+                    <div class="wiz-progress" id="wiz-progress">
+                        <div class="wiz-progress-label">
+                            <span class="art-spin"></span>
+                            <span id="wiz-progress-text">Preparing…</span>
+                        </div>
+                        <div class="wiz-progress-bar-wrap">
+                            <div class="wiz-progress-bar" id="wiz-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="wiz-footer">
+                <button class="wiz-btn wiz-btn-back" id="wiz-back" onclick="wizBack()" style="visibility:hidden;">← Back</button>
+                <button class="wiz-btn wiz-btn-next" id="wiz-next" onclick="wizNext()" disabled>Next →</button>
+                <button class="wiz-btn wiz-btn-apply" id="wiz-apply" onclick="wizApply()" style="display:none;">✓ Apply Setup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Last Updated Bar -->
     <div id="last-updated-bar">Last updated: <span id="last-updated-text">never</span></div>
 
@@ -1020,7 +2263,19 @@
     <div class="header">
         <div class="nav-main">
             <div class="nav-brand">
-                <span class="brand-name">🔴 PokeDexCheck</span>
+                <span class="brand-name"><svg class="pokeball-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Poké Ball" role="img">
+                    <!-- White lower half of the ball -->
+                    <circle cx="16" cy="16" r="15" fill="#f5f5f5" stroke="#1a1a1a" stroke-width="2"/>
+                    <!-- Red upper half, clipped to the ball's circle -->
+                    <path d="M 1 16 A 15 15 0 0 1 31 16 Z" fill="#ee1515"/>
+                    <!-- Equator band — thick black stripe across the middle -->
+                    <rect x="1" y="14.25" width="30" height="3.5" fill="#1a1a1a"/>
+                    <!-- Center button: outer white ring + black ring + inner white -->
+                    <circle cx="16" cy="16" r="4.5" fill="#1a1a1a"/>
+                    <circle cx="16" cy="16" r="3.2" fill="#f5f5f5"/>
+                    <circle cx="16" cy="16" r="1.8" fill="#1a1a1a"/>
+                    <circle cx="16" cy="16" r="1.0" fill="#f5f5f5"/>
+                </svg>BinderDéx</span>
                 <span class="brand-sub">Card Collection Tracker</span>
             </div>
             <div class="nav-divider"></div>
@@ -1064,14 +2319,42 @@
                 <span class="rate-badge" id="rate-badge"></span>
             </div>
             <!-- API Keys -->
+            <div class="api-keys-header">
+                <span class="settings-label">API Keys</span>
+                <button class="api-keys-info-btn" onclick="openApiKeysInfo()" title="What are these keys? Which ones do I need?">?</button>
+            </div>
             <div class="api-keys-row">
                 <div class="api-key-group">
-                    <span class="api-key-sublabel">Open Exchange Rates App ID &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a></span>
-                    <input class="api-key-input" id="oxr-key" type="password" placeholder="Paste App ID…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                    <span class="api-key-sublabel">
+                        Pokémon TCG API Key
+                        <span class="api-key-badge rec">Recommended</span>
+                        &nbsp;<a href="https://dev.pokemontcg.io" target="_blank">↗ free</a>
+                    </span>
+                    <input class="api-key-input" id="ptcg-key" type="password" placeholder="Paste API key (20× rate limit)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
                 </div>
                 <div class="api-key-group">
-                    <span class="api-key-sublabel">Google Gemini API Key &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a></span>
+                    <span class="api-key-sublabel">
+                        Google Gemini API Key
+                        <span class="api-key-badge rec">Recommended</span>
+                        &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a>
+                    </span>
                     <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                </div>
+                <div class="api-key-group">
+                    <span class="api-key-sublabel">
+                        OCR.Space API Key
+                        <span class="api-key-badge opt">Optional</span>
+                        &nbsp;<a href="https://ocr.space/ocrapi/freekey" target="_blank">↗ free</a>
+                    </span>
+                    <input class="api-key-input" id="ocrspace-key" type="password" placeholder="Fallback for card scan…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                </div>
+                <div class="api-key-group">
+                    <span class="api-key-sublabel">
+                        Open Exchange Rates App ID
+                        <span class="api-key-badge opt">Optional</span>
+                        &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a>
+                    </span>
+                    <input class="api-key-input" id="oxr-key" type="password" placeholder="App ID (Frankfurter used by default)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
                 </div>
                 <div class="api-key-group" id="cm-key-group" style="display:none">
                     <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
@@ -1111,8 +2394,9 @@
                    style="width:90px;height:22px;accent-color:#007bff;cursor:pointer;vertical-align:middle;">
             <span class="settings-label" id="cardSizeLabel" style="min-width:32px;text-transform:none;">100%</span>
             <button class="settings-apply" onclick="applySettings()">Apply</button>
-            <button class="settings-apply" style="background:#333;color:#aaa;" onclick="collapseAll()">⊖ Collapse All</button>
+            <button class="settings-apply" onclick="collapseAll()" style="background:#333;color:#aaa;">⊖ Collapse All</button>
             <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
+            <button class="settings-apply wiz-launch-btn" onclick="openSetupWizard()" title="Set up a new binder with a guided wizard">🧙 Setup Wizard</button>
             <button class="settings-apply" id="repair-sets-btn" style="background:#1e2e1e;color:#4caf50;border:1px solid #2e4e2e;" onclick="repairSetNames()" title="Replace set codes (e.g. SWSH08, sv2a) with their full API names">🔧 Fix Set Names</button>
             <button class="settings-apply" style="background:#2e1a1a;color:#e57373;border:1px solid #4e2a2a;" onclick="clearPokedex()" title="Permanently delete all entries and photos">🗑 Clear Pokédex</button>
             <div class="nav-page-group">
@@ -1152,6 +2436,43 @@
         const DB_NAME        = 'CardCollectionDB';
         const PHOTO_STORE    = 'photos';
         const DATA_STORE     = 'card_data';
+
+        /* ─────────────────────────────────────────────────────── */
+        /* ──    API Keys: helpers for the 3 new integrations   ── */
+        /* ─────────────────────────────────────────────────────── */
+
+        // Pokémon TCG API — returns headers including X-Api-Key if the user has one.
+        // Raises rate limit from 1000/day (anonymous) to 20,000/day (keyed).
+        function getPTCGHeaders() {
+            const key = (localStorage.getItem('ptcg_api_key') || '').trim();
+            return key ? { 'X-Api-Key': key } : {};
+        }
+        // Drop-in replacement for fetch() for any api.pokemontcg.io URL.
+        // Merges the API-key header automatically so no call site has to remember.
+        function ptcgFetch(url, options) {
+            const opts = Object.assign({}, options || {});
+            opts.headers = Object.assign({}, opts.headers || {}, getPTCGHeaders());
+            return fetch(url, opts);
+        }
+
+        // OCR.Space configuration — used as a fallback scanner when no Gemini key is set.
+        // Free tier: 500 requests/day, no credit card.
+        const OCRSPACE_ENDPOINT = 'https://api.ocr.space/parse/image';
+
+        /* ── API Keys Info popup open/close ── */
+        function openApiKeysInfo() {
+            document.getElementById('akinfo-overlay').classList.add('open');
+        }
+        function closeApiKeysInfo() {
+            document.getElementById('akinfo-overlay').classList.remove('open');
+        }
+        // Esc closes the info popup
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('akinfo-overlay');
+                if (overlay && overlay.classList.contains('open')) closeApiKeysInfo();
+            }
+        });
 
         /* ── Accent-insensitive string normalizer ── */
         function normalizeStr(s) {
@@ -1565,9 +2886,11 @@
                 alert('No entries yet — add some cards first.'); return;
             }
 
-            const cardsJson  = JSON.stringify(allCards);
-            const photosJson = JSON.stringify(photos);
-            const configJson = JSON.stringify({ rows: config.rows, cols: config.cols, total: config.total });
+            const cardsJson   = JSON.stringify(allCards);
+            const photosJson  = JSON.stringify(photos);
+            const configJson  = JSON.stringify({ rows: config.rows, cols: config.cols, total: config.total });
+            // Pass the PTCG API key (if set) into the popup so its fetches get the same rate limit bump
+            const ptcgHeadersJson = JSON.stringify(getPTCGHeaders());
 
             const html = `<!DOCTYPE html>
 <html lang="en">
@@ -1735,6 +3058,7 @@ const CARDS  = ${cardsJson};
 const PHOTOS = ${photosJson};
 const CONFIG = ${configJson};
 const PTCG   = 'https://api.pokemontcg.io/v2/cards';
+const PTCG_HEADERS = ${ptcgHeadersJson};
 
 // Accent-insensitive normalizer (shared with main app logic)
 function normalizeStr(s) {
@@ -1905,7 +3229,7 @@ async function fetchAllArt() {
         const safeName = c.name.replace(/"/g,'');
         const q = \`name:"\${safeName}" number:\${rawNum}\`;
 
-        const r = await fetch(\`\${PTCG}?q=\${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images\`);
+        const r = await fetch(\`\${PTCG}?q=\${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images\`, { headers: PTCG_HEADERS });
         if (!r.ok) return;
         const j = await r.json();
         const hits = j.data || [];
@@ -2637,6 +3961,7 @@ fetchAllArt();
                 <button class="tcg-btn" onclick="searchTCGForItem(${id})" title="Search TCGPlayer">TCG</button>
                 <button class="photo-btn" id="photo-btn-${id}" onclick="openCamera(${id})" title="Take / add photo">📷</button>
                 <button class="photo-btn ${hasPhoto ? '' : 'style=display:none'}" id="del-photo-btn-${id}" onclick="deletePhoto(${id})" title="Delete photo" style="${hasPhoto ? 'color:#e57373;border-color:#e57373;' : 'display:none;color:#e57373;border-color:#e57373;'}">🗑</button>
+                <button class="cd-clear-btn" onclick="clearCardEntry(${id})" title="Clear all fields, art, and photo for this card">🗑 Clear</button>
                 <button class="nav-btn" style="margin-left:auto;background:#1a2a1a;color:#4caf50;border:1px solid #2a4a2a;font-size:12px;" onclick="navigateCard(-1)" title="Previous card">◀ Prev</button>
                 <button class="nav-btn" style="background:#1a2a1a;color:#4caf50;border:1px solid #2a4a2a;font-size:12px;" onclick="navigateCard(1)" title="Next card">Next ▶</button>`;
 
@@ -2648,6 +3973,103 @@ fetchAllArt();
                 const nameField = document.getElementById(`name-${id}`);
                 if (nameField && !nameField.value) nameField.focus();
             }, 100);
+        }
+
+        /* ── Clear all data for a single entry ──
+           Wipes every trace of an entry: input fields, toggles, checkboxes,
+           memory cache, IndexedDB record, photo, cached art, validation badge,
+           and tile art/overlays. The modal stays open so the user can immediately
+           re-enter data or just close it. */
+        async function clearCardEntry(id) {
+            if (!confirm(`Clear all data for entry #${id}?\n\nThis wipes the name, set, number, value, checkboxes, photo, and card art. It can't be undone from inside the app — save a JSON backup first if you need one.`)) return;
+
+            // 1. Clear memory cache
+            delete _memoryCache[`item-${id}`];
+            delete _artCache[id];
+            delete _validCache[id];
+            if (typeof _validTimers !== 'undefined') clearTimeout(_validTimers[id]);
+
+            // 2. Wipe the DB record + photo
+            try {
+                const db = await openDB();
+                await new Promise(res => {
+                    const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
+                    tx.objectStore(DATA_STORE).delete(`item-${id}`);
+                    tx.objectStore(PHOTO_STORE).delete(id);
+                    tx.oncomplete = () => res();
+                    tx.onerror    = () => res();
+                });
+            } catch(e) { /* non-fatal */ }
+
+            // 3. Reset the modal inputs
+            const nameEl      = document.getElementById(`name-${id}`);
+            const setEl       = document.getElementById(`set-${id}`);
+            const setNumberEl = document.getElementById(`setNumber-${id}`);
+            const valueEl     = document.getElementById(`value-${id}`);
+            const track       = document.getElementById(`toggle-${id}`);
+            const faEl        = document.getElementById(`cbFA-${id}`);
+            const holoEl      = document.getElementById(`cbHolo-${id}`);
+            const revHoloEl   = document.getElementById(`cbRevHolo-${id}`);
+            if (nameEl)      nameEl.value = '';
+            if (setEl)       setEl.value = '';
+            if (setNumberEl) setNumberEl.value = '';
+            if (valueEl)     valueEl.value = '';
+            if (track)       { track.classList.remove('is-collected'); track.setAttribute('aria-checked','false'); }
+            if (faEl)        faEl.checked = false;
+            if (holoEl)      holoEl.checked = false;
+            if (revHoloEl)   revHoloEl.checked = false;
+
+            // Clear validation badge + any pending state
+            if (typeof applyBadge === 'function') applyBadge(id, null, '');
+
+            // 4. Reset the media area back to the "nothing yet" placeholder
+            const mediaEl = document.getElementById('cd-media');
+            if (mediaEl) {
+                mediaEl.innerHTML = `
+                    <div class="cd-media-placeholder">No card art or photo yet.<br>Fill in the details below, or take a photo!</div>
+                    <div style="width:100%;display:flex;justify-content:center;gap:8px;margin-top:4px;">
+                        <button class="cd-art-refresh-btn" id="cd-art-refresh-${id}" onclick="refreshCardArt(${id})">🔄 Fetch Art</button>
+                    </div>`;
+            }
+            // Clear any art-picker thumbnails currently on screen
+            const picker = document.getElementById('cd-art-picker');
+            if (picker) picker.innerHTML = '';
+
+            // 5. Reset the tile: remove art image, photo, value/coll badges, name/set labels
+            const tile = document.getElementById(`tile-${id}`);
+            if (tile) {
+                tile.classList.add('tile-empty');
+                tile.style.borderColor = '';
+                const tArt  = document.getElementById(`tart-${id}`);
+                const tPhoto = document.getElementById(`tphoto-${id}`);
+                const tColl = document.getElementById(`tcoll-${id}`);
+                const tVal  = document.getElementById(`tval-${id}`);
+                const tNm   = tile.querySelector('.tile-name');
+                const tSt   = tile.querySelector('.tile-set');
+                const indArt = document.getElementById(`tind-art-${id}`);
+                const indPh  = document.getElementById(`tind-ph-${id}`);
+                if (tArt)   { tArt.src = ''; tArt.style.display = 'none'; tArt.classList.remove('ready'); }
+                if (tPhoto) { tPhoto.src = ''; tPhoto.style.display = 'none'; tPhoto.classList.remove('ready'); }
+                if (tColl)  tColl.classList.remove('show');
+                if (tVal)   { tVal.classList.remove('show'); tVal.textContent = ''; }
+                if (tNm)    tNm.textContent = 'Empty slot';
+                if (tSt)    tSt.textContent = '';
+                if (indArt) indArt.classList.remove('has');
+                if (indPh)  indPh.classList.remove('has');
+            }
+
+            // 6. Refresh page stats and total value
+            updatePageStats(id);
+            updateTotalValue();
+            touchLastUpdated();
+
+            // 7. Hide the "delete photo" button since there's no photo anymore
+            setPhotoBtn(id, false);
+            const delBtn = document.getElementById(`del-photo-btn-${id}`);
+            if (delBtn) delBtn.style.display = 'none';
+
+            // Focus name input so the user can start typing a new entry immediately
+            if (nameEl) setTimeout(() => nameEl.focus(), 50);
         }
 
         function closeCardDetail() {
@@ -2698,7 +4120,7 @@ fetchAllArt();
                 let q = `name:"${safeName}"`;
                 if (rawNum) q += ` number:${rawNum}`;
 
-                const resp = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=12&select=name,set,number,images`);
+                const resp = await ptcgFetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=12&select=name,set,number,images`);
                 if (!resp.ok) throw new Error(`API error ${resp.status}`);
                 const json = await resp.json();
                 const hits = json.data || [];
@@ -3192,7 +4614,7 @@ fetchAllArt();
                 if (cardNum) q += ` number:${cardNum}`;
 
                 const url  = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=10&select=name,number,tcgplayer,set`;
-                const resp = await fetch(url);
+                const resp = await ptcgFetch(url);
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const json = await resp.json();
                 const cards = json.data || [];
@@ -3317,7 +4739,7 @@ fetchAllArt();
                         if (cardNum) q += ` number:${cardNum}`;
 
                         const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=10&select=name,number,tcgplayer,set`;
-                        const resp = await fetch(url);
+                        const resp = await ptcgFetch(url);
                         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                         const json = await resp.json();
                         const cards = json.data || [];
@@ -3414,21 +4836,49 @@ fetchAllArt();
             if (priceSource === 'cardmarket') maybeRefreshOXR();
         }
 
-        /* ── Open Exchange Rates ── */
+        /* ── Exchange rate refresh ──
+           Priority order:
+             1. Open Exchange Rates (if user set an App ID) — hourly updates
+             2. Frankfurter API (no key, free, ECB data) — daily updates
+             3. Cached value from localStorage
+             4. Hardcoded fallback of 0.92 */
         async function maybeRefreshOXR() {
             const lastFetch = parseInt(localStorage.getItem('oxrLastFetch') || '0');
             if (Date.now() - lastFetch < 3_600_000) { updateRateBadge(); return; }
+
             const appId = localStorage.getItem('oxr_app_id') || '';
-            if (!appId) { updateRateBadge(); return; }
-            try {
-                const r = await fetch(`https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR`);
-                const j = await r.json();
-                if (j.rates?.EUR) {
-                    usdToEur = j.rates.EUR;
-                    localStorage.setItem('usdToEurRate', usdToEur);
-                    localStorage.setItem('oxrLastFetch', Date.now());
-                }
-            } catch(e) { /* use cached rate */ }
+            let success = false;
+
+            // Try Open Exchange Rates first (if key present)
+            if (appId) {
+                try {
+                    const r = await fetch(`https://openexchangerates.org/api/latest.json?app_id=${appId}&symbols=EUR`);
+                    const j = await r.json();
+                    if (j.rates?.EUR) {
+                        usdToEur = j.rates.EUR;
+                        localStorage.setItem('usdToEurRate', usdToEur);
+                        localStorage.setItem('oxrLastFetch', Date.now());
+                        localStorage.setItem('rateProvider', 'oxr');
+                        success = true;
+                    }
+                } catch(e) { /* fall through to Frankfurter */ }
+            }
+
+            // Fallback: Frankfurter API — free, no key required
+            if (!success) {
+                try {
+                    const r = await fetch('https://api.frankfurter.dev/v1/latest?from=USD&to=EUR');
+                    const j = await r.json();
+                    if (j.rates?.EUR) {
+                        usdToEur = j.rates.EUR;
+                        localStorage.setItem('usdToEurRate', usdToEur);
+                        localStorage.setItem('oxrLastFetch', Date.now());
+                        localStorage.setItem('rateProvider', 'frankfurter');
+                        success = true;
+                    }
+                } catch(e) { /* use cached or default rate */ }
+            }
+
             updateRateBadge();
         }
 
@@ -3436,9 +4886,15 @@ fetchAllArt();
             const badge = document.getElementById('rate-badge');
             if (!badge) return;
             const oxrKey = localStorage.getItem('oxr_app_id');
+            const provider = localStorage.getItem('rateProvider'); // 'oxr' | 'frankfurter' | null
+            // Show a small hint about which source is being used (on hover for desktop)
+            badge.title = provider === 'frankfurter'
+                ? 'Rate from Frankfurter API (free, ECB data). Add an Open Exchange Rates key for hourly updates.'
+                : provider === 'oxr' ? 'Rate from Open Exchange Rates (hourly updates).' : '';
+
             if (priceSource === 'cardmarket') {
                 badge.textContent = `· 1 USD ≈ ${usdToEur.toFixed(4)} EUR`;
-            } else if (oxrKey) {
+            } else if (oxrKey || provider === 'frankfurter') {
                 const total = getTotalCollectionValue();
                 badge.textContent = total > 0 ? `· ~€${(total * usdToEur).toFixed(2)}` : '';
             } else {
@@ -3451,9 +4907,12 @@ fetchAllArt();
             const save = (elId, storKey) => {
                 const v = document.getElementById(elId)?.value.trim();
                 if (v) localStorage.setItem(storKey, v);
+                else   localStorage.removeItem(storKey); // allow clearing a key
             };
+            save('ptcg-key',         'ptcg_api_key');
             save('oxr-key',          'oxr_app_id');
             save('gemini-key',       'gemini_api_key');
+            save('ocrspace-key',     'ocrspace_api_key');
             save('cm-app-token',     'cm_app_token');
             save('cm-app-secret',    'cm_app_secret');
             save('cm-access-token',  'cm_access_token');
@@ -3469,8 +4928,10 @@ fetchAllArt();
                 const v  = localStorage.getItem(storKey);
                 if (el && v) el.value = v;
             };
+            set('ptcg-key',         'ptcg_api_key');
             set('oxr-key',          'oxr_app_id');
             set('gemini-key',       'gemini_api_key');
+            set('ocrspace-key',     'ocrspace_api_key');
             set('cm-app-token',     'cm_app_token');
             set('cm-app-secret',    'cm_app_secret');
             set('cm-access-token',  'cm_access_token');
@@ -3630,7 +5091,7 @@ fetchAllArt();
                 }
 
                 const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=10&select=name,set,number,images`;
-                const r   = await fetch(url);
+                const r   = await ptcgFetch(url);
                 if (!r.ok) return;
                 const j = await r.json();
                 let cards = j.data || [];
@@ -3638,7 +5099,7 @@ fetchAllArt();
                 // If set-filtered search returned nothing, fall back to unfiltered (but tell user)
                 if (!cards.length && filteredBySet) {
                     const url2 = `${PTCG_API}?q=${encodeURIComponent(`name:"${query}*"`)}&pageSize=10&select=name,set,number,images`;
-                    const r2   = await fetch(url2);
+                    const r2   = await ptcgFetch(url2);
                     if (!r2.ok) return;
                     const j2   = await r2.json();
                     cards = j2.data || [];
@@ -3750,7 +5211,7 @@ fetchAllArt();
 
             try {
                 const q = `name:"${name.replace(/"/g,'')}" number:${rawNum}`;
-                const r = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=6&select=name,set,number`);
+                const r = await ptcgFetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=6&select=name,set,number`);
                 if (!r.ok) throw new Error('api');
                 const hits = (await r.json()).data || [];
 
@@ -4000,7 +5461,7 @@ fetchAllArt();
                     const cardNum = detectedNum.split('/')[0].replace(/^0+/, '');
                     let q = `name:"${detectedName.replace(/"/g,'')}"`;
                     if (cardNum) q += ` number:${cardNum}`;
-                    const r = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=3&select=name,set,number`);
+                    const r = await ptcgFetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=3&select=name,set,number`);
                     if (r.ok) {
                         const hits = (await r.json()).data || [];
                         if (hits.length) {
@@ -4024,16 +5485,105 @@ fetchAllArt();
             }
         }
 
-                /* ── Decision point: try Gemini if we have a key, otherwise go manual ── */
+                /* ── Decision point: Gemini → OCR.Space → manual ── */
         function escalateToGeminiOrManual(imageDataUrl, fallbackName, fallbackNum) {
-            const geminiKey = localStorage.getItem('gemini_api_key') || '';
+            const geminiKey   = localStorage.getItem('gemini_api_key')   || '';
+            const ocrSpaceKey = localStorage.getItem('ocrspace_api_key') || '';
             if (geminiKey) {
                 setOcrStatus('🤖 Step 2 of 2 — Text unclear, trying AI scan…');
                 runGeminiVisionOCR(imageDataUrl, geminiKey, fallbackName, fallbackNum);
+            } else if (ocrSpaceKey) {
+                setOcrStatus('🔤 Step 2 of 2 — Trying OCR.Space scan…');
+                runOcrSpaceOCR(imageDataUrl, ocrSpaceKey, fallbackName, fallbackNum);
             } else {
-                // No Gemini key — go straight to manual entry
+                // No AI/OCR keys configured — go straight to manual entry
                 showOcrResult(fallbackName, '', fallbackNum, 'manual');
             }
+        }
+
+        /* ── OCR.Space path ──
+           Free fallback when no Gemini key is configured. Less accurate than Gemini
+           for card-image recognition, but zero-cost and a 500/day free tier.
+           Docs: https://ocr.space/OCRAPI */
+        async function runOcrSpaceOCR(imageDataUrl, apiKey, fallbackName, fallbackNum) {
+            try {
+                // OCR.Space accepts base64 images up to ~1 MB, so resize conservatively
+                const resized = await resizeForOCR(imageDataUrl, 900, 0.82);
+
+                const body = new FormData();
+                body.append('base64Image', resized);
+                body.append('apikey',      apiKey);
+                body.append('language',    'eng');
+                body.append('OCREngine',   '2');  // Engine 2 is better for mixed fonts
+                body.append('scale',       'true');
+                body.append('isTable',     'false');
+                body.append('detectOrientation', 'true');
+
+                const resp = await fetch(OCRSPACE_ENDPOINT, { method: 'POST', body });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const json = await resp.json();
+                if (json.IsErroredOnProcessing) {
+                    const msg = Array.isArray(json.ErrorMessage) ? json.ErrorMessage.join('; ') : (json.ErrorMessage || 'OCR failed');
+                    throw new Error(msg);
+                }
+
+                const rawText = (json.ParsedResults || [])
+                    .map(r => r.ParsedText || '')
+                    .join('\n');
+
+                // Parse the raw OCR text into name / set / number heuristically.
+                // Card names are almost always the largest non-noise line near the top;
+                // set numbers follow NNN/NNN format.
+                const parsed = parseOcrSpaceText(rawText);
+
+                const finalName = parsed.name || fallbackName || '';
+                const finalSet  = parsed.set  || '';
+                let finalNum    = parsed.number || fallbackNum || '';
+                const nm = finalNum.match(/^(\d+)\s*\/\s*(\d+)$/);
+                if (nm) finalNum = `${String(nm[1]).padStart(3,'0')}/${String(nm[2]).padStart(3,'0')}`;
+
+                if (finalName) {
+                    showOcrResult(finalName, finalSet, finalNum, 'partial');
+                } else {
+                    showOcrResult('', '', finalNum, 'manual');
+                }
+
+            } catch(err) {
+                console.warn('OCR.Space error:', err);
+                showOcrResult(fallbackName, '', fallbackNum, 'manual');
+            }
+        }
+
+        /* Lightweight parser for raw OCR.Space output.
+           Looks for:
+             - a "NNN/NNN" pattern anywhere (card number)
+             - a top-of-card line with mostly-letters of reasonable length (card name)
+           Set is harder to pick out reliably from raw OCR without card layout info,
+           so we leave it blank and let the downstream `lookupOcrSet()` fill it. */
+        function parseOcrSpaceText(txt) {
+            if (!txt) return { name:'', set:'', number:'' };
+            const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+            // Card number: first NNN/NNN occurrence anywhere
+            let number = '';
+            for (const line of lines) {
+                const m = line.match(/(\d{1,3})\s*\/\s*(\d{1,3})/);
+                if (m) { number = `${m[1]}/${m[2]}`; break; }
+            }
+
+            // Card name: first substantive-looking line near the top.
+            // Filter out pure numbers, short noise, and lines of mostly digits/symbols.
+            let name = '';
+            for (const line of lines.slice(0, 6)) {
+                const letters = (line.match(/[A-Za-z]/g) || []).length;
+                const clean = line.replace(/[^A-Za-z \-']/g, '').trim();
+                if (clean.length >= 3 && letters >= 3 && letters / line.length > 0.5) {
+                    name = clean.replace(/\s{2,}/g, ' ');
+                    break;
+                }
+            }
+
+            return { name, set: '', number };
         }
 
         /* ── Gemini Vision path ── */
@@ -4149,7 +5699,7 @@ fetchAllArt();
                 if (cardNum) q += ` number:${cardNum}`;
 
                 const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=6&select=name,set,number`;
-                const r   = await fetch(url);
+                const r   = await ptcgFetch(url);
                 if (!r.ok) throw new Error('api error');
                 const j   = await r.json();
                 const hits = j.data || [];
@@ -4405,7 +5955,7 @@ fetchAllArt();
                         if (!rawNum) return;
                         const safeName = c.name.replace(/"/g,'');
                         const q = `name:"${safeName}" number:${rawNum}`;
-                        const r = await fetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images`);
+                        const r = await ptcgFetch(`${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=4&select=name,set,number,images`);
                         if (!r.ok) return;
                         const j = await r.json();
                         const hits = j.data || [];
@@ -4534,6 +6084,1092 @@ fetchAllArt();
             if (e.key === 'Enter') { e.preventDefault(); skipToPage(); }
         });
 
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══                    SETUP WIZARD                         ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        // Regional Pokédex definitions (national dex ranges).
+        // When a user picks a regional dex we translate it into a slot
+        // count and, if they opt-in, pre-fill the species names.
+        const REGIONAL_DEX = {
+            national: { label: 'National',  count: 1025, start: 1,   end: 1025, api: null     },
+            kanto:    { label: 'Kanto',     count: 151,  start: 1,   end: 151,  api: 'kanto'   },
+            johto:    { label: 'Johto',     count: 100,  start: 152, end: 251,  api: 'original-johto' },
+            hoenn:    { label: 'Hoenn',     count: 135,  start: 252, end: 386,  api: 'hoenn'   },
+            sinnoh:   { label: 'Sinnoh',    count: 107,  start: 387, end: 493,  api: 'original-sinnoh' },
+            unova:    { label: 'Unova',     count: 156,  start: 494, end: 649,  api: 'original-unova' },
+            kalos:    { label: 'Kalos',     count: 72,   start: 650, end: 721,  api: 'kalos-central' },
+            alola:    { label: 'Alola',     count: 88,   start: 722, end: 809,  api: 'original-alola' },
+            galar:    { label: 'Galar',     count: 89,   start: 810, end: 898,  api: 'galar'   },
+            hisui:    { label: 'Hisui',     count: 242,  start: 0,   end: 0,    api: 'hisui'   },
+            paldea:   { label: 'Paldea',    count: 400,  start: 0,   end: 0,    api: 'paldea'  },
+        };
+
+        // ── Wizard state ──
+        const WIZ = {
+            binderType: null,   // 'pokedex' | 'masterSet'
+            dexKey:     null,   // e.g. 'kanto'
+            prefill:    false,  // auto-fill species names (pokedex)
+            masterKind: null,   // 'set' | 'pokemon'
+            set:        null,   // selected set object from API
+            pokemon:    null,   // selected pokemon name
+            pokemonCards: null, // cached cards for that pokemon
+            rows: 4, cols: 3,
+            total: 151,
+            totalOverride: false, // user has manually edited total
+            // Banner selection (step 5)
+            bannerMode: 'default',   // 'default' | 'preset' | 'link' | 'local' | 'keep'
+            bannerUrl:  null,        // the resolved URL/data-URL to apply
+            stack: [],           // visited panels — powers Back button
+            currentPanel: 'binderType',
+        };
+
+        // A small curated set of free CC0 / Unsplash banner images for the "preset" mode
+        const WIZ_BANNER_PRESETS = [
+            { label: 'Mountains',  url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Ocean',      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Forest',     url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Desert',     url: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Galaxy',     url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'City',       url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Aurora',     url: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?auto=format&fit=crop&w=1400&q=80' },
+            { label: 'Sunset',     url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1400&q=80' },
+        ];
+
+        // Panels that count as "steps" for the progress dots
+        const WIZ_STEP_FOR_PANEL = {
+            binderType:  1,
+            apiKeys:     2,
+            dexRegion:   3, masterKind: 3,
+            pickSet:     4, pickPokemon: 4,
+            layout:      4,   // layout lives in step 4 since it's still part of "structure"
+            banner:      5,
+            review:      6,
+        };
+
+        // Cache for the sets list from pokemontcg.io
+        let WIZ_SETS_CACHE = null;
+        let WIZ_POKEMON_DEBOUNCE = null;
+
+        function openSetupWizard() {
+            // Reset state
+            WIZ.binderType = null;
+            WIZ.dexKey = null;
+            WIZ.prefill = false;
+            WIZ.masterKind = null;
+            WIZ.set = null;
+            WIZ.pokemon = null;
+            WIZ.pokemonCards = null;
+            WIZ.totalOverride = false;
+            WIZ.bannerMode = 'default';
+            WIZ.bannerUrl = DEFAULT_BANNER;
+            WIZ.stack = [];
+            WIZ.currentPanel = 'binderType';
+
+            // Reset UI
+            document.querySelectorAll('.wiz-choice').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.wiz-dex-card').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.wiz-result-item').forEach(el => el.classList.remove('selected'));
+            const pfCb = document.getElementById('wiz-prefill-names');
+            if (pfCb) pfCb.checked = false;
+            const clrCb = document.getElementById('wiz-clear-existing');
+            if (clrCb) clrCb.checked = false;
+            const skipCb = document.getElementById('wiz-banner-skip');
+            if (skipCb) skipCb.checked = false;
+            const setSearch = document.getElementById('wiz-set-search');
+            if (setSearch) setSearch.value = '';
+            const pokeSearch = document.getElementById('wiz-poke-search');
+            if (pokeSearch) pokeSearch.value = '';
+            document.getElementById('wiz-poke-results').style.display = 'none';
+            document.getElementById('wiz-poke-info').style.display = 'none';
+            document.getElementById('wiz-progress').classList.remove('show');
+
+            // Reset banner UI state
+            document.querySelectorAll('.wiz-banner-mode').forEach(el => {
+                el.classList.toggle('selected', el.dataset.mode === 'default');
+            });
+            document.getElementById('wiz-banner-input-area').innerHTML = '';
+
+            // Seed the dex grid if not yet built
+            wizBuildDexGrid();
+
+            // Show default layout values
+            document.getElementById('wiz-rows').value  = 4;
+            document.getElementById('wiz-cols').value  = 3;
+            document.getElementById('wiz-total').value = 151;
+
+            // Show panel 1
+            wizShowPanel('binderType');
+
+            document.getElementById('wizard-overlay').classList.add('open');
+        }
+
+        function closeSetupWizard() {
+            document.getElementById('wizard-overlay').classList.remove('open');
+        }
+
+        // ── Panel navigation ──
+        function wizShowPanel(panelName) {
+            document.querySelectorAll('#wizard-modal .wiz-panel').forEach(p => {
+                p.classList.toggle('active', p.dataset.panel === panelName);
+            });
+            WIZ.currentPanel = panelName;
+
+            // Update step dots
+            const step = WIZ_STEP_FOR_PANEL[panelName] || 1;
+            document.querySelectorAll('#wiz-steps .wiz-step-dot').forEach(d => {
+                const s = parseInt(d.dataset.step);
+                d.classList.remove('active', 'done');
+                if (s < step) d.classList.add('done');
+                else if (s === step) d.classList.add('active');
+            });
+
+            // Back button
+            const back = document.getElementById('wiz-back');
+            back.style.visibility = WIZ.stack.length ? 'visible' : 'hidden';
+
+            // Next vs Apply
+            const nextBtn  = document.getElementById('wiz-next');
+            const applyBtn = document.getElementById('wiz-apply');
+            if (panelName === 'review') {
+                nextBtn.style.display  = 'none';
+                applyBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display  = 'inline-block';
+                applyBtn.style.display = 'none';
+            }
+
+            // Subtitle
+            const sub = document.getElementById('wiz-subtitle');
+            const subs = {
+                binderType:  'Step 1 · Binder type',
+                apiKeys:     'Step 2 · API keys (optional)',
+                dexRegion:   'Step 3 · Regional Pokédex',
+                masterKind:  'Step 3 · Master set style',
+                pickSet:     'Step 4 · Choose a set',
+                pickPokemon: 'Step 4 · Choose a Pokémon',
+                layout:      'Step 4 · Page layout',
+                banner:      'Step 5 · Banner image',
+                review:      'Step 6 · Review & apply',
+            };
+            sub.textContent = subs[panelName] || '';
+
+            // Per-panel setup / validation
+            if (panelName === 'layout')      wizOnEnterLayout();
+            if (panelName === 'pickSet')     wizOnEnterPickSet();
+            if (panelName === 'banner')      wizOnEnterBanner();
+            if (panelName === 'apiKeys')     wizOnEnterApiKeys();
+            if (panelName === 'review')      wizOnEnterReview();
+
+            wizRefreshNextButton();
+        }
+
+        function wizGoForward(nextPanel) {
+            WIZ.stack.push(WIZ.currentPanel);
+            wizShowPanel(nextPanel);
+        }
+
+        function wizBack() {
+            if (!WIZ.stack.length) return;
+            const prev = WIZ.stack.pop();
+            wizShowPanel(prev);
+        }
+
+        function wizNext() {
+            // Decide the next panel based on current state
+            const p = WIZ.currentPanel;
+            if (p === 'binderType') {
+                wizGoForward('apiKeys');
+            } else if (p === 'apiKeys') {
+                if (WIZ.binderType === 'pokedex')    wizGoForward('dexRegion');
+                else if (WIZ.binderType === 'masterSet') wizGoForward('masterKind');
+            } else if (p === 'dexRegion') {
+                wizGoForward('layout');
+            } else if (p === 'masterKind') {
+                if (WIZ.masterKind === 'set')     wizGoForward('pickSet');
+                else if (WIZ.masterKind === 'pokemon') wizGoForward('pickPokemon');
+            } else if (p === 'pickSet' || p === 'pickPokemon') {
+                wizGoForward('layout');
+            } else if (p === 'layout') {
+                wizGoForward('banner');
+            } else if (p === 'banner') {
+                wizGoForward('review');
+            }
+        }
+
+        // Enable/disable the Next button based on what's required
+        function wizRefreshNextButton() {
+            const next = document.getElementById('wiz-next');
+            let ok = false;
+            switch (WIZ.currentPanel) {
+                case 'binderType':  ok = !!WIZ.binderType; break;
+                case 'apiKeys':     ok = true; break;  // optional — always advance
+                case 'dexRegion':   ok = !!WIZ.dexKey; break;
+                case 'masterKind':  ok = !!WIZ.masterKind; break;
+                case 'pickSet':     ok = !!WIZ.set; break;
+                case 'pickPokemon': ok = !!WIZ.pokemon; break;
+                case 'layout':      ok = true; break;
+                case 'banner':      ok = WIZ.bannerMode === 'keep' || !!WIZ.bannerUrl; break;
+                default:            ok = true;
+            }
+            next.disabled = !ok;
+        }
+
+        // ── Step 1: Binder type ──
+        function wizSelectBinderType(type) {
+            WIZ.binderType = type;
+            document.querySelectorAll('[data-panel="binderType"] .wiz-choice').forEach(el => {
+                el.classList.toggle('selected', el.dataset.val === type);
+            });
+            wizRefreshNextButton();
+        }
+
+        // ── Step 2a: Build dex region grid ──
+        function wizBuildDexGrid() {
+            const grid = document.getElementById('wiz-dex-grid');
+            if (grid.childElementCount) return;  // already built
+            for (const [key, info] of Object.entries(REGIONAL_DEX)) {
+                const card = document.createElement('div');
+                card.className = 'wiz-dex-card';
+                card.dataset.key = key;
+                card.onclick = () => wizSelectDex(key);
+                card.innerHTML = `
+                    <div class="wiz-dex-name">${info.label}</div>
+                    <div class="wiz-dex-count">${info.count} slots</div>`;
+                grid.appendChild(card);
+            }
+        }
+
+        function wizSelectDex(key) {
+            WIZ.dexKey = key;
+            document.querySelectorAll('#wiz-dex-grid .wiz-dex-card').forEach(el => {
+                el.classList.toggle('selected', el.dataset.key === key);
+            });
+            // Default total = regional count
+            WIZ.total = REGIONAL_DEX[key].count;
+            WIZ.totalOverride = false;
+            wizRefreshNextButton();
+        }
+
+        // ── Step 2b: Master kind ──
+        function wizSelectMasterKind(kind) {
+            WIZ.masterKind = kind;
+            document.querySelectorAll('[data-panel="masterKind"] .wiz-choice').forEach(el => {
+                el.classList.toggle('selected', el.dataset.val === kind);
+            });
+            wizRefreshNextButton();
+        }
+
+        // ── Step 3a: Pick a set ──
+        async function wizOnEnterPickSet() {
+            const list = document.getElementById('wiz-set-results');
+            if (!WIZ_SETS_CACHE) {
+                list.innerHTML = '<div class="wiz-results-empty">Loading sets from Pokémon TCG API…</div>';
+                document.getElementById('wiz-set-spinner').classList.add('show');
+                try {
+                    const r = await ptcgFetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
+                    const j = await r.json();
+                    WIZ_SETS_CACHE = (j.data || []).filter(s => s && s.name);
+                } catch (e) {
+                    WIZ_SETS_CACHE = [];
+                    list.innerHTML = '<div class="wiz-results-empty">Failed to load sets. Check your connection and try again.</div>';
+                } finally {
+                    document.getElementById('wiz-set-spinner').classList.remove('show');
+                }
+            }
+            wizFilterSets();
+        }
+
+        function wizFilterSets() {
+            const list = document.getElementById('wiz-set-results');
+            if (!WIZ_SETS_CACHE) return;
+            const q = normalizeStr(document.getElementById('wiz-set-search').value);
+            const filtered = q
+                ? WIZ_SETS_CACHE.filter(s =>
+                    normalizeStr(s.name).includes(q) ||
+                    normalizeStr(s.series || '').includes(q) ||
+                    normalizeStr(s.id || '').includes(q) ||
+                    normalizeStr(s.ptcgoCode || '').includes(q))
+                : WIZ_SETS_CACHE;
+
+            if (!filtered.length) {
+                list.innerHTML = '<div class="wiz-results-empty">No sets match your search.</div>';
+                return;
+            }
+
+            // Limit displayed results so the list stays snappy
+            const MAX = 80;
+            const shown = filtered.slice(0, MAX);
+            list.innerHTML = shown.map(s => {
+                const sym = s.images && s.images.symbol
+                    ? `<img class="wiz-result-img" src="${s.images.symbol}" alt="" loading="lazy">`
+                    : `<div class="wiz-result-img"></div>`;
+                const sel = WIZ.set && WIZ.set.id === s.id ? ' selected' : '';
+                const meta = [
+                    s.series || '',
+                    s.releaseDate || '',
+                    (s.total || s.printedTotal) ? ((s.total || s.printedTotal) + ' cards') : '',
+                ].filter(Boolean).join(' · ');
+                return `<div class="wiz-result-item${sel}" data-id="${s.id}" onclick="wizSelectSet('${s.id}')">
+                    ${sym}
+                    <div class="wiz-result-text">
+                        <div class="wiz-result-name">${escapeHtml(s.name)}</div>
+                        <div class="wiz-result-meta">${escapeHtml(meta)}</div>
+                    </div>
+                </div>`;
+            }).join('')
+            + (filtered.length > MAX
+                ? `<div class="wiz-results-empty" style="padding:8px 12px;border-top:1px solid #252525;">Showing first ${MAX} of ${filtered.length} results — refine your search to see more.</div>`
+                : '');
+        }
+
+        function wizSelectSet(setId) {
+            const s = WIZ_SETS_CACHE.find(x => x.id === setId);
+            if (!s) return;
+            WIZ.set = s;
+            // Default total = total cards in set (printed total is often more accurate for completion)
+            WIZ.total = s.total || s.printedTotal || 0;
+            WIZ.totalOverride = false;
+            // Re-render to update selection highlight
+            wizFilterSets();
+            wizRefreshNextButton();
+        }
+
+        // ── Step 3b: Pick a pokemon ──
+        function wizDebouncePokemonSearch() {
+            clearTimeout(WIZ_POKEMON_DEBOUNCE);
+            const v = document.getElementById('wiz-poke-search').value.trim();
+            if (!v) {
+                document.getElementById('wiz-poke-results').style.display = 'none';
+                document.getElementById('wiz-poke-info').style.display = 'none';
+                WIZ.pokemon = null;
+                WIZ.pokemonCards = null;
+                wizRefreshNextButton();
+                return;
+            }
+            WIZ_POKEMON_DEBOUNCE = setTimeout(() => wizSearchPokemon(v), 450);
+        }
+
+        async function wizSearchPokemon(name) {
+            const info = document.getElementById('wiz-poke-info');
+            const spin = document.getElementById('wiz-poke-spinner');
+            const list = document.getElementById('wiz-poke-results');
+
+            info.style.display = 'none';
+            list.style.display = 'none';
+            spin.classList.add('show');
+
+            try {
+                // Query all cards whose name matches
+                const q = `name:"${name.replace(/"/g, '\\"')}*"`;
+                const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=250&orderBy=set.releaseDate,number&select=name,set,number,images,rarity`;
+                const r = await ptcgFetch(url);
+                const j = await r.json();
+                const cards = j.data || [];
+
+                if (!cards.length) {
+                    info.className = 'wiz-banner wiz-banner-err';
+                    info.style.display = 'block';
+                    info.textContent = `No cards found for "${name}". Try a different spelling or a simpler name (e.g. "Charizard" instead of "Charizard ex").`;
+                    WIZ.pokemon = null;
+                    WIZ.pokemonCards = null;
+                    wizRefreshNextButton();
+                    return;
+                }
+
+                // Group unique variants by basename so we can tell the user what they're getting
+                const display = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                WIZ.pokemon = display;
+                WIZ.pokemonCards = cards;
+                WIZ.total = cards.length;
+                WIZ.totalOverride = false;
+
+                info.className = 'wiz-banner wiz-banner-info';
+                info.style.display = 'block';
+                info.textContent = `Found ${cards.length} card${cards.length !== 1 ? 's' : ''} matching "${display}". Note: the API limits results to the first 250. Continue to build your binder.`;
+
+                // Show a preview list of first N cards
+                const preview = cards.slice(0, 10);
+                list.style.display = 'block';
+                list.innerHTML = preview.map(c => {
+                    const img = c.images && c.images.small
+                        ? `<img class="wiz-result-img" src="${c.images.small}" alt="" loading="lazy">`
+                        : `<div class="wiz-result-img"></div>`;
+                    const meta = [c.set && c.set.name, c.number ? `#${c.number}` : '', c.rarity || ''].filter(Boolean).join(' · ');
+                    return `<div class="wiz-result-item">
+                        ${img}
+                        <div class="wiz-result-text">
+                            <div class="wiz-result-name">${escapeHtml(c.name)}</div>
+                            <div class="wiz-result-meta">${escapeHtml(meta)}</div>
+                        </div>
+                    </div>`;
+                }).join('')
+                + (cards.length > preview.length
+                    ? `<div class="wiz-results-empty" style="padding:8px 12px;border-top:1px solid #252525;">…and ${cards.length - preview.length} more (all will be added to your binder).</div>`
+                    : '');
+
+                wizRefreshNextButton();
+
+            } catch (err) {
+                info.className = 'wiz-banner wiz-banner-err';
+                info.style.display = 'block';
+                info.textContent = `Error searching: ${err.message || 'network error'}.`;
+                WIZ.pokemon = null;
+                WIZ.pokemonCards = null;
+                wizRefreshNextButton();
+            } finally {
+                spin.classList.remove('show');
+            }
+        }
+
+        // ── Step 4: Layout ──
+        function wizOnEnterLayout() {
+            // Seed defaults based on binder type
+            const totalEl = document.getElementById('wiz-total');
+            if (!WIZ.totalOverride) {
+                totalEl.value = WIZ.total || 151;
+            }
+            // If user hasn't changed rows/cols, pick sensible defaults
+            const rowsEl = document.getElementById('wiz-rows');
+            const colsEl = document.getElementById('wiz-cols');
+            if (!rowsEl.dataset.userSet) {
+                rowsEl.value = WIZ.rows;
+                colsEl.value = WIZ.cols;
+            }
+
+            // Track manual edits to total so wizOnEnterLayout doesn't stomp
+            totalEl.oninput = () => { WIZ.totalOverride = true; };
+
+            wizUpdatePreview();
+        }
+
+        function wizApplyLayoutPreset(btn) {
+            document.querySelectorAll('.wiz-preset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('wiz-rows').value = btn.dataset.r;
+            document.getElementById('wiz-cols').value = btn.dataset.c;
+            document.getElementById('wiz-rows').dataset.userSet = '1';
+            wizUpdatePreview();
+        }
+
+        function wizUpdatePreview() {
+            const r = Math.max(1, Math.min(12, parseInt(document.getElementById('wiz-rows').value) || 1));
+            const c = Math.max(1, Math.min(12, parseInt(document.getElementById('wiz-cols').value) || 1));
+            WIZ.rows = r; WIZ.cols = c;
+            const grid = document.getElementById('wiz-preview-grid');
+            grid.style.gridTemplateColumns = `repeat(${c}, 1fr)`;
+            grid.style.gridTemplateRows    = `repeat(${r}, 1fr)`;
+            // Drive the container's aspect-ratio from the actual layout so a
+            // 4×4 grid of 3:4 cards displays as a 12:16 (i.e. 3:4) box, etc.
+            // This keeps the cells correctly shaped without ever overflowing.
+            grid.style.setProperty('--wiz-preview-ratio', `${c * 3} / ${r * 4}`);
+            grid.innerHTML = '';
+            for (let i = 0; i < r * c; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'wiz-preview-cell';
+                grid.appendChild(cell);
+            }
+            // Update preview label with pages count
+            const total = Math.max(1, parseInt(document.getElementById('wiz-total').value) || 1);
+            const pages = Math.ceil(total / (r * c));
+            document.getElementById('wiz-preview-label').textContent =
+                `${r} × ${c} = ${r*c} per page · ${pages} page${pages !== 1 ? 's' : ''} for ${total} slots`;
+        }
+
+        // Re-render preview when total changes, too
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 'wiz-total') wizUpdatePreview();
+        });
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══              Step 4: Banner image                      ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        // Currently-shown URL in the preview pane (may be a remote URL or a
+        // data: URI if the user uploaded a local file)
+        function wizSetBannerPreview(url) {
+            const img  = document.getElementById('wiz-banner-preview-img');
+            const ph   = document.getElementById('wiz-banner-placeholder');
+            if (url) {
+                img.onload  = () => { img.style.display = 'block'; ph.style.display = 'none'; };
+                img.onerror = () => { img.style.display = 'none';  ph.style.display = 'block'; ph.textContent = 'Couldn\'t load that image — try another URL.'; };
+                img.src = url;
+            } else {
+                img.style.display = 'none';
+                ph.style.display  = 'block';
+                ph.textContent    = 'No banner selected yet';
+            }
+        }
+
+        function wizOnEnterBanner() {
+            // If we haven't set anything yet, seed with the current app banner
+            if (!WIZ.bannerUrl) WIZ.bannerUrl = config.bannerUrl || DEFAULT_BANNER;
+            wizSetBannerPreview(WIZ.bannerUrl);
+            // Re-render whichever mode panel is active so the inputs reflect stored state
+            wizRenderBannerInput();
+        }
+
+        function wizSelectBannerMode(mode) {
+            WIZ.bannerMode = mode;
+            document.querySelectorAll('.wiz-banner-mode').forEach(el => {
+                el.classList.toggle('selected', el.dataset.mode === mode);
+            });
+            // If the user flips modes after checking "keep current", uncheck it
+            const skipCb = document.getElementById('wiz-banner-skip');
+            if (skipCb && skipCb.checked) skipCb.checked = false;
+
+            if (mode === 'default') {
+                WIZ.bannerUrl = DEFAULT_BANNER;
+                wizSetBannerPreview(WIZ.bannerUrl);
+            } else if (mode === 'preset') {
+                // Default the preview to the current url (or first preset) but
+                // let the grid drive selection
+                if (!WIZ.bannerUrl || WIZ.bannerUrl === DEFAULT_BANNER) {
+                    WIZ.bannerUrl = WIZ_BANNER_PRESETS[0].url;
+                }
+                wizSetBannerPreview(WIZ.bannerUrl);
+            }
+            // For link/local we leave the preview alone and let the input
+            // handler update it as the user types/picks a file.
+
+            wizRenderBannerInput();
+            wizRefreshNextButton();
+        }
+
+        function wizRenderBannerInput() {
+            const area = document.getElementById('wiz-banner-input-area');
+            area.innerHTML = '';
+            if (WIZ.bannerMode === 'link') {
+                const wrap = document.createElement('div');
+                wrap.innerHTML = '<input type="text" id="wiz-banner-url-input" placeholder="Paste an image URL (https://…)" autocomplete="off" spellcheck="false">';
+                area.appendChild(wrap);
+                const inp = document.getElementById('wiz-banner-url-input');
+                inp.value = (WIZ.bannerUrl && !WIZ.bannerUrl.startsWith('data:')) ? WIZ.bannerUrl : '';
+                let debounce = null;
+                inp.addEventListener('input', () => {
+                    clearTimeout(debounce);
+                    const v = inp.value.trim();
+                    debounce = setTimeout(() => {
+                        if (v) {
+                            WIZ.bannerUrl = v;
+                            wizSetBannerPreview(v);
+                        } else {
+                            WIZ.bannerUrl = null;
+                            wizSetBannerPreview(null);
+                        }
+                        wizRefreshNextButton();
+                    }, 250);
+                });
+            } else if (WIZ.bannerMode === 'local') {
+                const wrap = document.createElement('div');
+                wrap.innerHTML = '<input type="file" id="wiz-banner-file-input" accept="image/*">';
+                area.appendChild(wrap);
+                const fi = document.getElementById('wiz-banner-file-input');
+                fi.addEventListener('change', () => {
+                    if (!fi.files || !fi.files[0]) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        WIZ.bannerUrl = e.target.result;
+                        wizSetBannerPreview(WIZ.bannerUrl);
+                        wizRefreshNextButton();
+                    };
+                    reader.readAsDataURL(fi.files[0]);
+                });
+            } else if (WIZ.bannerMode === 'preset') {
+                // Build the preset thumbnail grid
+                const grid = document.createElement('div');
+                grid.className = 'wiz-banner-presets';
+                WIZ_BANNER_PRESETS.forEach(p => {
+                    const cell = document.createElement('div');
+                    cell.className = 'wiz-banner-preset' + (WIZ.bannerUrl === p.url ? ' selected' : '');
+                    cell.title = p.label;
+                    cell.innerHTML = `<img src="${p.url}" alt="${p.label}" loading="lazy">`;
+                    cell.onclick = () => {
+                        WIZ.bannerUrl = p.url;
+                        wizSetBannerPreview(p.url);
+                        grid.querySelectorAll('.wiz-banner-preset').forEach(el => el.classList.remove('selected'));
+                        cell.classList.add('selected');
+                        wizRefreshNextButton();
+                    };
+                    grid.appendChild(cell);
+                });
+                area.appendChild(grid);
+            }
+            // 'default' mode needs no extra input — handled entirely in wizSelectBannerMode.
+        }
+
+        function wizToggleBannerSkip(checked) {
+            if (checked) {
+                // User wants to leave the current banner alone
+                WIZ.bannerMode = 'keep';
+                // Show current banner in preview but disable mode selections
+                wizSetBannerPreview(config.bannerUrl || DEFAULT_BANNER);
+                document.querySelectorAll('.wiz-banner-mode').forEach(el => el.classList.remove('selected'));
+                document.getElementById('wiz-banner-input-area').innerHTML =
+                    '<div class="wiz-q-sub" style="margin:0;padding:8px 4px;">Banner will not be changed when you apply the setup.</div>';
+            } else {
+                // Revert to default selection
+                wizSelectBannerMode('default');
+            }
+            wizRefreshNextButton();
+        }
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══          Step 2: API Keys (optional guidance)          ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        // Mapping from short wizard id → localStorage key + input element id
+        const WIZ_KEY_MAP = {
+            ptcg:     { storage: 'ptcg_api_key',     mainInput: 'ptcg-key'      },
+            gemini:   { storage: 'gemini_api_key',   mainInput: 'gemini-key'    },
+            ocrspace: { storage: 'ocrspace_api_key', mainInput: 'ocrspace-key'  },
+            oxr:      { storage: 'oxr_app_id',       mainInput: 'oxr-key'       },
+        };
+
+        function wizOnEnterApiKeys() {
+            // For each key card: pre-fill the input from localStorage if the
+            // user already has a key set, and show the "✓ Saved" badge.
+            for (const [shortId, info] of Object.entries(WIZ_KEY_MAP)) {
+                const existing = (localStorage.getItem(info.storage) || '').trim();
+                const input = document.getElementById(`wiz-key-${shortId}`);
+                const savedLabel = document.getElementById(`wiz-keys-saved-${shortId}`);
+                if (input && existing) input.value = existing;
+                if (savedLabel) savedLabel.classList.toggle('show', !!existing);
+            }
+            // Auto-open the PTCG card (most impactful) the first time, leave
+            // others collapsed so the panel isn't visually overwhelming.
+            const ptcgCard = document.getElementById('wiz-keys-card-ptcg');
+            if (ptcgCard && !ptcgCard.dataset.everOpened) {
+                ptcgCard.classList.add('open');
+                ptcgCard.dataset.everOpened = '1';
+            }
+        }
+
+        function wizToggleKeyCard(shortId) {
+            const card = document.getElementById(`wiz-keys-card-${shortId}`);
+            if (!card) return;
+            card.classList.toggle('open');
+        }
+
+        function wizSaveKeyInline(shortId) {
+            const info  = WIZ_KEY_MAP[shortId];
+            if (!info) return;
+            const input = document.getElementById(`wiz-key-${shortId}`);
+            if (!input) return;
+            const val = input.value.trim();
+
+            // Save (or clear) in localStorage
+            if (val) localStorage.setItem(info.storage, val);
+            else     localStorage.removeItem(info.storage);
+
+            // Keep the settings-drawer input in sync so the user sees the same
+            // value both places
+            const mainInput = document.getElementById(info.mainInput);
+            if (mainInput) mainInput.value = val;
+
+            // Refresh the "Saved" badge
+            const savedLabel = document.getElementById(`wiz-keys-saved-${shortId}`);
+            if (savedLabel) savedLabel.classList.toggle('show', !!val);
+
+            // Button feedback
+            const btn = input.parentElement.querySelector('.wiz-keys-save-btn');
+            if (btn) {
+                const original = btn.innerHTML;
+                btn.innerHTML = '✓ Saved';
+                btn.classList.add('saved');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('saved');
+                }, 1800);
+            }
+
+            // If we saved a currency-related key, re-pull the exchange rate
+            if (shortId === 'oxr') {
+                localStorage.removeItem('oxrLastFetch'); // force refresh
+                if (typeof maybeRefreshOXR === 'function') maybeRefreshOXR();
+            }
+        }
+
+        // ── Step 6: Review ──
+        function wizOnEnterReview() {
+            // Pull final values from layout inputs
+            WIZ.rows  = Math.max(1, parseInt(document.getElementById('wiz-rows').value)  || 1);
+            WIZ.cols  = Math.max(1, parseInt(document.getElementById('wiz-cols').value)  || 1);
+            WIZ.total = Math.max(1, parseInt(document.getElementById('wiz-total').value) || 1);
+
+            // Build review box
+            const box = document.getElementById('wiz-review-box');
+            // rows can be either [label, plainText] or [label, htmlString, true]
+            const rows = [];
+            if (WIZ.binderType === 'pokedex') {
+                const d = REGIONAL_DEX[WIZ.dexKey];
+                rows.push(['Type', 'Pokédex']);
+                rows.push(['Region', d.label]);
+                rows.push(['Pre-fill species names', WIZ.prefill ? 'Yes' : 'No']);
+            } else if (WIZ.binderType === 'masterSet') {
+                rows.push(['Type', 'Master Set']);
+                if (WIZ.masterKind === 'set') {
+                    rows.push(['Target', 'Specific set']);
+                    rows.push(['Set', WIZ.set ? WIZ.set.name : '—']);
+                    if (WIZ.set) rows.push(['Series / Release', `${WIZ.set.series || ''} · ${WIZ.set.releaseDate || ''}`]);
+                } else {
+                    rows.push(['Target', 'Specific Pokémon']);
+                    rows.push(['Pokémon', WIZ.pokemon || '—']);
+                    if (WIZ.pokemonCards) rows.push(['Cards found', String(WIZ.pokemonCards.length)]);
+                }
+            }
+            rows.push(['Page layout', `${WIZ.rows} × ${WIZ.cols} (${WIZ.rows*WIZ.cols} per page)`]);
+            rows.push(['Total slots', String(WIZ.total)]);
+            rows.push(['Pages', String(Math.ceil(WIZ.total / (WIZ.rows * WIZ.cols)))]);
+
+            // Banner row — include thumbnail (HTML) or "Keep current" text
+            if (WIZ.bannerMode === 'keep') {
+                rows.push(['Banner', 'Keep current']);
+            } else {
+                const modeLabel = {
+                    default: 'Default',
+                    preset:  'Preset',
+                    link:    'Image URL',
+                    local:   'Uploaded file',
+                }[WIZ.bannerMode] || 'Default';
+                const thumb = WIZ.bannerUrl
+                    ? `<img class="wiz-review-banner-thumb" src="${escapeHtml(WIZ.bannerUrl)}" alt="">`
+                    : '';
+                rows.push(['Banner', `${escapeHtml(modeLabel)} ${thumb}`, true]);
+            }
+
+            box.innerHTML = rows.map(([k, v, isHtml]) => `
+                <div class="wiz-review-row">
+                    <div class="wiz-review-label">${escapeHtml(k)}</div>
+                    <div class="wiz-review-value">${isHtml ? v : escapeHtml(v)}</div>
+                </div>`).join('');
+
+            // Overwrite warning if user already has data
+            const hasData = Object.keys(_memoryCache).some(k => k.startsWith('item-'));
+            document.getElementById('wiz-overwrite-warn').style.display = hasData ? 'block' : 'none';
+            document.getElementById('wiz-clear-row').style.display      = hasData ? 'flex'  : 'none';
+        }
+
+        // ── Apply ──
+        async function wizApply() {
+            const applyBtn = document.getElementById('wiz-apply');
+            const backBtn  = document.getElementById('wiz-back');
+            const closeBtn = document.querySelector('.wiz-close');
+            applyBtn.disabled = true;
+            backBtn.disabled  = true;
+
+            const progress = document.getElementById('wiz-progress');
+            const bar      = document.getElementById('wiz-progress-bar');
+            const txt      = document.getElementById('wiz-progress-text');
+            progress.classList.add('show');
+
+            const setProg = (pct, label) => {
+                bar.style.width = pct + '%';
+                if (label) txt.textContent = label;
+            };
+
+            try {
+                // 1. Optionally clear existing data
+                const clearCb = document.getElementById('wiz-clear-existing');
+                if (clearCb && clearCb.checked) {
+                    setProg(5, 'Clearing existing entries…');
+                    await wizClearAllData();
+                }
+
+                // 2. Update config
+                setProg(15, 'Saving layout…');
+                config.total = WIZ.total;
+                config.rows  = WIZ.rows;
+                config.cols  = WIZ.cols;
+                // Banner: only overwrite if user didn't opt to keep current
+                if (WIZ.bannerMode !== 'keep' && WIZ.bannerUrl) {
+                    config.bannerUrl = WIZ.bannerUrl;
+                    applyBanner(WIZ.bannerUrl);
+                }
+                localStorage.setItem('appConfig', JSON.stringify(config));
+                document.getElementById('totalItems').value = config.total;
+                document.getElementById('gridRows').value   = config.rows;
+                document.getElementById('gridCols').value   = config.cols;
+
+                // Save binder metadata (so app can show what this binder is)
+                const meta = wizBuildMeta();
+                localStorage.setItem('binderMeta', JSON.stringify(meta));
+
+                // 3. Pre-populate entries based on binder type
+                if (WIZ.binderType === 'pokedex' && WIZ.prefill) {
+                    setProg(25, 'Fetching Pokémon species list…');
+                    await wizPrefillPokedex(setProg);
+                } else if (WIZ.binderType === 'masterSet' && WIZ.masterKind === 'set' && WIZ.set) {
+                    setProg(25, 'Fetching cards in set…');
+                    await wizPrefillSetMaster(setProg);
+                } else if (WIZ.binderType === 'masterSet' && WIZ.masterKind === 'pokemon' && WIZ.pokemonCards) {
+                    setProg(25, 'Filling binder with cards…');
+                    await wizPrefillPokemonMaster(setProg);
+                }
+
+                // 4. Re-render
+                setProg(95, 'Rebuilding binder…');
+                renderList();
+                applyCardSize();
+                updateTotalValue();
+                touchLastUpdated();
+
+                // 5. Mark setup complete
+                localStorage.setItem('setupComplete', '1');
+
+                setProg(100, 'Done!');
+                setTimeout(() => {
+                    closeSetupWizard();
+                    applyBtn.disabled = false;
+                    backBtn.disabled  = false;
+                }, 400);
+
+            } catch (err) {
+                console.error('Wizard apply failed:', err);
+                txt.textContent = 'Error: ' + (err.message || 'apply failed');
+                bar.style.background = '#e53935';
+                applyBtn.disabled = false;
+                backBtn.disabled  = false;
+            }
+        }
+
+        function wizBuildMeta() {
+            const meta = {
+                version: 1,
+                binderType: WIZ.binderType,
+                rows: WIZ.rows, cols: WIZ.cols, total: WIZ.total,
+                createdAt: new Date().toISOString(),
+            };
+            if (WIZ.binderType === 'pokedex') {
+                meta.dexKey = WIZ.dexKey;
+                meta.dexLabel = REGIONAL_DEX[WIZ.dexKey].label;
+                meta.prefilled = WIZ.prefill;
+            } else if (WIZ.binderType === 'masterSet') {
+                meta.masterKind = WIZ.masterKind;
+                if (WIZ.masterKind === 'set' && WIZ.set) {
+                    meta.setId    = WIZ.set.id;
+                    meta.setName  = WIZ.set.name;
+                    meta.setSeries = WIZ.set.series;
+                } else if (WIZ.masterKind === 'pokemon') {
+                    meta.pokemon = WIZ.pokemon;
+                }
+            }
+            return meta;
+        }
+
+        // Clear all card data & photos — same as clearPokedex but without the confirm
+        async function wizClearAllData() {
+            try {
+                const db = await openDB();
+                await new Promise((res) => {
+                    const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
+                    tx.objectStore(DATA_STORE).clear();
+                    tx.objectStore(PHOTO_STORE).clear();
+                    tx.oncomplete = () => res();
+                    tx.onerror    = () => res();
+                });
+            } catch (e) {}
+            // Wipe memory cache
+            for (const k of Object.keys(_memoryCache)) {
+                if (k.startsWith('item-')) delete _memoryCache[k];
+            }
+        }
+
+        // Pre-fill Pokédex species names from PokéAPI
+        async function wizPrefillPokedex(setProg) {
+            const info = REGIONAL_DEX[WIZ.dexKey];
+            try {
+                let entries = [];
+                if (!info.api) {
+                    // National dex — use a single paged request
+                    const r = await fetch(`https://pokeapi.co/api/v2/pokemon-species?limit=${WIZ.total}`);
+                    const j = await r.json();
+                    entries = (j.results || []).map((p, i) => ({
+                        name: prettifyPokeName(p.name),
+                        dexNum: i + 1,
+                    }));
+                } else {
+                    const r = await fetch(`https://pokeapi.co/api/v2/pokedex/${info.api}`);
+                    const j = await r.json();
+                    entries = (j.pokemon_entries || []).map(e => ({
+                        name: prettifyPokeName(e.pokemon_species.name),
+                        dexNum: e.entry_number,
+                    }));
+                }
+
+                setProg(45, `Writing ${entries.length} species names…`);
+
+                // Populate slots 1..N with species names
+                const db = await openDB();
+                const tx = db.transaction(DATA_STORE, 'readwrite');
+                const store = tx.objectStore(DATA_STORE);
+                const limit = Math.min(entries.length, WIZ.total);
+                for (let i = 0; i < limit; i++) {
+                    const slotId = i + 1;
+                    const existing = _memoryCache[`item-${slotId}`] || {};
+                    const item = {
+                        name: existing.name || entries[i].name,
+                        set: existing.set || '',
+                        setNumber: existing.setNumber || '',
+                        value: existing.value || 0,
+                        collected: !!existing.collected,
+                        fullArt:  !!existing.fullArt,
+                        holo:     !!existing.holo,
+                        revHolo:  !!existing.revHolo,
+                        wanted:   existing.wanted === undefined ? true : existing.wanted,
+                        peakValue: existing.peakValue || 0,
+                    };
+                    _memoryCache[`item-${slotId}`] = item;
+                    store.put(item, `item-${slotId}`);
+                    if (i % 25 === 0) setProg(45 + Math.floor((i / limit) * 45), `Writing ${i+1}/${limit}…`);
+                }
+                await new Promise(res => { tx.oncomplete = res; tx.onerror = res; });
+            } catch (e) {
+                console.warn('Pokédex pre-fill failed; continuing with empty slots.', e);
+            }
+        }
+
+        function prettifyPokeName(s) {
+            if (!s) return '';
+            // e.g. "mr-mime" -> "Mr. Mime", "ho-oh" -> "Ho-Oh", "nidoran-f" -> "Nidoran♀"
+            let n = s;
+            if (n === 'nidoran-f') return 'Nidoran♀';
+            if (n === 'nidoran-m') return 'Nidoran♂';
+            if (n === 'mr-mime')   return 'Mr. Mime';
+            if (n === 'mr-rime')   return 'Mr. Rime';
+            if (n === 'mime-jr')   return 'Mime Jr.';
+            if (n === 'type-null') return 'Type: Null';
+            if (n === 'ho-oh')     return 'Ho-Oh';
+            if (n === 'porygon-z') return 'Porygon-Z';
+            if (n === 'jangmo-o' || n === 'hakamo-o' || n === 'kommo-o') {
+                return n.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('-');
+            }
+            // Default: capitalize each dashed part, join with space if it's two+ words
+            return n.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        // Pre-fill Master Set (by set) — one slot per card
+        async function wizPrefillSetMaster(setProg) {
+            const s = WIZ.set;
+            if (!s) return;
+            let allCards = [];
+            try {
+                // The API paginates at 250 cards, so loop until we've got them all
+                let page = 1;
+                while (true) {
+                    const q = `set.id:${s.id}`;
+                    const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=250&page=${page}&orderBy=number&select=name,number,set,images,rarity`;
+                    const r = await ptcgFetch(url);
+                    const j = await r.json();
+                    const batch = j.data || [];
+                    allCards = allCards.concat(batch);
+                    if (batch.length < 250) break;
+                    page++;
+                    if (page > 8) break; // safety
+                }
+
+                if (!allCards.length) {
+                    console.warn('No cards returned for set', s.id);
+                    return;
+                }
+
+                // Sort numerically by card number (the API returns strings like "1", "10", "SV001")
+                allCards.sort((a, b) => {
+                    const na = parseInt(a.number, 10); const nb = parseInt(b.number, 10);
+                    if (isNaN(na) && isNaN(nb)) return (a.number || '').localeCompare(b.number || '');
+                    if (isNaN(na)) return 1;
+                    if (isNaN(nb)) return -1;
+                    return na - nb;
+                });
+
+                // Bump total if user didn't override and the API returned more than expected
+                if (!WIZ.totalOverride && allCards.length > WIZ.total) {
+                    WIZ.total = allCards.length;
+                    config.total = allCards.length;
+                    localStorage.setItem('appConfig', JSON.stringify(config));
+                    document.getElementById('totalItems').value = allCards.length;
+                }
+
+                setProg(55, `Writing ${Math.min(allCards.length, WIZ.total)} card entries…`);
+
+                const db = await openDB();
+                const tx = db.transaction(DATA_STORE, 'readwrite');
+                const store = tx.objectStore(DATA_STORE);
+                const limit = Math.min(allCards.length, WIZ.total);
+                for (let i = 0; i < limit; i++) {
+                    const c = allCards[i];
+                    const slotId = i + 1;
+                    const existing = _memoryCache[`item-${slotId}`] || {};
+                    const item = {
+                        name: existing.name || c.name || '',
+                        set:  existing.set  || (c.set && c.set.name) || s.name,
+                        setNumber: existing.setNumber || (c.number ? `${c.number}/${s.printedTotal || s.total || ''}` : ''),
+                        value:     existing.value || 0,
+                        collected: !!existing.collected,
+                        fullArt:   !!existing.fullArt,
+                        holo:      !!existing.holo,
+                        revHolo:   !!existing.revHolo,
+                        wanted:    existing.wanted === undefined ? true : existing.wanted,
+                        peakValue: existing.peakValue || 0,
+                    };
+                    _memoryCache[`item-${slotId}`] = item;
+                    store.put(item, `item-${slotId}`);
+                    if (i % 25 === 0) setProg(55 + Math.floor((i / limit) * 35), `Writing ${i+1}/${limit}…`);
+                }
+                await new Promise(res => { tx.oncomplete = res; tx.onerror = res; });
+            } catch (e) {
+                console.warn('Set pre-fill failed; continuing with empty slots.', e);
+            }
+        }
+
+        // Pre-fill Master Set (by pokemon) — slot per card found for that species
+        async function wizPrefillPokemonMaster(setProg) {
+            const cards = WIZ.pokemonCards || [];
+            if (!cards.length) return;
+
+            // Bump total if not overridden
+            if (!WIZ.totalOverride && cards.length > WIZ.total) {
+                WIZ.total = cards.length;
+                config.total = cards.length;
+                localStorage.setItem('appConfig', JSON.stringify(config));
+                document.getElementById('totalItems').value = cards.length;
+            }
+
+            setProg(45, `Writing ${Math.min(cards.length, WIZ.total)} card entries…`);
+
+            const db = await openDB();
+            const tx = db.transaction(DATA_STORE, 'readwrite');
+            const store = tx.objectStore(DATA_STORE);
+            const limit = Math.min(cards.length, WIZ.total);
+            for (let i = 0; i < limit; i++) {
+                const c = cards[i];
+                const slotId = i + 1;
+                const existing = _memoryCache[`item-${slotId}`] || {};
+                const setTotal = c.set && (c.set.printedTotal || c.set.total) || '';
+                const item = {
+                    name: existing.name || c.name || '',
+                    set:  existing.set  || (c.set && c.set.name) || '',
+                    setNumber: existing.setNumber || (c.number ? `${c.number}${setTotal ? '/' + setTotal : ''}` : ''),
+                    value:     existing.value || 0,
+                    collected: !!existing.collected,
+                    fullArt:   !!existing.fullArt,
+                    holo:      !!existing.holo,
+                    revHolo:   !!existing.revHolo,
+                    wanted:    existing.wanted === undefined ? true : existing.wanted,
+                    peakValue: existing.peakValue || 0,
+                };
+                _memoryCache[`item-${slotId}`] = item;
+                store.put(item, `item-${slotId}`);
+                if (i % 25 === 0) setProg(45 + Math.floor((i / limit) * 45), `Writing ${i+1}/${limit}…`);
+            }
+            await new Promise(res => { tx.oncomplete = res; tx.onerror = res; });
+        }
+
+        // Wire up prefill checkbox
+        document.addEventListener('change', (e) => {
+            if (e.target && e.target.id === 'wiz-prefill-names') WIZ.prefill = e.target.checked;
+        });
+
         /* ── Init ── */
         applyPriceSourceUI();
         loadApiKeyInputs();
@@ -4543,6 +7179,23 @@ fetchAllArt();
             renderList();
             applyCardSize();
             loadLastUpdated();
+
+            // Auto-open the Setup Wizard for brand-new users.
+            // We only trigger it if (a) the user has never completed setup AND
+            // (b) they have no saved card data — this protects existing users
+            // who upgrade from v18 without ever seeing the wizard before.
+            try {
+                const setupDone = localStorage.getItem('setupComplete') === '1';
+                const hasExistingData = Object.keys(_memoryCache).some(k => k.startsWith('item-'));
+                if (!setupDone && !hasExistingData) {
+                    // Small delay so the UI renders first — feels smoother than popping instantly
+                    setTimeout(() => openSetupWizard(), 350);
+                } else if (!setupDone && hasExistingData) {
+                    // Existing v18 users: mark setup complete silently so the wizard
+                    // never auto-pops on them. They can still open it from Settings.
+                    localStorage.setItem('setupComplete', '1');
+                }
+            } catch (e) { /* storage disabled — ignore */ }
         })();
     </script>
 </body>

@@ -258,6 +258,243 @@
         .btn-gallery { background: #000; color: #aaa; }
         .btn-print   { background: #000; color: #aaa; }
 
+        /* ── Save menu (dropdown) ── */
+        .save-menu-wrap { position: relative; display: inline-flex; }
+        .save-menu-wrap .nav-btn .save-caret {
+            font-size: 0.7em; opacity: 0.7; margin-left: 2px;
+        }
+        .save-menu {
+            display: none; position: absolute; top: calc(100% + 4px); right: 0;
+            min-width: 220px; background: #1e1e1e; border: 1px solid #333;
+            border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 120; overflow: hidden;
+        }
+        .save-menu.open { display: block; }
+        .save-menu-item {
+            display: flex; align-items: center; gap: 10px; width: 100%;
+            padding: 10px 12px; background: none; border: none; color: #ddd;
+            font-size: 13px; text-align: left; cursor: pointer; min-height: 44px;
+            -webkit-tap-highlight-color: transparent; transition: background 0.15s;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .save-menu-item:last-child { border-bottom: none; }
+        .save-menu-item:hover, .save-menu-item:active { background: #2a2a2a; }
+        .save-menu-item .save-menu-icon { font-size: 1.15em; flex-shrink: 0; }
+        .save-menu-item .save-menu-text { flex: 1; min-width: 0; }
+        .save-menu-item .save-menu-title { font-weight: 700; color: #fff; }
+        .save-menu-item .save-menu-sub {
+            font-size: 0.7em; color: #888; margin-top: 1px;
+            white-space: normal; line-height: 1.3;
+        }
+        body.light .save-menu { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light .save-menu-item { color: #334; border-bottom-color: #b8cfe0; }
+        body.light .save-menu-item:hover, body.light .save-menu-item:active { background: #bcd4f0; }
+        body.light .save-menu-item .save-menu-title { color: #1a1a1a; }
+        body.light .save-menu-item .save-menu-sub { color: #5a7a99; }
+
+        /* ── PDF-generation progress overlay ── */
+        #pdfgen-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 400;
+            justify-content: center; align-items: center; padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #pdfgen-overlay.open { display: flex; }
+        #pdfgen-panel {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 22px; width: 100%; max-width: 420px; text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        }
+        #pdfgen-panel h3 {
+            margin: 0 0 6px; font-size: 1.05em; color: #fff; font-weight: 800;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        #pdfgen-panel .pdfgen-sub {
+            margin: 0 0 14px; font-size: 0.82em; color: #aaa;
+        }
+        #pdfgen-bar-wrap {
+            width: 100%; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden;
+        }
+        #pdfgen-bar {
+            height: 100%; width: 0%; background: #007bff; border-radius: 4px;
+            transition: width 0.2s;
+        }
+        #pdfgen-status {
+            margin-top: 8px; font-size: 0.76em; color: #888;
+            min-height: 1em;
+        }
+        #pdfgen-cancel {
+            margin-top: 14px; padding: 9px 16px; border-radius: 7px;
+            background: #333; color: #bbb; border: none; font-size: 13px;
+            font-weight: 700; cursor: pointer; min-height: 40px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #pdfgen-cancel:active { background: #444; color: #fff; }
+        body.light #pdfgen-panel { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light #pdfgen-panel h3 { color: #1a1a1a; }
+        body.light #pdfgen-panel .pdfgen-sub { color: #5a7a99; }
+        body.light #pdfgen-bar-wrap { background: #b8cfe0; }
+        body.light #pdfgen-bar { background: #1a73e8; }
+        body.light #pdfgen-status { color: #5a7a99; }
+        body.light #pdfgen-cancel { background: #c0d8ee; color: #445; }
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══           Monthly Update: banner + progress            ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        /* Non-blocking toast-style banner that appears when a check is due.
+           Positioned above the last-updated strip so both are visible. */
+        #update-banner {
+            display: none; position: fixed;
+            bottom: 28px; left: 50%; transform: translateX(-50%);
+            background: #1e2a3a; border: 1px solid #2a4a6a; color: #e0e0e0;
+            padding: 12px 14px; border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            z-index: 150;
+            max-width: calc(100vw - 28px);
+            width: 440px;
+            font-size: 13px; line-height: 1.45;
+            animation: update-banner-in 0.3s ease-out;
+        }
+        #update-banner.open { display: block; }
+        @keyframes update-banner-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        #update-banner .ub-title {
+            font-weight: 800; color: #64b5f6; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        #update-banner .ub-body {
+            color: #bbb; margin-bottom: 10px; font-size: 0.88em;
+        }
+        #update-banner .ub-actions {
+            display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .ub-btn {
+            padding: 7px 11px; border-radius: 6px; border: none;
+            font-size: 12px; font-weight: bold; cursor: pointer;
+            min-height: 36px; -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .ub-btn:active { filter: brightness(0.85); }
+        .ub-btn-primary { background: #007bff; color: #fff; flex: 1; min-width: 100px; }
+        .ub-btn-ghost { background: transparent; border: 1px solid #333; color: #999; }
+        .ub-btn-ghost:hover { background: #252525; }
+        .ub-btn-never { background: transparent; color: #666; padding-left: 6px; padding-right: 6px; font-size: 11px; }
+        body.light #update-banner { background: #d8ecf8; border-color: #a0c0e0; color: #1a1a1a; }
+        body.light #update-banner .ub-title { color: #1558b0; }
+        body.light #update-banner .ub-body { color: #334; }
+        body.light .ub-btn-ghost { border-color: #a8c0d8; color: #5a7a99; }
+        body.light .ub-btn-ghost:hover { background: #c0d8ee; }
+        body.light .ub-btn-never { color: #7a9ab5; }
+
+        /* Progress modal — shown for all 3 stages of the monthly update.
+           Reuses similar look to pdfgen-overlay but is its own widget so
+           they can coexist (never actually would, but safer separate). */
+        #update-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 400;
+            justify-content: center; align-items: center; padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #update-overlay.open { display: flex; }
+        #update-panel {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 22px; width: 100%; max-width: 460px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            animation: wiz-slide-in 0.22s ease-out;
+        }
+        #update-panel h3 {
+            margin: 0 0 6px; font-size: 1.1em; color: #fff; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #update-panel .update-sub {
+            margin: 0 0 16px; font-size: 0.82em; color: #aaa; line-height: 1.5;
+        }
+        /* Stage list — each stage has an icon, label, and status */
+        .update-stages { margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+        .update-stage {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 10px; border-radius: 7px;
+            background: #151515; border: 1px solid #2a2a2a;
+            font-size: 0.86em; transition: all 0.2s;
+        }
+        .update-stage.active { background: #1a2a3a; border-color: #2a4a6a; }
+        .update-stage.done { background: #1a2a1a; border-color: #2a4a2a; }
+        .update-stage.skipped { opacity: 0.5; }
+        .update-stage-icon {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #2a2a2a; color: #888; font-size: 14px; flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .update-stage.active .update-stage-icon { background: #2a4a6a; color: #64b5f6; }
+        .update-stage.done  .update-stage-icon { background: #2a4a2a; color: #81c784; }
+        .update-stage-text { flex: 1; min-width: 0; }
+        .update-stage-title { font-weight: 700; color: #ddd; }
+        .update-stage.active .update-stage-title { color: #64b5f6; }
+        .update-stage.done  .update-stage-title { color: #81c784; }
+        .update-stage-status {
+            font-size: 0.78em; color: #888; margin-top: 1px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        #update-overall-wrap {
+            width: 100%; height: 8px; background: #2a2a2a; border-radius: 4px;
+            overflow: hidden; margin-bottom: 6px;
+        }
+        #update-overall-bar {
+            height: 100%; width: 0%; background: #007bff; border-radius: 4px;
+            transition: width 0.25s;
+        }
+        #update-status-line {
+            font-size: 0.78em; color: #888; text-align: center;
+            min-height: 1em; margin-bottom: 10px;
+        }
+        /* Summary block shown after completion */
+        #update-summary {
+            display: none; padding: 12px; border-radius: 8px;
+            background: #1a2a1a; border: 1px solid #2a4a2a;
+            font-size: 0.85em; color: #c5e1a5; line-height: 1.55;
+            margin-bottom: 10px;
+        }
+        #update-summary.show { display: block; }
+        #update-summary strong { color: #e8f5e9; }
+        #update-summary .us-new-sets {
+            margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a4a2a;
+            font-size: 0.92em; color: #a5d6a7;
+        }
+        /* Action buttons row */
+        .update-actions {
+            display: flex; gap: 8px; justify-content: flex-end;
+        }
+        .update-btn {
+            padding: 9px 16px; border-radius: 7px; border: none;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            min-height: 40px; -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .update-btn:active { filter: brightness(0.85); }
+        .update-btn-cancel { background: #333; color: #bbb; }
+        .update-btn-close { background: #2e7d32; color: #fff; }
+        body.light #update-panel { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light #update-panel h3 { color: #1a1a1a; }
+        body.light #update-panel .update-sub { color: #5a7a99; }
+        body.light .update-stage { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .update-stage.active { background: #bcd4f0; border-color: #1a73e8; }
+        body.light .update-stage.done   { background: #c8e6c9; border-color: #81c784; }
+        body.light .update-stage-icon { background: #b8cfe0; color: #5a7a99; }
+        body.light .update-stage.active .update-stage-icon { background: #bcd4f0; color: #1558b0; }
+        body.light .update-stage.done   .update-stage-icon { background: #c8e6c9; color: #2e7d32; }
+        body.light .update-stage-title { color: #1a1a1a; }
+        body.light .update-stage.active .update-stage-title { color: #1558b0; }
+        body.light .update-stage.done   .update-stage-title { color: #2e7d32; }
+        body.light .update-stage-status { color: #5a7a99; }
+        body.light #update-overall-wrap { background: #b8cfe0; }
+        body.light #update-overall-bar { background: #1a73e8; }
+        body.light #update-status-line { color: #5a7a99; }
+        body.light #update-summary { background: #c8e6c9; border-color: #81c784; color: #1b5e20; }
+        body.light #update-summary strong { color: #1b5e20; }
+        body.light #update-summary .us-new-sets { border-top-color: #81c784; color: #2e7d32; }
+        body.light .update-btn-cancel { background: #c0d8ee; color: #445; }
+
         #total-value-display {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 6px 11px; background: #252525; border: 1px solid #3a3a3a;
@@ -311,6 +548,70 @@
             font-size: 14px; font-weight: bold; cursor: pointer; min-height: 38px;
         }
         .nav-page-group button:active { background: #3a3a3a; color: #fff; }
+
+        /* ─────────────────────────────────────────────── */
+        /* ──   Settings drawer: collapsible sections   ── */
+        /* ─────────────────────────────────────────────── */
+        /* The drawer used to be one flat scroll of heterogeneous controls
+           (price source, API keys, grid size, theme, buttons). Now it's
+           organized into 6 labelled sections, each collapsible, so the user
+           scans a short list and opens only what they need. */
+        .nav-settings-bar.open {
+            display: flex; flex-direction: column; gap: 0; padding: 0;
+            overflow: hidden;
+        }
+        .set-section {
+            width: 100%; border-bottom: 1px solid #222;
+        }
+        .set-section:last-child { border-bottom: none; }
+        .set-section-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 14px; cursor: pointer;
+            background: transparent; border: none; width: 100%; text-align: left;
+            color: #ddd; font-size: 14px; font-weight: 700;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s;
+        }
+        .set-section-head:hover, .set-section-head:active { background: #1a1a1a; }
+        .set-section-head .set-sec-caret {
+            font-size: 0.7em; color: #666; transition: transform 0.2s;
+            flex-shrink: 0; width: 10px;
+        }
+        .set-section.open .set-sec-caret { transform: rotate(90deg); color: #aaa; }
+        .set-sec-icon { font-size: 1.05em; flex-shrink: 0; }
+        .set-sec-title { flex: 1; min-width: 0; }
+        .set-sec-hint {
+            font-size: 0.72em; color: #666; font-weight: 400;
+            margin-left: 6px; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; max-width: 50%;
+        }
+        .set-section-body {
+            display: none;
+            flex-wrap: wrap; align-items: center; gap: 8px;
+            padding: 4px 14px 14px;
+        }
+        .set-section.open .set-section-body { display: flex; }
+        /* Subtle first-row emphasis — the "Binder" section is always open */
+        .set-section.primary .set-section-head { background: #151515; }
+        body.light .set-section { border-bottom-color: #b8cfe0; }
+        body.light .set-section-head { color: #1a1a1a; }
+        body.light .set-section-head:hover, body.light .set-section-head:active { background: #cde2f2; }
+        body.light .set-section-head .set-sec-caret { color: #7a9ab5; }
+        body.light .set-section.open .set-sec-caret { color: #334; }
+        body.light .set-sec-hint { color: #7a9ab5; }
+        body.light .set-section.primary .set-section-head { background: #cde2f2; }
+
+        /* Tools row — buttons in the Tools section wrap nicely */
+        .set-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 6px; width: 100%;
+        }
+        .set-tools-grid .settings-apply {
+            margin: 0; width: 100%; padding: 9px 10px;
+            font-size: 12px; font-weight: 700;
+            text-align: left;
+        }
 
         /* ── Header MEDIUM: ≤1059px — hide sub-brand & divider, keep single row ── */
         @media (max-width: 1059px) {
@@ -1009,6 +1310,54 @@
         body.light .cam-sheet-btn.primary { background:#1a73e8; border-color:#1558b0; color:#fff; }
         body.light .cam-sheet-btn.primary .cam-sheet-btn-sub { color:rgba(255,255,255,0.65); }
         body.light .cam-sheet-cancel { background:#c0d8ee; border-color:#a8c0d8; color:#5a7a99; }
+
+        /* ── Photo side switcher (Front/Back) — dual-photos feature ── */
+        /* Sits above the media area in the card detail modal, visible
+           only when dual-photos is enabled in settings. Also shown in
+           the camera action sheet so the user can pick which side the
+           new photo goes into before taking it. */
+        .photo-side-switch {
+            display: flex; gap: 4px; padding: 3px; border-radius: 8px;
+            background: #0f0f0f; border: 1px solid #2a2a2a;
+            margin: 0 0 10px; width: fit-content;
+        }
+        .photo-side-switch.hidden { display: none; }
+        .photo-side-btn {
+            padding: 6px 14px; border-radius: 6px; border: none;
+            background: transparent; color: #888; cursor: pointer;
+            font-size: 12px; font-weight: 700; min-height: 32px;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s, color 0.15s;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .photo-side-btn:hover { color: #ccc; }
+        .photo-side-btn.active {
+            background: #007bff; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        .photo-side-btn .side-dot {
+            display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            background: #4caf50; flex-shrink: 0;
+        }
+        .photo-side-btn.active .side-dot { background: #fff; }
+        .photo-side-btn .side-dot.empty { background: #444; }
+        .photo-side-btn.active .side-dot.empty { background: rgba(255,255,255,0.35); }
+        body.light .photo-side-switch { background: #cde2f2; border-color: #b8cfe0; }
+        body.light .photo-side-btn { color: #7a9ab5; }
+        body.light .photo-side-btn:hover { color: #1558b0; }
+        body.light .photo-side-btn.active { background: #1a73e8; color: #fff; }
+        body.light .photo-side-btn .side-dot { background: #2e7d32; }
+
+        /* Tile indicator gets a small "2" badge when a back photo exists.
+           Position it as a subscript-like superscript on the 📸 icon. */
+        .tile-ind.has-back::after {
+            content: '2';
+            position: absolute; top: -4px; right: -4px;
+            min-width: 11px; height: 11px; padding: 0 2px;
+            border-radius: 7px; background: #007bff; color: #fff;
+            font-size: 8px; font-weight: 900; line-height: 11px;
+            text-align: center; border: 1px solid #000;
+        }
+        body.light .tile-ind.has-back::after { background: #1a73e8; border-color: #fff; }
 
         /* ── OCR overlay ── */
         #ocr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; }
@@ -1790,11 +2139,82 @@
         </div>
     </div>
 
+    <!-- Monthly Update Banner (non-blocking, shown when a check is due) -->
+    <div id="update-banner" role="dialog" aria-labelledby="ub-title">
+        <div class="ub-title" id="ub-title">🔄 Monthly update ready</div>
+        <div class="ub-body" id="ub-body">
+            It's been over 30 days since the last check. Running an update will pull in any new sets from the Pokémon TCG API, refresh current card prices, and fill in missing card art.
+        </div>
+        <div class="ub-actions">
+            <button class="ub-btn ub-btn-primary" onclick="runMonthlyUpdate({fromBanner:true})">🔄 Update now</button>
+            <button class="ub-btn ub-btn-ghost" onclick="dismissUpdateBanner('later')">Later</button>
+            <button class="ub-btn ub-btn-never" onclick="dismissUpdateBanner('never')">Don't ask again</button>
+        </div>
+    </div>
+
+    <!-- Monthly Update Progress Modal -->
+    <div id="update-overlay" role="dialog" aria-labelledby="update-title">
+        <div id="update-panel">
+            <h3 id="update-title">🔄 Updating BinderDéx</h3>
+            <p class="update-sub">Checking for new sets, refreshing prices, and loading missing card art. You can keep using the app once this finishes — or cancel anytime.</p>
+
+            <div class="update-stages">
+                <div class="update-stage" id="stage-sets" data-stage="sets">
+                    <div class="update-stage-icon" id="stage-sets-icon">📋</div>
+                    <div class="update-stage-text">
+                        <div class="update-stage-title">Check for new sets</div>
+                        <div class="update-stage-status" id="stage-sets-status">Waiting…</div>
+                    </div>
+                </div>
+                <div class="update-stage" id="stage-prices" data-stage="prices">
+                    <div class="update-stage-icon" id="stage-prices-icon">💲</div>
+                    <div class="update-stage-text">
+                        <div class="update-stage-title">Refresh card prices</div>
+                        <div class="update-stage-status" id="stage-prices-status">Waiting…</div>
+                    </div>
+                </div>
+                <div class="update-stage" id="stage-art" data-stage="art">
+                    <div class="update-stage-icon" id="stage-art-icon">🎨</div>
+                    <div class="update-stage-text">
+                        <div class="update-stage-title">Load missing card art</div>
+                        <div class="update-stage-status" id="stage-art-status">Waiting…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="update-overall-wrap"><div id="update-overall-bar"></div></div>
+            <div id="update-status-line">Starting…</div>
+
+            <div id="update-summary"></div>
+
+            <div class="update-actions">
+                <button class="update-btn update-btn-cancel" id="update-cancel-btn" onclick="cancelMonthlyUpdate()">Cancel</button>
+                <button class="update-btn update-btn-close" id="update-close-btn" onclick="closeMonthlyUpdate()" style="display:none;">✓ Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Generation Progress -->
+    <div id="pdfgen-overlay" role="dialog" aria-labelledby="pdfgen-title">
+        <div id="pdfgen-panel">
+            <h3 id="pdfgen-title"><span class="art-spin"></span> Generating PDF…</h3>
+            <p class="pdfgen-sub">Building a visual copy of your binder. This may take a moment while card art loads.</p>
+            <div id="pdfgen-bar-wrap"><div id="pdfgen-bar"></div></div>
+            <div id="pdfgen-status">Preparing…</div>
+            <button id="pdfgen-cancel" onclick="cancelPDF()">Cancel</button>
+        </div>
+    </div>
+
     <!-- Camera Action Sheet -->
     <div id="cam-sheet-overlay" onclick="if(event.target===this)closeCamSheet()">
         <div id="cam-sheet">
             <div class="cam-sheet-handle" onclick="closeCamSheet()"></div>
             <div class="cam-sheet-title" id="cam-sheet-title">Add Photo</div>
+            <!-- Front/Back switcher — only visible when dual-photos is on -->
+            <div class="photo-side-switch hidden" id="cam-side-switch" style="margin: 0 auto 12px;">
+                <button class="photo-side-btn active" data-side="front" onclick="setCaptureSide('front')">Front</button>
+                <button class="photo-side-btn" data-side="back" onclick="setCaptureSide('back')">Back</button>
+            </div>
             <button class="cam-sheet-btn primary" onclick="triggerCapture('camera')">
                 <span class="cam-sheet-btn-icon">📷</span>
                 <span class="cam-sheet-btn-text">
@@ -2295,7 +2715,25 @@
                 <div id="total-value-display" onclick="promptBulkPriceUpdate()" style="cursor:pointer;" title="Tap to bulk-update all prices">💰 <strong id="total-value-amt">$0.00</strong></div>
                 
                 <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
-                <button class="nav-btn btn-save    hide-mobile" onclick="saveJSON()">⬇ Save</button>
+                <div class="save-menu-wrap hide-mobile">
+                    <button class="nav-btn btn-save" onclick="toggleSaveMenu(event)" aria-haspopup="menu" aria-expanded="false" id="save-menu-btn">⬇ Save<span class="save-caret">▾</span></button>
+                    <div class="save-menu" id="save-menu" role="menu">
+                        <button class="save-menu-item" role="menuitem" onclick="saveJSON(); closeSaveMenu();">
+                            <span class="save-menu-icon">📄</span>
+                            <span class="save-menu-text">
+                                <span class="save-menu-title">Save JSON backup</span>
+                                <span class="save-menu-sub">Full data file — restore later with Import</span>
+                            </span>
+                        </button>
+                        <button class="save-menu-item" role="menuitem" onclick="savePDF(); closeSaveMenu();">
+                            <span class="save-menu-icon">📑</span>
+                            <span class="save-menu-text">
+                                <span class="save-menu-title">Save as PDF (for sharing)</span>
+                                <span class="save-menu-sub">Visual binder pages with card art</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
                 <button class="nav-btn btn-load    hide-mobile" onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
                 <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadJSON(event)">
                 <button class="settings-toggle-btn" onclick="toggleSettings()" id="settings-toggle-btn" title="Settings">⚙</button>
@@ -2303,106 +2741,173 @@
         </div>
 
         <!-- Settings + mobile actions drawer -->
+        <!-- Reorganized into 6 labelled, collapsible sections. Every control
+             keeps its original id/onclick so all existing JS continues to work. -->
         <div class="nav-settings-bar" id="nav-settings-bar">
             <div id="mobile-actions">
-                
                 <button class="nav-btn btn-print"   onclick="printWanted()">🖨 Wanted</button>
-                <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save</button>
+                <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save JSON</button>
+                <button class="nav-btn btn-save"    onclick="savePDF()">📑 Save PDF</button>
                 <button class="nav-btn btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
             </div>
-            <!-- Price source -->
-            <div class="price-source-row">
-                <span class="settings-label">Price Source</span>
-                <button id="psrc-tcg" class="psrc-btn active"   onclick="setPriceSource('tcg')">💲 TCGPlayer (USD)</button>
-                <button id="psrc-cm"  class="psrc-btn cm-btn"   onclick="setPriceSource('cardmarket')">€ Cardmarket (EUR)</button>
-                <button class="psrc-help-btn" onclick="openPsrcInfo()" title="How price sources work">?</button>
-                <span class="rate-badge" id="rate-badge"></span>
+
+            <!-- ── SECTION 1: Binder layout (open by default) ── -->
+            <div class="set-section primary" id="sec-binder" data-sec="binder">
+                <button class="set-section-head" onclick="toggleSettingsSection('binder')">
+                    <span class="set-sec-caret">▶</span>
+                    <span class="set-sec-icon">📘</span>
+                    <span class="set-sec-title">Binder Layout</span>
+                    <span class="set-sec-hint">Slots, rows, card size</span>
+                </button>
+                <div class="set-section-body">
+                    <span class="settings-label">Total</span>
+                    <input type="number" id="totalItems" value="1025" min="1" inputmode="numeric">
+                    <span class="settings-label">Rows</span>
+                    <input type="number" id="gridRows" value="4" min="1" inputmode="numeric">
+                    <span class="settings-label">Slots</span>
+                    <input type="number" id="gridCols" value="4" min="1" inputmode="numeric">
+                    <span class="settings-label">Card Size</span>
+                    <input type="range" id="cardSizeSlider" min="25" max="300" value="100" step="25"
+                           oninput="applyCardSize(this.value)"
+                           style="width:90px;height:22px;accent-color:#007bff;cursor:pointer;vertical-align:middle;">
+                    <span class="settings-label" id="cardSizeLabel" style="min-width:32px;text-transform:none;">100%</span>
+                    <button class="settings-apply" onclick="applySettings()">Apply</button>
+                    <button class="settings-apply" onclick="collapseAll()" style="background:#333;color:#aaa;">⊖ Collapse All</button>
+                    <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
+                    <div class="nav-page-group">
+                        <span class="settings-label">Page</span>
+                        <input type="number" id="gotoPage" min="1" value="1" inputmode="numeric">
+                        <button onclick="skipToPage()">Go</button>
+                    </div>
+                </div>
             </div>
-            <!-- API Keys -->
-            <div class="api-keys-header">
-                <span class="settings-label">API Keys</span>
-                <button class="api-keys-info-btn" onclick="openApiKeysInfo()" title="What are these keys? Which ones do I need?">?</button>
+
+            <!-- ── SECTION 2: Prices & Currency ── -->
+            <div class="set-section" id="sec-prices" data-sec="prices">
+                <button class="set-section-head" onclick="toggleSettingsSection('prices')">
+                    <span class="set-sec-caret">▶</span>
+                    <span class="set-sec-icon">💰</span>
+                    <span class="set-sec-title">Prices &amp; Currency</span>
+                    <span class="set-sec-hint" id="sec-prices-hint">TCGPlayer · USD</span>
+                </button>
+                <div class="set-section-body">
+                    <div class="price-source-row" style="padding-bottom:0;border-bottom:none;margin-bottom:0;">
+                        <span class="settings-label">Source</span>
+                        <button id="psrc-tcg" class="psrc-btn active"   onclick="setPriceSource('tcg')">💲 TCGPlayer (USD)</button>
+                        <button id="psrc-cm"  class="psrc-btn cm-btn"   onclick="setPriceSource('cardmarket')">€ Cardmarket (EUR)</button>
+                        <button class="psrc-help-btn" onclick="openPsrcInfo()" title="How price sources work">?</button>
+                        <span class="rate-badge" id="rate-badge"></span>
+                    </div>
+                </div>
             </div>
-            <div class="api-keys-row">
-                <div class="api-key-group">
-                    <span class="api-key-sublabel">
-                        Pokémon TCG API Key
-                        <span class="api-key-badge rec">Recommended</span>
-                        &nbsp;<a href="https://dev.pokemontcg.io" target="_blank">↗ free</a>
-                    </span>
-                    <input class="api-key-input" id="ptcg-key" type="password" placeholder="Paste API key (20× rate limit)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+
+            <!-- ── SECTION 3: API Keys ── -->
+            <div class="set-section" id="sec-keys" data-sec="keys">
+                <button class="set-section-head" onclick="toggleSettingsSection('keys')">
+                    <span class="set-sec-caret">▶</span>
+                    <span class="set-sec-icon">🔑</span>
+                    <span class="set-sec-title">API Keys</span>
+                    <span class="set-sec-hint" id="sec-keys-hint">0 configured</span>
+                </button>
+                <div class="set-section-body">
+                    <div class="api-keys-header" style="padding:0;">
+                        <span class="settings-label">Keys</span>
+                        <button class="api-keys-info-btn" onclick="openApiKeysInfo()" title="What are these keys? Which ones do I need?">?</button>
+                    </div>
+                    <div class="api-keys-row">
+                        <div class="api-key-group">
+                            <span class="api-key-sublabel">
+                                Pokémon TCG API Key
+                                <span class="api-key-badge rec">Recommended</span>
+                                &nbsp;<a href="https://dev.pokemontcg.io" target="_blank">↗ free</a>
+                            </span>
+                            <input class="api-key-input" id="ptcg-key" type="password" placeholder="Paste API key (20× rate limit)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                        </div>
+                        <div class="api-key-group">
+                            <span class="api-key-sublabel">
+                                Google Gemini API Key
+                                <span class="api-key-badge rec">Recommended</span>
+                                &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a>
+                            </span>
+                            <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                        </div>
+                        <div class="api-key-group">
+                            <span class="api-key-sublabel">
+                                OCR.Space API Key
+                                <span class="api-key-badge opt">Optional</span>
+                                &nbsp;<a href="https://ocr.space/ocrapi/freekey" target="_blank">↗ free</a>
+                            </span>
+                            <input class="api-key-input" id="ocrspace-key" type="password" placeholder="Fallback for card scan…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                        </div>
+                        <div class="api-key-group">
+                            <span class="api-key-sublabel">
+                                Open Exchange Rates App ID
+                                <span class="api-key-badge opt">Optional</span>
+                                &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a>
+                            </span>
+                            <input class="api-key-input" id="oxr-key" type="password" placeholder="App ID (Frankfurter used by default)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+                        </div>
+                        <div class="api-key-group" id="cm-key-group" style="display:none">
+                            <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
+                            <input class="api-key-input" id="cm-app-token" data-1p-ignore data-lpignore="true" data-form-type="other"    type="password" placeholder="App Token"    autocomplete="off">
+                            <span class="api-key-sublabel" style="margin-top:4px">App Secret</span>
+                            <input class="api-key-input" id="cm-app-secret" data-1p-ignore data-lpignore="true" data-form-type="other"   type="password" placeholder="App Secret"   autocomplete="off">
+                            <span class="api-key-sublabel" style="margin-top:4px">Access Token</span>
+                            <input class="api-key-input" id="cm-access-token" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Token" autocomplete="off">
+                            <span class="api-key-sublabel" style="margin-top:4px">Access Secret</span>
+                            <input class="api-key-input" id="cm-access-secret" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Secret" autocomplete="off">
+                        </div>
+                        <button class="api-keys-save" onclick="saveApiKeys()">💾 Save Keys</button>
+                    </div>
                 </div>
-                <div class="api-key-group">
-                    <span class="api-key-sublabel">
-                        Google Gemini API Key
-                        <span class="api-key-badge rec">Recommended</span>
-                        &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank">↗ free key</a>
-                    </span>
-                    <input class="api-key-input" id="gemini-key" type="password" placeholder="AIza… (powers card scan)" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
-                </div>
-                <div class="api-key-group">
-                    <span class="api-key-sublabel">
-                        OCR.Space API Key
-                        <span class="api-key-badge opt">Optional</span>
-                        &nbsp;<a href="https://ocr.space/ocrapi/freekey" target="_blank">↗ free</a>
-                    </span>
-                    <input class="api-key-input" id="ocrspace-key" type="password" placeholder="Fallback for card scan…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
-                </div>
-                <div class="api-key-group">
-                    <span class="api-key-sublabel">
-                        Open Exchange Rates App ID
-                        <span class="api-key-badge opt">Optional</span>
-                        &nbsp;<a href="https://openexchangerates.org/signup/free" target="_blank">↗ free</a>
-                    </span>
-                    <input class="api-key-input" id="oxr-key" type="password" placeholder="App ID (Frankfurter used by default)…" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
-                </div>
-                <div class="api-key-group" id="cm-key-group" style="display:none">
-                    <span class="api-key-sublabel">Cardmarket App Token &nbsp;<a href="https://www.cardmarket.com/en/Magic/Account/API" target="_blank">↗</a></span>
-                    <input class="api-key-input" id="cm-app-token" data-1p-ignore data-lpignore="true" data-form-type="other"    type="password" placeholder="App Token"    autocomplete="off">
-                    <span class="api-key-sublabel" style="margin-top:4px">App Secret</span>
-                    <input class="api-key-input" id="cm-app-secret" data-1p-ignore data-lpignore="true" data-form-type="other"   type="password" placeholder="App Secret"   autocomplete="off">
-                    <span class="api-key-sublabel" style="margin-top:4px">Access Token</span>
-                    <input class="api-key-input" id="cm-access-token" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Token" autocomplete="off">
-                    <span class="api-key-sublabel" style="margin-top:4px">Access Secret</span>
-                    <input class="api-key-input" id="cm-access-secret" data-1p-ignore data-lpignore="true" data-form-type="other" type="password" placeholder="Access Secret" autocomplete="off">
-                </div>
-                <button class="api-keys-save" onclick="saveApiKeys()">💾 Save Keys</button>
             </div>
-            <div class="settings-theme-row" style="display:flex;align-items:center;gap:10px;width:100%;padding-bottom:8px;border-bottom:1px solid #252525;margin-bottom:2px;">
-                <span class="settings-label" style="text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;">Theme</span>
-                <div class="theme-toggle" title="Toggle light/dark mode">
-                    <span class="theme-toggle-label theme-lbl-dark">🌙</span>
-                    <div class="theme-track" id="theme-track" onclick="toggleTheme()"></div>
-                    <span class="theme-toggle-label theme-lbl-light">☀️</span>
+
+            <!-- ── SECTION 4: Display ── -->
+            <div class="set-section" id="sec-display" data-sec="display">
+                <button class="set-section-head" onclick="toggleSettingsSection('display')">
+                    <span class="set-sec-caret">▶</span>
+                    <span class="set-sec-icon">🎨</span>
+                    <span class="set-sec-title">Display</span>
+                    <span class="set-sec-hint" id="sec-display-hint">Dark mode</span>
+                </button>
+                <div class="set-section-body">
+                    <span class="settings-label" style="text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;">Theme</span>
+                    <div class="theme-toggle" title="Toggle light/dark mode">
+                        <span class="theme-toggle-label theme-lbl-dark">🌙</span>
+                        <div class="theme-track" id="theme-track" onclick="toggleTheme()"></div>
+                        <span class="theme-toggle-label theme-lbl-light">☀️</span>
+                    </div>
+                    <span class="settings-label" style="margin-left:12px;text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;">TCG Buttons</span>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                        <input type="checkbox" id="tcg-btn-toggle" onchange="toggleTCGButtons(this.checked)"
+                               style="width:18px;height:18px;accent-color:#007bff;cursor:pointer;">
+                        <span class="settings-label" style="font-size:0.75em;text-transform:none;letter-spacing:0;">Show</span>
+                    </label>
+                    <span class="settings-label" style="margin-left:12px;text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;" title="Store both a front and back photo per card — useful for condition reference">Dual Photos</span>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;" title="Store both a front and back photo per card — useful for condition reference">
+                        <input type="checkbox" id="dual-photos-toggle" onchange="toggleDualPhotos(this.checked)"
+                               style="width:18px;height:18px;accent-color:#007bff;cursor:pointer;">
+                        <span class="settings-label" style="font-size:0.75em;text-transform:none;letter-spacing:0;">Front + Back</span>
+                    </label>
                 </div>
-                <span class="settings-label" style="margin-left:12px;text-transform:uppercase;font-size:0.68em;font-weight:bold;letter-spacing:0.07em;">TCG Buttons</span>
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-                    <input type="checkbox" id="tcg-btn-toggle" onchange="toggleTCGButtons(this.checked)"
-                           style="width:18px;height:18px;accent-color:#007bff;cursor:pointer;">
-                    <span class="settings-label" style="font-size:0.75em;text-transform:none;letter-spacing:0;">Show</span>
-                </label>
             </div>
-            <span class="settings-label">Total</span>
-            <input type="number" id="totalItems" value="1025" min="1" inputmode="numeric">
-            <span class="settings-label">Rows</span>
-            <input type="number" id="gridRows" value="4" min="1" inputmode="numeric">
-            <span class="settings-label">Slots</span>
-            <input type="number" id="gridCols" value="4" min="1" inputmode="numeric">
-            <span class="settings-label">Card Size</span>
-            <input type="range" id="cardSizeSlider" min="25" max="300" value="100" step="25"
-                   oninput="applyCardSize(this.value)"
-                   style="width:90px;height:22px;accent-color:#007bff;cursor:pointer;vertical-align:middle;">
-            <span class="settings-label" id="cardSizeLabel" style="min-width:32px;text-transform:none;">100%</span>
-            <button class="settings-apply" onclick="applySettings()">Apply</button>
-            <button class="settings-apply" onclick="collapseAll()" style="background:#333;color:#aaa;">⊖ Collapse All</button>
-            <button class="settings-apply" style="background:#333;color:#aaa;" onclick="expandAll()">⊕ Expand All</button>
-            <button class="settings-apply wiz-launch-btn" onclick="openSetupWizard()" title="Set up a new binder with a guided wizard">🧙 Setup Wizard</button>
-            <button class="settings-apply" id="repair-sets-btn" style="background:#1e2e1e;color:#4caf50;border:1px solid #2e4e2e;" onclick="repairSetNames()" title="Replace set codes (e.g. SWSH08, sv2a) with their full API names">🔧 Fix Set Names</button>
-            <button class="settings-apply" style="background:#2e1a1a;color:#e57373;border:1px solid #4e2a2a;" onclick="clearPokedex()" title="Permanently delete all entries and photos">🗑 Clear Pokédex</button>
-            <div class="nav-page-group">
-                <span class="settings-label">Page</span>
-                <input type="number" id="gotoPage" min="1" value="1" inputmode="numeric">
-                <button onclick="skipToPage()">Go</button>
+
+            <!-- ── SECTION 5: Tools ── -->
+            <div class="set-section" id="sec-tools" data-sec="tools">
+                <button class="set-section-head" onclick="toggleSettingsSection('tools')">
+                    <span class="set-sec-caret">▶</span>
+                    <span class="set-sec-icon">🛠</span>
+                    <span class="set-sec-title">Tools &amp; Maintenance</span>
+                    <span class="set-sec-hint">Wizard, update, repair</span>
+                </button>
+                <div class="set-section-body">
+                    <div class="set-tools-grid">
+                        <button class="settings-apply wiz-launch-btn" onclick="openSetupWizard()" title="Set up a new binder with a guided wizard">🧙 Setup Wizard</button>
+                        <button class="settings-apply" style="background:#1e2a3a;color:#64b5f6;border:1px solid #2a4a6a;" onclick="runMonthlyUpdate({fromSettings:true})" title="Check for new sets, refresh prices, and load missing art">🔄 Check for Updates</button>
+                        <button class="settings-apply" id="repair-sets-btn" style="background:#1e2e1e;color:#4caf50;border:1px solid #2e4e2e;" onclick="repairSetNames()" title="Replace set codes (e.g. SWSH08, sv2a) with their full API names">🔧 Fix Set Names</button>
+                        <button class="settings-apply" style="background:#2e1a1a;color:#e57373;border:1px solid #4e2a2a;" onclick="clearPokedex()" title="Permanently delete all entries and photos">🗑 Clear Pokédex</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2486,8 +2991,24 @@
         /* ── Set code → full name map ── */
         // Covers PTCG series codes, SWSH/SV shorthand, and "XXX en" locale suffixes
         const SET_CODE_MAP = {
-            // Mega Evolution
+            // ── Mega Evolution era (2025+) ──
+            // The new post-Scarlet-&-Violet generation uses "ME##" codes for
+            // main sets and "MEP###" for the Mega Evolution Black Star Promo
+            // series. pokemontcg.io serves these under lowercase IDs:
             'me':       'Mega Evolution',
+            'me1':      'Mega Evolution',          'me01':  'Mega Evolution',
+            'me2':      'Phantasmal Flames',       'me02':  'Phantasmal Flames',
+            'me2pt5':   'Ascended Heroes',         'me25':  'Ascended Heroes',  // ME2.5
+            'me3':      'Perfect Order',           'me03':  'Perfect Order',
+            'me4':      'Chaos Rising',            'me04':  'Chaos Rising',
+            'me5':      'Pitch Black',             'me05':  'Pitch Black',
+            'mep':      'Mega Evolution Black Star Promos',
+            // Also match the "XXX en" locale-suffix style some users type
+            'mev en':   'Mega Evolution',
+            'phf en':   'Phantasmal Flames',
+            'ash en':   'Ascended Heroes',
+            'pfo en':   'Perfect Order',
+            'chr en':   'Chaos Rising',
             // Scarlet & Violet
             'sv':       'Scarlet & Violet',
             'sv1':      'Scarlet & Violet',
@@ -2603,10 +3124,30 @@
         };
 
         /** Resolve a raw set field value to a proper API set name if it's a known code. */
+        /* In-memory API set override map, loaded from localStorage on init and
+           refreshed by the monthly update. Keys are lowercase API set IDs,
+           values are the official set name as served by pokemontcg.io. These
+           override the hardcoded SET_CODE_MAP above so the app picks up new
+           sets without needing a file update. */
+        let _apiSetMap = {};
+        try {
+            const raw = localStorage.getItem('apiSetMap');
+            if (raw) _apiSetMap = JSON.parse(raw) || {};
+        } catch(e) { _apiSetMap = {}; }
+
+        /* Known sets from the API (name → {total, series, releaseDate}). Merged
+           with the hardcoded list by getKnownSets() for autocomplete. */
+        let _apiKnownSets = {};
+        try {
+            const raw = localStorage.getItem('apiKnownSets');
+            if (raw) _apiKnownSets = JSON.parse(raw) || {};
+        } catch(e) { _apiKnownSets = {}; }
+
         function resolveSetName(raw) {
             if (!raw) return raw;
             const key = raw.trim().toLowerCase();
-            return SET_CODE_MAP[key] || raw;
+            // API-map wins over hardcoded (so newer data takes precedence)
+            return _apiSetMap[key] || SET_CODE_MAP[key] || raw;
         }
 
         /* ── Theme ── */
@@ -2618,6 +3159,7 @@
             const next = isLight ? 'dark' : 'light';
             localStorage.setItem('theme', next);
             applyTheme(next);
+            if (typeof refreshSectionHints === 'function') refreshSectionHints();
         }
         // Apply saved theme immediately (before render)
         applyTheme(localStorage.getItem('theme') || 'dark');
@@ -2634,6 +3176,15 @@
         }
         // Apply saved preference immediately (default: shown)
         applyTCGVisibility(localStorage.getItem('showTCGButtons') !== 'false');
+
+        /* ── Dual Photos init ──
+           Restore the checkbox state on load so the Display section reflects
+           the user's saved preference. The actual _dualPhotosEnabled flag
+           is read from localStorage in the photo-capture section above. */
+        (function initDualPhotosCheckbox() {
+            const cb = document.getElementById('dual-photos-toggle');
+            if (cb) cb.checked = localStorage.getItem('dualPhotos') === '1';
+        })();
 
         let config = JSON.parse(localStorage.getItem('appConfig')) || {
             total: 1025, rows: 4, cols: 4, bannerUrl: DEFAULT_BANNER
@@ -2715,12 +3266,30 @@
                 tx.objectStore(DATA_STORE).put(itemData, `item-${id}`);
             }).catch(() => {});
         }
-        function savePhoto(id, dataUrl) {
+        /* ── Photo storage ──
+           Storage scheme (no migration required, existing data stays put):
+             Key `id` (a number)         → FRONT photo (legacy, unchanged)
+             Key `back-${id}` (a string) → BACK photo (new, optional)
+           The back slot is only written when the user has "Dual Photos" enabled
+           in Settings and explicitly takes a back photo. Existing single-photo
+           collections work unchanged. */
+        function photoKey(id, side) {
+            return (side === 'back') ? `back-${id}` : Number(id);
+        }
+        function savePhoto(id, dataUrl, side) {
             return openDB().then(db => new Promise((res, rej) => {
                 const tx = db.transaction(PHOTO_STORE, 'readwrite');
-                tx.objectStore(PHOTO_STORE).put(dataUrl, id);
+                tx.objectStore(PHOTO_STORE).put(dataUrl, photoKey(id, side));
                 tx.oncomplete = res;
                 tx.onerror    = (e) => rej(e.target.error);
+            }));
+        }
+        function getPhoto(id, side) {
+            return openDB().then(db => new Promise((res) => {
+                const tx = db.transaction(PHOTO_STORE, 'readonly');
+                const req = tx.objectStore(PHOTO_STORE).get(photoKey(id, side));
+                req.onsuccess = () => res(req.result || null);
+                req.onerror   = () => res(null);
             }));
         }
         function getAllPhotos() {
@@ -2735,28 +3304,69 @@
                 req.onerror = (e) => rej(e.target.error);
             }));
         }
-        function deletePhotoFromDB(id) {
+        function deletePhotoFromDB(id, side) {
             return openDB().then(db => new Promise((res, rej) => {
                 const tx = db.transaction(PHOTO_STORE, 'readwrite');
-                tx.objectStore(PHOTO_STORE).delete(id);
+                tx.objectStore(PHOTO_STORE).delete(photoKey(id, side));
                 tx.oncomplete = res;
                 tx.onerror    = (e) => rej(e.target.error);
             }));
         }
+        /* Wipe BOTH sides for a given slot — used by clearCardEntry. */
+        function deleteAllPhotosFor(id) {
+            return openDB().then(db => new Promise((res) => {
+                const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                const store = tx.objectStore(PHOTO_STORE);
+                store.delete(Number(id));
+                store.delete(`back-${id}`);
+                tx.oncomplete = res;
+                tx.onerror    = res;
+            }));
+        }
 
-        /* ── Photo capture ── */
+        /* ── Photo capture ──
+           When dual-photos is enabled in Settings, the action sheet shows
+           a Front/Back switcher and `captureSide` determines where the
+           saved photo lands. When disabled, it's always front. */
         let captureTargetId = null;
+        let captureSide     = 'front';
+
+        /* Dual-photos feature state + toggle handler */
+        let _dualPhotosEnabled = localStorage.getItem('dualPhotos') === '1';
+        function toggleDualPhotos(enabled) {
+            _dualPhotosEnabled = !!enabled;
+            localStorage.setItem('dualPhotos', enabled ? '1' : '0');
+            // Re-render open detail modal so it picks up the side switcher
+            if (_currentDetailId) openCardDetail(_currentDetailId);
+        }
 
         function openCamera(id) {
             captureTargetId = id;
+            captureSide = 'front'; // reset each time
             // Show the action sheet so user can choose camera vs gallery
             const title = document.getElementById('cam-sheet-title');
             if (title) title.textContent = `Card #${id}`;
+            // Show the side switcher only when the feature is enabled
+            const sw = document.getElementById('cam-side-switch');
+            if (sw) {
+                sw.classList.toggle('hidden', !_dualPhotosEnabled);
+                // Reset to Front visually each time the sheet opens
+                sw.querySelectorAll('.photo-side-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.side === 'front');
+                });
+            }
             document.getElementById('cam-sheet-overlay').classList.add('open');
         }
 
         function closeCamSheet() {
             document.getElementById('cam-sheet-overlay').classList.remove('open');
+        }
+
+        function setCaptureSide(side) {
+            captureSide = side;
+            document.querySelectorAll('#cam-side-switch .photo-side-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.side === side);
+            });
         }
 
         function triggerCapture(mode) {
@@ -2771,31 +3381,32 @@
         async function handlePhotoCapture(event, mode) {
             const file = event.target.files[0];
             if (!file || captureTargetId === null) return;
+            const side = captureSide || 'front';
             try {
                 const dataUrl = await compressImage(file, 900, 0.78);
-                await savePhoto(captureTargetId, dataUrl);
-                setPhotoBtn(captureTargetId, true);
+                await savePhoto(captureTargetId, dataUrl, side);
+                setPhotoBtn(captureTargetId, true, side);
 
-                // Update tile photo
-                const tilePhoto = document.getElementById(`tphoto-${captureTargetId}`);
-                if (tilePhoto) { tilePhoto.src = dataUrl; tilePhoto.style.display = ''; tilePhoto.classList.add('ready'); }
-                // Refresh modal media if open
+                // Tile always shows the FRONT photo — only update it if that's
+                // the side we just changed.
+                if (side === 'front') {
+                    const tilePhoto = document.getElementById(`tphoto-${captureTargetId}`);
+                    if (tilePhoto) { tilePhoto.src = dataUrl; tilePhoto.style.display = ''; tilePhoto.classList.add('ready'); }
+                }
+                // Refresh the "has back" badge on the tile indicator
+                const ind = document.getElementById(`tind-ph-${captureTargetId}`);
+                if (ind) {
+                    ind.classList.add('has');
+                    if (side === 'back') ind.classList.add('has-back');
+                }
+
+                // Refresh modal media if open — only repaint the currently-visible side
                 if (_currentDetailId === captureTargetId) {
-                    const mediaEl = document.getElementById('cd-media');
-                    if (mediaEl) {
-                        let img = mediaEl.querySelector('.cd-media-img[alt="My photo"]');
-                        if (img) { img.src = dataUrl; }
-                        else {
-                            const newImg = document.createElement('img');
-                            newImg.className = 'cd-media-img';
-                            newImg.src = dataUrl;
-                            newImg.alt = 'My photo';
-                            newImg.onclick = () => window.open(dataUrl, '_blank');
-                            mediaEl.appendChild(newImg);
-                            const placeholder = mediaEl.querySelector('.cd-media-placeholder');
-                            if (placeholder) placeholder.remove();
-                        }
+                    if (_currentDetailSide === side || !_dualPhotosEnabled) {
+                        refreshDetailMediaForSide(side, dataUrl);
                     }
+                    // Update the switcher dots so "back now has a photo" shows up
+                    refreshDetailSideSwitcher();
                 }
 
                 const nameEl = document.getElementById(`name-${captureTargetId}`);
@@ -2803,34 +3414,82 @@
                 const snEl2  = document.getElementById(`setNumber-${captureTargetId}`);
                 const isBlank = !nameEl?.value.trim() && !setEl2?.value.trim() && !snEl2?.value.trim();
 
-                // Camera mode → always scan (that's the whole point)
-                // Gallery mode → scan only if entry is blank
-                if (mode === 'camera' || isBlank) {
+                // OCR only makes sense on the FRONT of a card (that's where the
+                // name and number are). Back photos skip OCR entirely.
+                if (side === 'front' && (mode === 'camera' || isBlank)) {
                     ocrTargetId = captureTargetId;
                     openOCR(dataUrl);
                 }
             } catch (err) { console.error('Photo save failed:', err); }
             event.target.value = '';
         }
-        function compressImage(file, maxPx, quality) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                const url = URL.createObjectURL(file);
-                img.onload = () => {
-                    URL.revokeObjectURL(url);
-                    let w = img.width, h = img.height;
-                    if (w > maxPx || h > maxPx) {
-                        if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
-                        else        { w = Math.round(w * maxPx / h); h = maxPx; }
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', quality));
-                };
-                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
-                img.src = url;
-            });
+        /* Auto-orient + compress a photo file.
+           Two layers of orientation handling happen here:
+             1. EXIF "orientation" tag — modern browsers apply this when
+                decoding into an <img>, but some Safari builds and older
+                Android versions did not. We use createImageBitmap with
+                `imageOrientation: 'from-image'` when available (which
+                guarantees EXIF is respected) and fall back to <img>.
+             2. Logical card orientation — a card is always taller than
+                wide. If the final decoded image is landscape we rotate
+                90° CW so the card displays portrait in the tile. Users
+                can flip direction themselves by rotating their phone,
+                but after this step photos always display upright. */
+        async function compressImage(file, maxPx, quality) {
+            // Step 1: decode with EXIF respected
+            let bitmap = null, img = null, srcW = 0, srcH = 0;
+            if (typeof createImageBitmap === 'function') {
+                try {
+                    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+                    srcW = bitmap.width; srcH = bitmap.height;
+                } catch(e) { bitmap = null; }
+            }
+            if (!bitmap) {
+                // Fallback: decode via <img>. Most browsers auto-apply EXIF here too.
+                img = await new Promise((res, rej) => {
+                    const el = new Image();
+                    const url = URL.createObjectURL(file);
+                    el.onload  = () => { URL.revokeObjectURL(url); res(el); };
+                    el.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Image load failed')); };
+                    el.src = url;
+                });
+                srcW = img.naturalWidth; srcH = img.naturalHeight;
+            }
+
+            // Step 2: decide if we need to rotate to portrait
+            const needsRotate = srcW > srcH;
+            // Effective dimensions after rotation (swap if rotated)
+            let effW = needsRotate ? srcH : srcW;
+            let effH = needsRotate ? srcW : srcH;
+
+            // Step 3: scale so the longest side is ≤ maxPx
+            let outW = effW, outH = effH;
+            if (effW > maxPx || effH > maxPx) {
+                if (effW >= effH) { outH = Math.round(effH * maxPx / effW); outW = maxPx; }
+                else              { outW = Math.round(effW * maxPx / effH); outH = maxPx; }
+            }
+
+            // Step 4: draw onto canvas, applying rotation if needed
+            const canvas = document.createElement('canvas');
+            canvas.width = outW; canvas.height = outH;
+            const ctx = canvas.getContext('2d');
+            const source = bitmap || img;
+            if (needsRotate) {
+                // Rotate 90° clockwise around the canvas center, so a landscape
+                // source ends up filling the portrait canvas correctly.
+                // Map source (w=srcW,h=srcH) → destination (w=outW,h=outH) after rotation.
+                ctx.save();
+                ctx.translate(outW / 2, outH / 2);
+                ctx.rotate(Math.PI / 2);
+                // After rotation the draw area swaps width/height:
+                ctx.drawImage(source, -outH / 2, -outW / 2, outH, outW);
+                ctx.restore();
+            } else {
+                ctx.drawImage(source, 0, 0, outW, outH);
+            }
+            if (bitmap) bitmap.close && bitmap.close();
+            // Canvas-based JPEG output has no EXIF, so orientation is baked in.
+            return canvas.toDataURL('image/jpeg', quality);
         }
         function setPhotoBtn(id, hasPhoto) {
             const btn    = document.getElementById(`photo-btn-${id}`);
@@ -3071,7 +3730,18 @@ function setNamesMatch(a, b) {
 
 // ── Set code → full name map (mirrors main page) ──
 const SET_CODE_MAP = {
+  // ── Mega Evolution era (2025+) ──
   'me':'Mega Evolution',
+  'me1':'Mega Evolution','me01':'Mega Evolution',
+  'me2':'Phantasmal Flames','me02':'Phantasmal Flames',
+  'me2pt5':'Ascended Heroes','me25':'Ascended Heroes',
+  'me3':'Perfect Order','me03':'Perfect Order',
+  'me4':'Chaos Rising','me04':'Chaos Rising',
+  'me5':'Pitch Black','me05':'Pitch Black',
+  'mep':'Mega Evolution Black Star Promos',
+  'mev en':'Mega Evolution','phf en':'Phantasmal Flames',
+  'ash en':'Ascended Heroes','pfo en':'Perfect Order','chr en':'Chaos Rising',
+  // Scarlet & Violet
   'sv':'Scarlet & Violet','sv1':'Scarlet & Violet',
   'sv2':'Paldea Evolved',
   'sv2a':'Scarlet & Violet\u2014151','mew en':'Scarlet & Violet\u2014151',
@@ -3442,6 +4112,66 @@ fetchAllArt();
             const open = bar.classList.toggle('open');
             btn.textContent = open ? '✕' : '⚙';
             btn.title       = open ? 'Close settings' : 'Settings';
+            // When opening, restore expanded sections from storage
+            // and refresh the hint labels (e.g. "2 configured" for API keys).
+            if (open) {
+                restoreSettingsSections();
+                refreshSectionHints();
+            }
+        }
+
+        /* Collapsible settings sections.
+           By default only the "Binder" section is open. User-opened sections
+           are remembered in localStorage under "settingsSectionsOpen" so the
+           next visit restores their preferences. */
+        function toggleSettingsSection(key) {
+            const sec = document.getElementById(`sec-${key}`);
+            if (!sec) return;
+            const open = sec.classList.toggle('open');
+            // Persist
+            try {
+                const raw = localStorage.getItem('settingsSectionsOpen');
+                const state = raw ? JSON.parse(raw) : {};
+                state[key] = open;
+                localStorage.setItem('settingsSectionsOpen', JSON.stringify(state));
+            } catch(e) { /* ignore */ }
+        }
+
+        function restoreSettingsSections() {
+            let state = { binder: true };
+            try {
+                const raw = localStorage.getItem('settingsSectionsOpen');
+                if (raw) state = { binder: true, ...JSON.parse(raw) };
+            } catch(e) {}
+            document.querySelectorAll('.set-section').forEach(sec => {
+                const key = sec.dataset.sec;
+                if (!key) return;
+                sec.classList.toggle('open', !!state[key]);
+            });
+        }
+
+        /* Refresh the one-line hint next to each section header to give
+           users a glanceable summary without opening the section. */
+        function refreshSectionHints() {
+            // Prices hint — reflect active source
+            const priceHint = document.getElementById('sec-prices-hint');
+            if (priceHint) {
+                priceHint.textContent = priceSource === 'cardmarket'
+                    ? 'Cardmarket · EUR'
+                    : 'TCGPlayer · USD';
+            }
+            // API keys hint — count configured
+            const keyHint = document.getElementById('sec-keys-hint');
+            if (keyHint) {
+                const keys = ['ptcg_api_key','gemini_api_key','ocrspace_api_key','oxr_app_id'];
+                const n = keys.filter(k => (localStorage.getItem(k) || '').trim()).length;
+                keyHint.textContent = `${n} configured`;
+            }
+            // Display hint — theme
+            const dispHint = document.getElementById('sec-display-hint');
+            if (dispHint) {
+                dispHint.textContent = document.body.classList.contains('light') ? 'Light mode' : 'Dark mode';
+            }
         }
         function applySettings() {
             config.total = Math.max(1, parseInt(document.getElementById('totalItems').value) || 1);
@@ -3665,12 +4395,50 @@ fetchAllArt();
             if (el && saved) el.textContent = saved;
         }
 
-        /* ── Delete photo ── */
+        /* ── Delete photo ──
+           When the detail modal is open and dual-photos is on, deletes only
+           the currently-displayed side. Otherwise deletes the front photo. */
         function deletePhoto(id) {
-            if (!confirm(`Delete the photo for entry #${id}?`)) return;
-            deletePhotoFromDB(id)
-                .then(() => setPhotoBtn(id, false))
+            const side = (_currentDetailId === id && _dualPhotosEnabled) ? _currentDetailSide : 'front';
+            const sideLabel = side === 'back' ? 'back photo' : 'photo';
+            if (!confirm(`Delete the ${sideLabel} for entry #${id}?`)) return;
+            deletePhotoFromDB(id, side)
+                .then(() => {
+                    // Clear local cached data URL on the media element
+                    const mediaEl = document.getElementById('cd-media');
+                    if (mediaEl) {
+                        if (side === 'back') mediaEl.dataset.backPhoto = '';
+                        else                 mediaEl.dataset.frontPhoto = '';
+                    }
+                    // If front was deleted, clear the tile photo too
+                    if (side === 'front') {
+                        const t = document.getElementById(`tphoto-${id}`);
+                        if (t) { t.src = ''; t.style.display = 'none'; t.classList.remove('ready'); }
+                    }
+                    // Repaint modal + button states
+                    if (_currentDetailId === id) renderDetailMedia(id);
+                    // Tile indicator: is there still a photo on EITHER side?
+                    refreshTilePhotoIndicator(id);
+                    refreshDeletePhotoButton();
+                })
                 .catch(err => console.error('Photo delete failed:', err));
+        }
+
+        /* Re-query the DB for which sides have photos and update the tile's
+           📸 indicator + its "has-back" superscript. */
+        async function refreshTilePhotoIndicator(id) {
+            let hasFront = false, hasBack = false;
+            try {
+                const [f, b] = await Promise.all([getPhoto(id, 'front'), getPhoto(id, 'back')]);
+                hasFront = !!f; hasBack = !!b;
+            } catch(e) {}
+            const ind = document.getElementById(`tind-ph-${id}`);
+            if (ind) {
+                ind.classList.toggle('has', hasFront || hasBack);
+                ind.classList.toggle('has-back', hasBack);
+            }
+            // Also reset the 📷 button state on the detail modal actions row
+            setPhotoBtn(id, hasFront || hasBack);
         }
 
         /* ── Wanted / PDF ── */
@@ -3833,6 +4601,339 @@ fetchAllArt();
             event.target.value = '';
         }
 
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══  Save-menu dropdown (split button on desktop)          ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+        function toggleSaveMenu(evt) {
+            if (evt) evt.stopPropagation();
+            const menu = document.getElementById('save-menu');
+            const btn  = document.getElementById('save-menu-btn');
+            if (!menu) return;
+            const open = menu.classList.toggle('open');
+            if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        function closeSaveMenu() {
+            const menu = document.getElementById('save-menu');
+            const btn  = document.getElementById('save-menu-btn');
+            if (menu) menu.classList.remove('open');
+            if (btn)  btn.setAttribute('aria-expanded', 'false');
+        }
+        // Click outside closes the menu
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('save-menu');
+            if (!menu || !menu.classList.contains('open')) return;
+            if (!e.target.closest('.save-menu-wrap')) closeSaveMenu();
+        });
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══  PDF export — visual binder pages for easy sharing     ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        // Cancel flag — set by cancelPDF(), checked between steps
+        let _pdfCancelled = false;
+        function cancelPDF() {
+            _pdfCancelled = true;
+            document.getElementById('pdfgen-status').textContent = 'Cancelling…';
+            // In error state the dialog is kept open so the user can read the
+            // message; clicking "Close" just dismisses it.
+            const cancelBtn = document.getElementById('pdfgen-cancel');
+            if (cancelBtn && cancelBtn.textContent === 'Close') {
+                showPdfProgress(false);
+                cancelBtn.textContent = 'Cancel';
+            }
+        }
+
+        function showPdfProgress(show) {
+            const overlay = document.getElementById('pdfgen-overlay');
+            overlay.classList.toggle('open', !!show);
+            if (!show) {
+                document.getElementById('pdfgen-bar').style.width = '0%';
+                document.getElementById('pdfgen-status').textContent = 'Preparing…';
+            }
+        }
+        function setPdfProgress(pct, label) {
+            document.getElementById('pdfgen-bar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+            if (label) document.getElementById('pdfgen-status').textContent = label;
+        }
+
+        /* Convert a remote image URL to a JPEG data URL via an off-screen canvas.
+           Returns null on failure (CORS block, 404, etc.) so the PDF can fall
+           back to a placeholder. pokemontcg.io serves CORS headers so the art
+           endpoint works; local IndexedDB photos are already data URIs so
+           they skip this path entirely. */
+        function urlToDataURL(url, timeoutMs) {
+            return new Promise((resolve) => {
+                if (!url) { resolve(null); return; }
+                // Already a data URI — use directly
+                if (url.startsWith('data:')) { resolve(url); return; }
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                let settled = false;
+                const done = (val) => { if (!settled) { settled = true; resolve(val); } };
+                const timer = setTimeout(() => done(null), timeoutMs || 8000);
+                img.onload = () => {
+                    clearTimeout(timer);
+                    try {
+                        const c = document.createElement('canvas');
+                        // Cap max dimension to keep PDF file size sane
+                        const MAX = 600;
+                        let { naturalWidth: w, naturalHeight: h } = img;
+                        if (!w || !h) { done(null); return; }
+                        if (w > MAX || h > MAX) {
+                            const s = MAX / Math.max(w, h);
+                            w = Math.round(w * s); h = Math.round(h * s);
+                        }
+                        c.width = w; c.height = h;
+                        c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        done(c.toDataURL('image/jpeg', 0.82));
+                    } catch(e) { done(null); }
+                };
+                img.onerror = () => { clearTimeout(timer); done(null); };
+                img.src = url;
+            });
+        }
+
+        /* Ensure every page's card art has been fetched. fetchArtForPage is
+           idempotent — already-fetched pages short-circuit — so we can safely
+           iterate all pages. */
+        async function ensureAllArtFetched(totalPages, onProgress) {
+            for (let pg = 1; pg <= totalPages; pg++) {
+                if (_pdfCancelled) return;
+                if (onProgress) onProgress(pg, totalPages);
+                try { await fetchArtForPage(pg); } catch(e) { /* soft-fail */ }
+            }
+        }
+
+        async function savePDF() {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                // Load jsPDF on demand (same CDN pattern as printWanted)
+                await new Promise((res, rej) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                    s.onload = res; s.onerror = rej;
+                    document.head.appendChild(s);
+                });
+            }
+
+            _pdfCancelled = false;
+            showPdfProgress(true);
+            setPdfProgress(2, 'Gathering data…');
+
+            try {
+                const pageSize  = config.rows * config.cols;
+                const totalPages = Math.ceil(config.total / pageSize);
+
+                // 1. Pre-fetch art for all pages (lazy-loading means most won't be in cache)
+                await ensureAllArtFetched(totalPages, (pg, total) => {
+                    setPdfProgress(2 + (pg / total) * 25, `Loading card art (${pg}/${total} pages)…`);
+                });
+                if (_pdfCancelled) { showPdfProgress(false); _pdfCancelled = false; return; }
+
+                // 2. Load all photos from IndexedDB
+                setPdfProgress(28, 'Loading photos…');
+                let photos = {};
+                try { photos = await getAllPhotos(); } catch(e) { /* non-fatal */ }
+
+                // 3. Build a map of slot id -> image data URI
+                //    Priority: user photo > card art > null (placeholder)
+                setPdfProgress(32, 'Preparing images…');
+                const imgMap = {};
+                // Total unique images we need to convert = (unique art urls) + (photo count)
+                const remotesToFetch = [];
+                for (let id = 1; id <= config.total; id++) {
+                    if (_pdfCancelled) { showPdfProgress(false); _pdfCancelled = false; return; }
+                    const photo = photos[id] || photos[String(id)];
+                    if (photo) {
+                        imgMap[id] = photo; // already a data URI
+                        continue;
+                    }
+                    const art = _artCache[id];
+                    if (art && (art.small || art.large)) {
+                        remotesToFetch.push({ id, url: art.small || art.large });
+                    }
+                }
+
+                // Convert remote art URLs → data URIs in small parallel batches
+                //  (fully-parallel can trip pokemontcg.io's CDN rate limits)
+                const BATCH = 6;
+                for (let i = 0; i < remotesToFetch.length; i += BATCH) {
+                    if (_pdfCancelled) { showPdfProgress(false); _pdfCancelled = false; return; }
+                    const slice = remotesToFetch.slice(i, i + BATCH);
+                    const results = await Promise.all(slice.map(x => urlToDataURL(x.url)));
+                    slice.forEach((x, idx) => { if (results[idx]) imgMap[x.id] = results[idx]; });
+                    setPdfProgress(
+                        32 + ((i + slice.length) / Math.max(1, remotesToFetch.length)) * 45,
+                        `Preparing images (${Math.min(i + slice.length, remotesToFetch.length)}/${remotesToFetch.length})…`
+                    );
+                }
+
+                if (_pdfCancelled) { showPdfProgress(false); _pdfCancelled = false; return; }
+                setPdfProgress(78, 'Building PDF pages…');
+
+                // 4. Build the PDF — landscape A4, one binder page per PDF page
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                const pageW = doc.internal.pageSize.getWidth();
+                const pageH = doc.internal.pageSize.getHeight();
+
+                // Layout math: leave a header band (14mm), footer band (6mm),
+                // and side margins (10mm). The remaining rectangle is split
+                // into config.rows × config.cols cells for the binder page.
+                const MARGIN_X  = 10;
+                const HEADER_H  = 14;
+                const FOOTER_H  = 6;
+                const availW    = pageW - MARGIN_X * 2;
+                const availH    = pageH - HEADER_H - FOOTER_H;
+                const cellGap   = 2;
+
+                // Per-cell dimensions (fit rows/cols into availW × availH)
+                const cellW = (availW - cellGap * (config.cols - 1)) / config.cols;
+                const cellH = (availH - cellGap * (config.rows - 1)) / config.rows;
+                // Each cell: image block (75%) + text block (25%) stacked vertically
+                const imgH   = cellH * 0.75;
+                const labelH = cellH - imgH - 1; // 1mm spacing between image and text
+
+                // Card images are 3:4 aspect — compute the inscribed rectangle
+                // so the image is centered in its cell's image region.
+                function fitInside(boxW, boxH, ratio) {
+                    // ratio = w/h of the image (3/4 for cards)
+                    let w = boxW, h = boxW / ratio;
+                    if (h > boxH) { h = boxH; w = boxH * ratio; }
+                    return { w, h, dx: (boxW - w) / 2, dy: (boxH - h) / 2 };
+                }
+
+                for (let pg = 1; pg <= totalPages; pg++) {
+                    if (_pdfCancelled) { showPdfProgress(false); _pdfCancelled = false; return; }
+                    if (pg > 1) doc.addPage();
+
+                    // Header
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(13);
+                    doc.setTextColor(30);
+                    doc.text('BinderDéx', MARGIN_X, 9);
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    doc.setTextColor(100);
+                    doc.text(`Page ${pg} of ${totalPages}`, pageW - MARGIN_X, 9, { align: 'right' });
+
+                    // Header separator line
+                    doc.setDrawColor(200);
+                    doc.setLineWidth(0.3);
+                    doc.line(MARGIN_X, 12, pageW - MARGIN_X, 12);
+
+                    // Cells
+                    const startSlot = (pg - 1) * pageSize + 1;
+                    for (let r = 0; r < config.rows; r++) {
+                        for (let c = 0; c < config.cols; c++) {
+                            const slotPos = r * config.cols + c;
+                            const id = startSlot + slotPos;
+                            if (id > config.total) continue;
+
+                            const x = MARGIN_X + c * (cellW + cellGap);
+                            const y = HEADER_H + r * (cellH + cellGap);
+
+                            // Cell background + border (subtle)
+                            doc.setFillColor(248, 248, 248);
+                            doc.setDrawColor(220);
+                            doc.setLineWidth(0.2);
+                            doc.roundedRect(x, y, cellW, cellH, 1.2, 1.2, 'FD');
+
+                            // Image area
+                            const imgX = x + 1;
+                            const imgY = y + 1;
+                            const imgBoxW = cellW - 2;
+                            const imgBoxH = imgH - 1;
+                            const dataUrl = imgMap[id];
+                            if (dataUrl) {
+                                try {
+                                    const fit = fitInside(imgBoxW, imgBoxH, 3 / 4);
+                                    doc.addImage(dataUrl, 'JPEG', imgX + fit.dx, imgY + fit.dy, fit.w, fit.h);
+                                } catch(e) { /* broken image — draw placeholder */ }
+                            } else {
+                                // Placeholder slot — slot number only
+                                doc.setFillColor(240);
+                                doc.rect(imgX, imgY, imgBoxW, imgBoxH, 'F');
+                                doc.setTextColor(180);
+                                doc.setFontSize(14);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text(`#${id}`, imgX + imgBoxW / 2, imgY + imgBoxH / 2 + 2, { align: 'center' });
+                            }
+
+                            // Slot number (top-left over image)
+                            doc.setFillColor(0, 0, 0);
+                            doc.setTextColor(255);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            const numW = doc.getTextWidth(`#${id}`) + 2;
+                            doc.roundedRect(imgX + 1, imgY + 1, numW, 4, 0.8, 0.8, 'F');
+                            doc.text(`#${id}`, imgX + 1 + numW / 2, imgY + 1 + 3, { align: 'center' });
+
+                            // Collected checkmark badge (top-right)
+                            const saved = _memoryCache[`item-${id}`];
+                            if (saved && saved.collected) {
+                                doc.setFillColor(67, 160, 71);
+                                doc.setTextColor(255);
+                                doc.circle(imgX + imgBoxW - 2.5, imgY + 2.5, 2, 'F');
+                                doc.setFontSize(7);
+                                doc.text('✓', imgX + imgBoxW - 2.5, imgY + 3.4, { align: 'center' });
+                            }
+
+                            // Label strip below image
+                            const labelX = x + 1;
+                            const labelY = y + imgH + 0.2;
+                            const labelW = cellW - 2;
+
+                            doc.setTextColor(30);
+                            doc.setFont('helvetica', 'bold');
+                            // Scale text to cell width — smaller cells need smaller fonts
+                            const nameFont = cellW < 30 ? 6 : (cellW < 45 ? 7 : 8);
+                            doc.setFontSize(nameFont);
+                            const nameStr = saved && saved.name ? String(saved.name) : 'Empty slot';
+                            doc.text(doc.splitTextToSize(nameStr, labelW)[0] || '', labelX, labelY + nameFont * 0.35);
+
+                            if (saved && (saved.set || saved.setNumber)) {
+                                doc.setTextColor(110);
+                                doc.setFont('helvetica', 'normal');
+                                const subFont = Math.max(5, nameFont - 2);
+                                doc.setFontSize(subFont);
+                                const setStr = [saved.set, saved.setNumber].filter(Boolean).join(' · ');
+                                const subY = labelY + nameFont * 0.35 + subFont * 0.5;
+                                // Only draw the sub if it fits vertically inside the label region
+                                if (subY < y + cellH - 0.5) {
+                                    doc.text(doc.splitTextToSize(setStr, labelW)[0] || '', labelX, subY);
+                                }
+                            }
+                        }
+                    }
+
+                    // Footer
+                    doc.setFontSize(7);
+                    doc.setTextColor(150);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Generated ${new Date().toLocaleDateString()}`, MARGIN_X, pageH - 2);
+                    doc.text('BinderDéx', pageW - MARGIN_X, pageH - 2, { align: 'right' });
+
+                    setPdfProgress(78 + (pg / totalPages) * 20, `Building page ${pg} of ${totalPages}…`);
+                    // Yield to browser so progress bar updates
+                    await new Promise(r => setTimeout(r, 0));
+                }
+
+                setPdfProgress(99, 'Saving…');
+                const dateStr = new Date().toISOString().slice(0, 10);
+                doc.save(`BinderDex_${dateStr}.pdf`);
+                setPdfProgress(100, 'Done!');
+                setTimeout(() => showPdfProgress(false), 400);
+
+            } catch(err) {
+                console.error('PDF generation error:', err);
+                document.getElementById('pdfgen-status').textContent = 'Error: ' + (err.message || 'PDF generation failed');
+                // Leave the dialog open so the user can see the error
+                const cancelBtn = document.getElementById('pdfgen-cancel');
+                if (cancelBtn) cancelBtn.textContent = 'Close';
+            }
+        }
+
         /* ── Collapsible pages ── */
         function togglePage(page) {
             const header = document.getElementById(`page-header-${page}`);
@@ -3872,8 +4973,103 @@ fetchAllArt();
         /* ── Card Detail Modal ── */
         let _currentDetailId = null;
 
-        function openCardDetail(id) {
+        /* Tracks which photo side (front/back) is currently displayed in the
+           open detail modal. Used by handlePhotoCapture to know whether to
+           repaint after a save. Always 'front' when dual-photos is disabled. */
+        let _currentDetailSide = 'front';
+
+        /* Paint the detail media area from the data cached on mediaEl.dataset
+           during openCardDetail. Runs on first open AND any time the user taps
+           the Front/Back switcher. */
+        function renderDetailMedia(id) {
+            const mediaEl = document.getElementById('cd-media');
+            if (!mediaEl) return;
+            const artData = _artCache[id];
+            const frontPhoto = mediaEl.dataset.frontPhoto || '';
+            const backPhoto  = mediaEl.dataset.backPhoto  || '';
+            const side = _currentDetailSide || 'front';
+            const photo = side === 'back' ? backPhoto : frontPhoto;
+
+            let html = '';
+            // Side switcher (only when dual is enabled)
+            if (_dualPhotosEnabled) {
+                const frontDot = frontPhoto ? '<span class="side-dot"></span>' : '<span class="side-dot empty"></span>';
+                const backDot  = backPhoto  ? '<span class="side-dot"></span>' : '<span class="side-dot empty"></span>';
+                html += `<div class="photo-side-switch" id="cd-side-switch">
+                    <button class="photo-side-btn ${side === 'front' ? 'active' : ''}" onclick="switchDetailSide('front')">Front ${frontDot}</button>
+                    <button class="photo-side-btn ${side === 'back'  ? 'active' : ''}" onclick="switchDetailSide('back')">Back ${backDot}</button>
+                </div>`;
+            }
+            // Art image (always front-of-card from the API)
+            if (artData && side === 'front') {
+                html += `<img class="cd-media-img" src="${artData.large || artData.small}" alt="Card art" onclick="window.open(this.src,'_blank')">`;
+            }
+            // User photo for the currently-selected side
+            if (photo) {
+                const altText = side === 'back' ? 'My photo (back)' : 'My photo';
+                html += `<img class="cd-media-img" src="${photo}" alt="${altText}" onclick="window.open(this.src,'_blank')">`;
+            }
+            // Placeholder if this side has nothing
+            if (!artData && !photo) {
+                const sideLabel = side === 'back' ? 'back photo' : 'card art or photo';
+                html += `<div class="cd-media-placeholder">No ${sideLabel} yet.<br>${side === 'back' ? 'Take a photo of the card back for condition reference!' : 'Fill in the details below, or take a photo!'}</div>`;
+            } else if (side === 'back' && !photo) {
+                // Art exists but no back photo — still show helpful hint for back side
+                html += `<div class="cd-media-placeholder">No back photo yet.<br>Take a photo of the card back for condition reference!</div>`;
+            }
+            // Action buttons — Fetch Art only meaningful on Front
+            html += `<div style="width:100%;display:flex;justify-content:center;gap:8px;margin-top:4px;">`;
+            if (side === 'front') {
+                html += `<button class="cd-art-refresh-btn" id="cd-art-refresh-${id}" onclick="refreshCardArt(${id})">🔄 ${artData ? 'Refresh Art' : 'Fetch Art'}</button>`;
+            } else {
+                html += `<button class="cd-art-refresh-btn" onclick="openCamera(${id});setTimeout(()=>setCaptureSide('back'),100)">📷 Add Back Photo</button>`;
+            }
+            html += `</div>`;
+            mediaEl.innerHTML = html;
+        }
+
+        /* Called when the user taps Front or Back in the detail modal. */
+        function switchDetailSide(side) {
+            _currentDetailSide = side;
+            if (_currentDetailId) renderDetailMedia(_currentDetailId);
+            // Update the delete-photo button so it targets the currently-shown side
+            refreshDeletePhotoButton();
+        }
+
+        /* Called after a new photo is captured while the detail is open, so
+           the currently-displayed side repaints without a full modal reopen. */
+        function refreshDetailMediaForSide(side, newDataUrl) {
+            const mediaEl = document.getElementById('cd-media');
+            if (!mediaEl) return;
+            if (side === 'front') mediaEl.dataset.frontPhoto = newDataUrl;
+            else                  mediaEl.dataset.backPhoto  = newDataUrl;
+            renderDetailMedia(_currentDetailId);
+        }
+
+        /* Re-render just the dots on the switcher (e.g. after adding a back
+           photo, the back dot should light up). */
+        function refreshDetailSideSwitcher() {
+            // Simplest: just re-render the whole thing
+            if (_currentDetailId) renderDetailMedia(_currentDetailId);
+        }
+
+        /* Show/hide the trash button based on whether the currently-selected
+           side actually has a photo. */
+        function refreshDeletePhotoButton() {
+            const id = _currentDetailId;
+            if (!id) return;
+            const delBtn = document.getElementById(`del-photo-btn-${id}`);
+            if (!delBtn) return;
+            const mediaEl = document.getElementById('cd-media');
+            const side = _currentDetailSide || 'front';
+            const hasPhoto = !!(mediaEl && (side === 'back' ? mediaEl.dataset.backPhoto : mediaEl.dataset.frontPhoto));
+            delBtn.style.display = hasPhoto ? '' : 'none';
+            delBtn.title = hasPhoto ? `Delete ${side} photo` : 'Delete photo';
+        }
+
+        async function openCardDetail(id) {
             _currentDetailId = id;
+            _currentDetailSide = 'front';
             const saved = _memoryCache[`item-${id}`] || { name:'', set:'', setNumber:'', value:0, collected:false, fullArt:false, holo:false, revHolo:false, wanted:true };
             const pageSize = config.rows * config.cols;
             const page     = Math.floor((id - 1) / pageSize) + 1;
@@ -3887,22 +5083,24 @@ fetchAllArt();
 
             // Media area
             const mediaEl = document.getElementById('cd-media');
-            let mediaHtml = '';
-            const artData = _artCache[id];
-            if (artData) {
-                mediaHtml += `<img class="cd-media-img" src="${artData.large || artData.small}" alt="Card art" onclick="window.open(this.src,'_blank')">`;
+            // Look up both sides so we can build the switcher with accurate dots.
+            // Front is read from the tile image (fast) OR the DB as fallback;
+            // back is always DB-only since there's no tile element for it.
+            const frontFromTile = document.getElementById(`tphoto-${id}`);
+            let frontPhoto = (frontFromTile && frontFromTile.src && frontFromTile.style.display !== 'none') ? frontFromTile.src : null;
+            if (!frontPhoto) {
+                // Fallback: maybe the tile hasn't rendered the photo yet
+                try { frontPhoto = await getPhoto(id, 'front'); } catch(e) {}
             }
-            const photoImg = document.getElementById(`tphoto-${id}`);
-            if (photoImg && photoImg.src && photoImg.style.display !== 'none') {
-                mediaHtml += `<img class="cd-media-img" src="${photoImg.src}" alt="My photo" onclick="window.open(this.src,'_blank')">`;
+            let backPhoto = null;
+            if (_dualPhotosEnabled) {
+                try { backPhoto = await getPhoto(id, 'back'); } catch(e) {}
             }
-            if (!mediaHtml) {
-                mediaHtml = `<div class="cd-media-placeholder">No card art or photo yet.<br>Fill in the details below, or take a photo!</div>`;
-            }
-            mediaHtml += `<div style="width:100%;display:flex;justify-content:center;gap:8px;margin-top:4px;">
-                <button class="cd-art-refresh-btn" id="cd-art-refresh-${id}" onclick="refreshCardArt(${id})">🔄 ${artData ? 'Refresh Art' : 'Fetch Art'}</button>
-            </div>`;
-            mediaEl.innerHTML = mediaHtml;
+            // Stash on the element so refresh helpers can re-read without DB hits
+            mediaEl.dataset.frontPhoto = frontPhoto || '';
+            mediaEl.dataset.backPhoto  = backPhoto  || '';
+
+            renderDetailMedia(id);
 
             // Art picker area (populated by refreshCardArt)
             document.getElementById('cd-art-picker').innerHTML = '';
@@ -3954,8 +5152,9 @@ fetchAllArt();
                     <label class="checkbox-label"><input type="checkbox" id="cbRevHolo-${id}" ${saved.revHolo ? 'checked' : ''} onchange="saveData(${id})"> Rev-Holo</label>
                 </div>`;
 
-            // Actions
-            const hasPhoto = photoImg && photoImg.src && photoImg.style.display !== 'none';
+            // Actions — determine if either side has a photo for the delete button
+            const mediaEl2 = document.getElementById('cd-media');
+            const hasPhoto = !!(mediaEl2 && (mediaEl2.dataset.frontPhoto || mediaEl2.dataset.backPhoto));
             document.getElementById('cd-actions').innerHTML = `
                 <button class="price-btn" id="price-btn-${id}" onclick="fetchPrice(${id})" title="Fetch price">${getPriceBtnIcon()}</button>
                 <button class="tcg-btn" onclick="searchTCGForItem(${id})" title="Search TCGPlayer">TCG</button>
@@ -3989,13 +5188,14 @@ fetchAllArt();
             delete _validCache[id];
             if (typeof _validTimers !== 'undefined') clearTimeout(_validTimers[id]);
 
-            // 2. Wipe the DB record + photo
+            // 2. Wipe the DB record + BOTH photo sides (dual-photos feature)
             try {
                 const db = await openDB();
                 await new Promise(res => {
                     const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
                     tx.objectStore(DATA_STORE).delete(`item-${id}`);
-                    tx.objectStore(PHOTO_STORE).delete(id);
+                    tx.objectStore(PHOTO_STORE).delete(Number(id));    // front
+                    tx.objectStore(PHOTO_STORE).delete(`back-${id}`);  // back
                     tx.oncomplete = () => res();
                     tx.onerror    = () => res();
                 });
@@ -4309,11 +5509,13 @@ fetchAllArt();
             { name: "McDonald's Collection 2012",    total: 12  }, // mcd12
             { name: "McDonald's Collection 2011",    total: 12  }, // mcd11
             // Mega Evolution Series (2025-2026)
+            { name: 'Pitch Black',               total: 90  }, // ME5, Jul 2026 (expected — small set)
             { name: 'Chaos Rising',              total: 88  }, // ME4, Apr 2026 – confirmed 88 base
             { name: 'Perfect Order',             total: 88  }, // ME3, Mar 2026
             { name: 'Ascended Heroes',           total: 217 }, // ME2.5, Jan 2026
             { name: 'Phantasmal Flames',         total: 94  }, // ME2, Nov 2025
             { name: 'Mega Evolution',            total: 132 }, // ME1, Sep 2025
+            { name: 'Mega Evolution Black Star Promos', total: 80 }, // MEP, ongoing since 2025 — grows over time
             // Scarlet & Violet Series (2023-2025)
             { name: 'Destined Rivals',           total: 182 }, // SV10, May 2025
             { name: 'Journey Together',          total: 159 }, // SV9, Mar 2025
@@ -4502,13 +5704,32 @@ fetchAllArt();
         /* ── Set Autocomplete ── */
         const _setAC = {}; // per-row state: { activeIdx }
 
+        /* Returns the merged known-sets list for autocomplete: hardcoded
+           POKEMON_SETS as a base, then overlaid with anything the API told
+           us about. API entries override hardcoded where names match (case-
+           insensitive + accent-insensitive). */
+        function getKnownSets() {
+            const seen = new Set();
+            const out = [];
+            // Start with API data (it's the newest), then add hardcoded gaps
+            for (const [nameKey, info] of Object.entries(_apiKnownSets)) {
+                const name = info.name || nameKey;
+                out.push({ name, total: info.total || 0, series: info.series || '', releaseDate: info.releaseDate || '' });
+                seen.add(normalizeStr(name));
+            }
+            for (const s of POKEMON_SETS) {
+                if (!seen.has(normalizeStr(s.name))) out.push(s);
+            }
+            return out;
+        }
+
         function onSetInput(id) {
             saveData(id);
             const val = (document.getElementById(`set-${id}`)?.value || '').trim();
             const dd  = document.getElementById(`set-dd-${id}`);
             if (!dd) return;
             if (!val) { dd.classList.remove('open'); dd.innerHTML = ''; return; }
-            const matches = POKEMON_SETS.filter(s => normalizeStr(s.name).includes(normalizeStr(val))).slice(0, 10);
+            const matches = getKnownSets().filter(s => normalizeStr(s.name).includes(normalizeStr(val))).slice(0, 10);
             if (!matches.length) { dd.classList.remove('open'); dd.innerHTML = ''; return; }
             _setAC[id] = { activeIdx: -1, matches };
             dd.innerHTML = matches.map((s, idx) =>
@@ -4709,10 +5930,21 @@ fetchAllArt();
             runBulkPriceUpdate();
         }
 
-        async function runBulkPriceUpdate() {
+        /* runBulkPriceUpdate now accepts an options object for use both
+           as a standalone action and as a stage in the monthly update.
+           - onProgress({done, total, updated, failed, valueChange})
+           - signal: an object with a `cancelled` boolean (polled between batches)
+           - silent: if true, skip the value-display progress and final alert
+           Returns {updated, failed, before, after, valueChange} */
+        async function runBulkPriceUpdate(opts) {
+            opts = opts || {};
+            if (_bulkPriceRunning && !opts.allowConcurrent) {
+                return { updated: 0, failed: 0, before: 0, after: 0, valueChange: 0 };
+            }
             _bulkPriceRunning = true;
             const valDisplay = document.getElementById('total-value-amt');
-            const originalText = valDisplay.textContent;
+            const originalText = valDisplay ? valDisplay.textContent : '';
+            const valueBefore = getTotalCollectionValue();
 
             const eligible = [];
             for (let i = 1; i <= config.total; i++) {
@@ -4724,6 +5956,9 @@ fetchAllArt();
             const BATCH = 3;
 
             for (let start = 0; start < eligible.length; start += BATCH) {
+                // Cooperative cancel check
+                if (opts.signal && opts.signal.cancelled) break;
+
                 const batch = eligible.slice(start, start + BATCH);
                 await Promise.allSettled(batch.map(async (id) => {
                     try {
@@ -4782,8 +6017,14 @@ fetchAllArt();
                     done++;
                 }));
 
-                // Update progress in the value display
-                valDisplay.textContent = `${done}/${eligible.length}…`;
+                // Update progress in the value display (unless silent — monthly
+                // update has its own progress UI)
+                if (!opts.silent && valDisplay) {
+                    valDisplay.textContent = `${done}/${eligible.length}…`;
+                }
+                if (opts.onProgress) {
+                    try { opts.onProgress({ done, total: eligible.length, updated, failed }); } catch(e) {}
+                }
                 await new Promise(r => setTimeout(r, 500));
             }
 
@@ -4792,9 +6033,319 @@ fetchAllArt();
             _bulkPriceRunning = false;
 
             const total = getTotalCollectionValue();
-            valDisplay.textContent = getCurrencySymbol() + total.toFixed(2);
+            const valueChange = total - valueBefore;
+            if (valDisplay && !opts.silent) {
+                valDisplay.textContent = getCurrencySymbol() + total.toFixed(2);
+            }
 
-            alert(`Bulk Price Update Complete\n\n✓ ${updated} prices updated\n✕ ${failed} failed or no price found\n\nTotal collection value: ${getCurrencySymbol()}${total.toFixed(2)}`);
+            if (!opts.silent) {
+                alert(`Bulk Price Update Complete\n\n✓ ${updated} prices updated\n✕ ${failed} failed or no price found\n\nTotal collection value: ${getCurrencySymbol()}${total.toFixed(2)}`);
+            }
+
+            return { updated, failed, before: valueBefore, after: total, valueChange };
+        }
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══    Monthly Update: sets + prices + art, unified        ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        // Module-level flag: allows the cancel button to signal the in-flight update
+        let _updateRunning = false;
+        let _updateSignal = null; // { cancelled: bool }
+
+        const MS_PER_DAY = 24 * 60 * 60 * 1000;
+        const UPDATE_INTERVAL_MS = 30 * MS_PER_DAY;
+
+        /* Check whether the user is due for an update. Called on init.
+           Shows the non-blocking banner if yes.
+           Respects a "never" preference saved by the user. */
+        function checkForMonthlyUpdate() {
+            try {
+                if (localStorage.getItem('updateCheckDisabled') === '1') return;
+                const last = parseInt(localStorage.getItem('lastUpdateCheck') || '0');
+                if (!last || (Date.now() - last) >= UPDATE_INTERVAL_MS) {
+                    // Defer slightly so first paint isn't blocked and the
+                    // wizard (for new users) takes precedence.
+                    const delay = last ? 1200 : 4000;
+                    setTimeout(() => {
+                        // Don't pop the banner if the wizard is open
+                        if (document.getElementById('wizard-overlay')?.classList.contains('open')) return;
+                        showUpdateBanner();
+                    }, delay);
+                }
+            } catch(e) { /* ignore storage errors */ }
+        }
+
+        function showUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            const body   = document.getElementById('ub-body');
+            if (!banner) return;
+            // Tailor the message based on whether they've ever updated before
+            const last = parseInt(localStorage.getItem('lastUpdateCheck') || '0');
+            if (last) {
+                const days = Math.floor((Date.now() - last) / MS_PER_DAY);
+                body.innerHTML = `It's been <strong>${days} days</strong> since the last update. Running one now will pull any new sets from the Pokémon TCG API, refresh current card prices, and fill in missing card art.`;
+            } else {
+                body.innerHTML = `Keep your collection fresh! An update pulls any new sets from the Pokémon TCG API, refreshes current card prices, and fills in missing card art. Takes about 1 minute for most collections.`;
+            }
+            banner.classList.add('open');
+        }
+
+        function dismissUpdateBanner(mode) {
+            const banner = document.getElementById('update-banner');
+            if (banner) banner.classList.remove('open');
+            if (mode === 'never') {
+                localStorage.setItem('updateCheckDisabled', '1');
+            } else if (mode === 'later') {
+                // Snooze for ~3 days so the banner doesn't pop on every reload
+                const snoozeUntil = Date.now() - UPDATE_INTERVAL_MS + (3 * MS_PER_DAY);
+                localStorage.setItem('lastUpdateCheck', String(snoozeUntil));
+            }
+        }
+
+        /* Stage-1 helper: fetch the full sets list from the PTCG API,
+           diff it against our local _apiSetMap, and persist the merged
+           state. Returns {newSets: [...], totalKnown: N}. */
+        async function refreshSetsFromAPI(signal) {
+            const r = await ptcgFetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate&pageSize=500&select=id,name,series,total,printedTotal,releaseDate');
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            if (signal && signal.cancelled) return { newSets: [], totalKnown: 0 };
+            const j = await r.json();
+            const sets = j.data || [];
+
+            // Build both derived maps. Keys in _apiSetMap are lowercase set IDs,
+            // keys in _apiKnownSets are normalized names for dedup vs hardcoded.
+            const newSetMap = {};
+            const newKnownSets = {};
+            const newSets = [];
+            for (const s of sets) {
+                if (!s.id || !s.name) continue;
+                const key = s.id.toLowerCase();
+                newSetMap[key] = s.name;
+                newKnownSets[normalizeStr(s.name)] = {
+                    name: s.name,
+                    total: s.total || s.printedTotal || 0,
+                    series: s.series || '',
+                    releaseDate: s.releaseDate || '',
+                };
+                // Detect "new" ones vs our previous snapshot
+                if (!_apiSetMap[key] && !SET_CODE_MAP[key]) {
+                    newSets.push({ id: s.id, name: s.name, releaseDate: s.releaseDate });
+                }
+            }
+
+            // Merge and persist
+            _apiSetMap = newSetMap;
+            _apiKnownSets = newKnownSets;
+            try {
+                localStorage.setItem('apiSetMap',    JSON.stringify(_apiSetMap));
+                localStorage.setItem('apiKnownSets', JSON.stringify(_apiKnownSets));
+            } catch(e) { /* quota? non-fatal */ }
+
+            return { newSets, totalKnown: sets.length };
+        }
+
+        /* UI helpers for the 3-stage progress panel */
+        function setUpdateStage(stage, state, status) {
+            const el = document.getElementById(`stage-${stage}`);
+            if (!el) return;
+            el.classList.remove('active', 'done', 'skipped');
+            if (state) el.classList.add(state);
+            const icon = document.getElementById(`stage-${stage}-icon`);
+            if (icon) {
+                icon.textContent = state === 'done' ? '✓'
+                                 : state === 'active' ? '⟳'
+                                 : state === 'skipped' ? '—'
+                                 : stage === 'sets' ? '📋'
+                                 : stage === 'prices' ? '💲'
+                                 : '🎨';
+            }
+            const st = document.getElementById(`stage-${stage}-status`);
+            if (st && status != null) st.textContent = status;
+        }
+        function setUpdateOverall(pct, line) {
+            const bar = document.getElementById('update-overall-bar');
+            if (bar) bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+            const s = document.getElementById('update-status-line');
+            if (s && line != null) s.textContent = line;
+        }
+        function showUpdateProgress(show) {
+            const ov = document.getElementById('update-overlay');
+            if (ov) ov.classList.toggle('open', !!show);
+        }
+
+        function cancelMonthlyUpdate() {
+            if (!_updateSignal) {
+                // Already finished — just close
+                closeMonthlyUpdate();
+                return;
+            }
+            _updateSignal.cancelled = true;
+            const line = document.getElementById('update-status-line');
+            if (line) line.textContent = 'Cancelling…';
+        }
+
+        function closeMonthlyUpdate() {
+            showUpdateProgress(false);
+            // Reset panel state for next run
+            document.getElementById('update-summary').classList.remove('show');
+            document.getElementById('update-summary').innerHTML = '';
+            document.getElementById('update-close-btn').style.display = 'none';
+            document.getElementById('update-cancel-btn').style.display = '';
+            document.getElementById('update-cancel-btn').textContent = 'Cancel';
+            ['sets','prices','art'].forEach(s => setUpdateStage(s, null, 'Waiting…'));
+            setUpdateOverall(0, 'Starting…');
+        }
+
+        /* Orchestrates all 3 stages with a single progress UI.
+           Called by the banner, the Settings button, or the init check.
+           Options:
+             - fromBanner: bool — close the banner when starting
+             - fromSettings: bool — came from the Settings button (skip 30-day check)
+        */
+        async function runMonthlyUpdate(opts) {
+            opts = opts || {};
+            if (_updateRunning) {
+                // Already in progress — just re-open the panel
+                showUpdateProgress(true);
+                return;
+            }
+            if (opts.fromBanner) dismissUpdateBanner();
+
+            _updateRunning = true;
+            _updateSignal = { cancelled: false };
+
+            // Reset UI
+            closeMonthlyUpdate();              // clears stages/summary
+            showUpdateProgress(true);
+            document.getElementById('update-cancel-btn').style.display = '';
+            document.getElementById('update-close-btn').style.display  = 'none';
+
+            const summary = { newSets: [], totalSets: 0, pricesUpdated: 0, pricesFailed: 0, valueChange: 0, artPagesRefreshed: 0 };
+            const startTime = Date.now();
+
+            try {
+                // ──────── STAGE 1: Sets ────────
+                setUpdateStage('sets', 'active', 'Contacting Pokémon TCG API…');
+                setUpdateOverall(2, 'Checking for new sets…');
+                try {
+                    const res = await refreshSetsFromAPI(_updateSignal);
+                    summary.newSets   = res.newSets;
+                    summary.totalSets = res.totalKnown;
+                    const msg = res.newSets.length
+                        ? `Found ${res.newSets.length} new set${res.newSets.length !== 1 ? 's' : ''} (${res.totalKnown} total)`
+                        : `Up to date — ${res.totalKnown} sets known`;
+                    setUpdateStage('sets', 'done', msg);
+                } catch(err) {
+                    setUpdateStage('sets', 'skipped', 'Offline or API error — skipped');
+                }
+                if (_updateSignal.cancelled) throw new Error('cancelled');
+                setUpdateOverall(10, 'Refreshing card prices…');
+
+                // ──────── STAGE 2: Prices ────────
+                // Count eligible so we can show a useful status even if empty
+                let priceEligible = 0;
+                for (let i = 1; i <= config.total; i++) {
+                    const s = _memoryCache[`item-${i}`];
+                    if (s && s.name && s.name.trim()) priceEligible++;
+                }
+                if (priceEligible === 0) {
+                    setUpdateStage('prices', 'skipped', 'No cards with names yet — skipped');
+                    setUpdateOverall(50, 'Skipping price refresh (no cards entered)…');
+                } else {
+                    setUpdateStage('prices', 'active', `0 / ${priceEligible}`);
+                    const priceResult = await runBulkPriceUpdate({
+                        silent: true,
+                        signal: _updateSignal,
+                        allowConcurrent: false,
+                        onProgress: ({ done, total, updated, failed }) => {
+                            setUpdateStage('prices', 'active', `${done} / ${total} · ✓ ${updated} · ✕ ${failed}`);
+                            // Prices are the longest stage — take 80% of the bar
+                            const pct = 10 + (done / total) * 75;
+                            setUpdateOverall(pct, `Refreshing prices: ${done} of ${total}…`);
+                        },
+                    });
+                    summary.pricesUpdated = priceResult.updated;
+                    summary.pricesFailed  = priceResult.failed;
+                    summary.valueChange   = priceResult.valueChange;
+                    setUpdateStage('prices', 'done', `✓ ${priceResult.updated} updated · ✕ ${priceResult.failed} failed`);
+                }
+                if (_updateSignal.cancelled) throw new Error('cancelled');
+                setUpdateOverall(88, 'Loading missing card art…');
+
+                // ──────── STAGE 3: Art ────────
+                const pageSize = Math.max(1, config.rows * config.cols);
+                const totalPages = Math.ceil(config.total / pageSize);
+                setUpdateStage('art', 'active', `0 / ${totalPages} pages`);
+                let pagesDone = 0;
+                for (let pg = 1; pg <= totalPages; pg++) {
+                    if (_updateSignal.cancelled) throw new Error('cancelled');
+                    try { await fetchArtForPage(pg); } catch(e) { /* soft-fail */ }
+                    pagesDone++;
+                    setUpdateStage('art', 'active', `${pagesDone} / ${totalPages} pages`);
+                    const pct = 88 + (pagesDone / totalPages) * 11;
+                    setUpdateOverall(pct, `Loading card art: page ${pagesDone} of ${totalPages}…`);
+                }
+                summary.artPagesRefreshed = pagesDone;
+                setUpdateStage('art', 'done', `${pagesDone} page${pagesDone !== 1 ? 's' : ''} refreshed`);
+
+                // ──────── Done ────────
+                setUpdateOverall(100, 'Complete!');
+                localStorage.setItem('lastUpdateCheck', String(Date.now()));
+                // Ensure value display reflects any price changes
+                updateTotalValue();
+                touchLastUpdated();
+                showUpdateSummary(summary);
+
+            } catch(err) {
+                if (err && err.message === 'cancelled') {
+                    setUpdateOverall(0, 'Cancelled. Any work completed so far has been saved.');
+                    // Mark any still-active stage as skipped for visual clarity
+                    ['sets','prices','art'].forEach(s => {
+                        const el = document.getElementById(`stage-${s}`);
+                        if (el && el.classList.contains('active')) setUpdateStage(s, 'skipped', 'Cancelled');
+                    });
+                } else {
+                    console.error('Monthly update error:', err);
+                    setUpdateOverall(0, `Error: ${err.message || 'update failed'}`);
+                }
+                // Show the Close button so user can dismiss the panel
+                document.getElementById('update-cancel-btn').style.display = 'none';
+                document.getElementById('update-close-btn').style.display  = '';
+                document.getElementById('update-close-btn').textContent    = 'Close';
+            } finally {
+                _updateRunning = false;
+                _updateSignal = null;
+            }
+        }
+
+        function showUpdateSummary(s) {
+            const summary = document.getElementById('update-summary');
+            if (!summary) return;
+            const lines = [];
+            lines.push(`<strong>✓ Update complete</strong>`);
+            const bits = [];
+            bits.push(`<strong>${s.newSets.length}</strong> new set${s.newSets.length !== 1 ? 's' : ''} found`);
+            bits.push(`<strong>${s.pricesUpdated}</strong> price${s.pricesUpdated !== 1 ? 's' : ''} refreshed`);
+            if (s.pricesFailed) bits.push(`<strong>${s.pricesFailed}</strong> failed`);
+            bits.push(`<strong>${s.artPagesRefreshed}</strong> page${s.artPagesRefreshed !== 1 ? 's' : ''} of art loaded`);
+            lines.push(bits.join(' · '));
+            if (Math.abs(s.valueChange) > 0.01) {
+                const sym = getCurrencySymbol();
+                const sign = s.valueChange >= 0 ? '+' : '−';
+                lines.push(`Total value change: <strong>${sign}${sym}${Math.abs(s.valueChange).toFixed(2)}</strong>`);
+            }
+            if (s.newSets.length) {
+                const preview = s.newSets.slice(0, 5).map(x => x.name).join(', ');
+                const more    = s.newSets.length > 5 ? ` (+${s.newSets.length - 5} more)` : '';
+                lines.push(`<div class="us-new-sets">New sets: ${escapeHtml(preview)}${more}</div>`);
+            }
+            summary.innerHTML = lines.join('<br>');
+            summary.classList.add('show');
+            // Swap Cancel → Done
+            document.getElementById('update-cancel-btn').style.display = 'none';
+            document.getElementById('update-close-btn').style.display  = '';
+            document.getElementById('update-close-btn').textContent    = '✓ Done';
         }
 
         /* ── Price Source & Currency ── */
@@ -4825,6 +6376,7 @@ fetchAllArt();
             });
             updateTotalValue();
             if (source === 'cardmarket') maybeRefreshOXR();
+            if (typeof refreshSectionHints === 'function') refreshSectionHints();
         }
 
         function applyPriceSourceUI() {
@@ -4920,6 +6472,7 @@ fetchAllArt();
             const btn = document.querySelector('.api-keys-save');
             if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = '💾 Save Keys', 2000); }
             maybeRefreshOXR();
+            if (typeof refreshSectionHints === 'function') refreshSectionHints();
         }
 
         function loadApiKeyInputs() {
@@ -7194,6 +8747,13 @@ fetchAllArt();
                     // Existing v18 users: mark setup complete silently so the wizard
                     // never auto-pops on them. They can still open it from Settings.
                     localStorage.setItem('setupComplete', '1');
+                }
+
+                // Fire the 30-day update check for users who already did setup and
+                // have some data. New users get skipped — they can update once they
+                // actually have cards to refresh.
+                if (setupDone || hasExistingData) {
+                    checkForMonthlyUpdate();
                 }
             } catch (e) { /* storage disabled — ignore */ }
         })();

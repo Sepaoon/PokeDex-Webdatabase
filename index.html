@@ -4441,14 +4441,178 @@ fetchAllArt();
             setPhotoBtn(id, hasFront || hasBack);
         }
 
-        /* ── Wanted / PDF ── */
-        function printWanted() {
-            const wanted = [];
+        /* ── Wanted / PDF ──
+           "Wanted" = anything the user still needs to collect, divided into
+           two buckets:
+             1. ENTERED but not collected — slots where the user filled in
+                a name but hasn't checked Collected yet (the original behavior).
+             2. EMPTY slots — slots with no data, where binderMeta tells us
+                what SHOULD be there. For a Kanto Pokédex slot 1 should hold
+                Bulbasaur; for a Mega Evolution master set slot 1 should
+                hold "Bulbasaur" (or whatever the API has at #1 of that set).
+
+           binderMeta is written by the Setup Wizard (see wizBuildMeta).
+           If the user never ran the wizard, binderMeta is null and we
+           fall back to the original "entered-but-not-collected" behavior. */
+
+        // In-memory cache to avoid re-fetching the species/set list each time
+        const _wantedCache = {};
+
+        async function getExpectedSlots(meta) {
+            if (!meta) return null;
+            const cacheKey = JSON.stringify({ t: meta.binderType, d: meta.dexKey, s: meta.setId, p: meta.pokemon });
+            if (_wantedCache[cacheKey]) return _wantedCache[cacheKey];
+
+            // Try persistent cache (survives page reload, only invalidated when
+            // the meta changes or on a forced update).
+            try {
+                const stored = localStorage.getItem('wantedSlotsCache');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.key === cacheKey && Array.isArray(parsed.slots)) {
+                        _wantedCache[cacheKey] = parsed.slots;
+                        return parsed.slots;
+                    }
+                }
+            } catch(e) { /* ignore */ }
+
+            let slots = null;
+
+            try {
+                if (meta.binderType === 'pokedex' && meta.dexKey) {
+                    const info = REGIONAL_DEX[meta.dexKey];
+                    if (!info) return null;
+                    if (!info.api) {
+                        // National dex — paginated species list
+                        const r = await fetch(`https://pokeapi.co/api/v2/pokemon-species?limit=${meta.total || 1025}`);
+                        const j = await r.json();
+                        slots = (j.results || []).map((p, i) => ({
+                            slot: i + 1,
+                            name: prettifyPokeName(p.name),
+                            set: '',
+                            number: '',
+                            kind: 'species',
+                        }));
+                    } else {
+                        const r = await fetch(`https://pokeapi.co/api/v2/pokedex/${info.api}`);
+                        const j = await r.json();
+                        slots = (j.pokemon_entries || [])
+                            .sort((a, b) => a.entry_number - b.entry_number)
+                            .map((e, i) => ({
+                                slot: i + 1,
+                                name: prettifyPokeName(e.pokemon_species.name),
+                                set: '',
+                                number: '',
+                                kind: 'species',
+                            }));
+                    }
+                } else if (meta.binderType === 'masterSet' && meta.masterKind === 'set' && meta.setId) {
+                    // All cards in the named set, sorted by number
+                    let all = [];
+                    let page = 1;
+                    while (true) {
+                        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent('set.id:' + meta.setId)}&pageSize=250&page=${page}&orderBy=number&select=name,number,set`;
+                        const r = await ptcgFetch(url);
+                        if (!r.ok) break;
+                        const j = await r.json();
+                        const batch = j.data || [];
+                        all = all.concat(batch);
+                        if (batch.length < 250) break;
+                        page++;
+                        if (page > 8) break; // safety
+                    }
+                    all.sort((a, b) => {
+                        const na = parseInt(a.number, 10), nb = parseInt(b.number, 10);
+                        if (isNaN(na) && isNaN(nb)) return (a.number || '').localeCompare(b.number || '');
+                        if (isNaN(na)) return 1;
+                        if (isNaN(nb)) return -1;
+                        return na - nb;
+                    });
+                    slots = all.map((c, i) => ({
+                        slot: i + 1,
+                        name: c.name || '',
+                        set: (c.set && c.set.name) || meta.setName || '',
+                        number: c.number ? `${c.number}/${(c.set && (c.set.printedTotal || c.set.total)) || ''}` : '',
+                        kind: 'card',
+                    }));
+                } else if (meta.binderType === 'masterSet' && meta.masterKind === 'pokemon' && meta.pokemon) {
+                    // Every printed card of this Pokémon
+                    const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent('name:"' + meta.pokemon + '*"')}&pageSize=250&orderBy=set.releaseDate,number&select=name,set,number`;
+                    const r = await ptcgFetch(url);
+                    if (r.ok) {
+                        const j = await r.json();
+                        slots = (j.data || []).map((c, i) => ({
+                            slot: i + 1,
+                            name: c.name || meta.pokemon,
+                            set: (c.set && c.set.name) || '',
+                            number: c.number ? `${c.number}/${(c.set && (c.set.printedTotal || c.set.total)) || ''}` : '',
+                            kind: 'card',
+                        }));
+                    }
+                }
+            } catch(e) {
+                console.warn('getExpectedSlots fetch failed:', e);
+                return null;
+            }
+
+            if (slots) {
+                _wantedCache[cacheKey] = slots;
+                try { localStorage.setItem('wantedSlotsCache', JSON.stringify({ key: cacheKey, slots })); }
+                catch(e) { /* quota? ignore */ }
+            }
+            return slots;
+        }
+
+        async function printWanted() {
+            // Read binder meta — null if the user never ran the wizard
+            let meta = null;
+            try { meta = JSON.parse(localStorage.getItem('binderMeta') || 'null'); } catch(e) {}
+
+            // Bucket 1: ENTERED but not collected (existing behavior)
+            const entered = [];
             for (let i = 1; i <= config.total; i++) {
                 const saved = _memoryCache[`item-${i}`];
-                if (saved && !saved.collected) wanted.push({ id: i, ...saved });
+                if (saved && saved.name && saved.name.trim() && !saved.collected) {
+                    entered.push({ id: i, ...saved, kind: 'entered' });
+                }
             }
-            if (!wanted.length) { alert('No entries marked as Wanted.'); return; }
+
+            // Bucket 2: EMPTY slots that should contain something per binderMeta
+            let emptySlots = [];
+            if (meta) {
+                // Show a quick "fetching list" toast on the wanted button
+                const wantedBtn = document.querySelector('.btn-print');
+                const origText = wantedBtn ? wantedBtn.textContent : '';
+                if (wantedBtn) wantedBtn.textContent = '🖨 Loading…';
+                const expected = await getExpectedSlots(meta);
+                if (wantedBtn) wantedBtn.textContent = origText;
+
+                if (expected && expected.length) {
+                    for (let i = 1; i <= config.total; i++) {
+                        const saved = _memoryCache[`item-${i}`];
+                        const isEmpty = !saved || !saved.name || !saved.name.trim();
+                        if (!isEmpty) continue;
+                        const exp = expected[i - 1];
+                        if (!exp) continue;
+                        emptySlots.push({
+                            id: i,
+                            name: exp.name,
+                            set: exp.set || '',
+                            setNumber: exp.number || '',
+                            value: 0,
+                            kind: 'empty',
+                        });
+                    }
+                }
+            }
+
+            const wanted = entered.concat(emptySlots);
+            if (!wanted.length) {
+                alert(meta
+                    ? 'Nothing to mark as wanted — every slot is either collected or already filled in.'
+                    : 'No entries marked as Wanted.\n\nTip: Run the Setup Wizard to define what binder type you\'re working on, and the Wanted list will include empty slots showing what each one should contain.');
+                return;
+            }
 
             // Dynamically load jsPDF + autoTable then generate
             function doGenerate() {
@@ -4464,11 +4628,18 @@ fetchAllArt();
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(16);
                 doc.setTextColor(255, 255, 255);
-                doc.text('PokeDexCheck', 14, 13);
+                doc.text('BinderDéx', 14, 13);
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9);
                 doc.setTextColor(160, 160, 160);
-                doc.text('Wanted List', 14, 19);
+                // Subtitle reflects the binder type if known
+                let subtitle = 'Wanted List';
+                if (meta) {
+                    if (meta.binderType === 'pokedex') subtitle = `Wanted List · ${meta.dexLabel || 'Pokédex'}`;
+                    else if (meta.binderType === 'masterSet' && meta.masterKind === 'set') subtitle = `Wanted List · ${meta.setName || 'Master Set'}`;
+                    else if (meta.binderType === 'masterSet' && meta.masterKind === 'pokemon') subtitle = `Wanted List · ${meta.pokemon || 'Master Set'}`;
+                }
+                doc.text(subtitle, 14, 19);
 
                 // Date top-right
                 doc.setFontSize(8);
@@ -4477,17 +4648,18 @@ fetchAllArt();
                 doc.text(`${wanted.length} item${wanted.length !== 1 ? 's' : ''}`, pageW - 14, 19, { align: 'right' });
 
                 // ── Summary stats ──
-                const totalValue = wanted.reduce((s, c) => s + (parseFloat(c.value) || 0), 0);
-                const fullArtCount = wanted.filter(c => c.fullArt).length;
+                const totalValue = entered.reduce((s, c) => s + (parseFloat(c.value) || 0), 0);
+                const fullArtCount = entered.filter(c => c.fullArt).length;
 
                 doc.setFillColor(245, 245, 245);
                 doc.rect(0, 22, pageW, 14, 'F');
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(8);
                 doc.setTextColor(80, 80, 80);
-                doc.text(`TOTAL ITEMS: ${wanted.length}`, 14, 30);
-                doc.text(`FULL ART: ${fullArtCount}`, 70, 30);
-                doc.text(`EST. VALUE: $${totalValue.toFixed(2)}`, 110, 30);
+                doc.text(`ENTERED: ${entered.length}`, 14, 30);
+                doc.text(`EMPTY SLOTS: ${emptySlots.length}`, 55, 30);
+                doc.text(`FULL ART: ${fullArtCount}`, 105, 30);
+                doc.text(`EST. VALUE: $${totalValue.toFixed(2)}`, 140, 30);
 
                 // ── Table ──
                 const tableRows = wanted.map(c => {
@@ -4495,53 +4667,73 @@ fetchAllArt();
                     const pos    = (c.id - 1) % pageSize;
                     const rowNum = Math.floor(pos / config.cols) + 1;
                     const colNum = (pos % config.cols) + 1;
+                    const status = c.kind === 'empty' ? '◯ Empty' : '◐ Have';
                     return [
                         String(c.id),
+                        status,
                         c.name || '—',
-                        c.set || '—',
-                        c.setNumber || '—',
-                        c.value ? `$${parseFloat(c.value).toFixed(2)}` : '—',
-                        `Pg ${pg}  R${rowNum} S${colNum}`,
-                        c.fullArt ? '✓' : ''
+                        c.set || '',
+                        c.setNumber || '',
+                        `P${pg} R${rowNum} C${colNum}`,
                     ];
                 });
 
                 doc.autoTable({
                     startY: 38,
-                    head: [['#', 'Name', 'Set', 'Set #', 'Value', 'Location', 'FA']],
+                    head: [['#', 'Status', 'Name', 'Set', 'Card #', 'Location']],
                     body: tableRows,
+                    theme: 'grid',
                     styles: {
-                        font: 'helvetica', fontSize: 9, cellPadding: 3,
-                        textColor: [30, 30, 30], lineColor: [220, 220, 220], lineWidth: 0.2
+                        font: 'helvetica',
+                        fontSize: 8,
+                        cellPadding: 2,
+                        textColor: [40, 40, 40],
+                        lineColor: [220, 220, 220],
                     },
                     headStyles: {
-                        fillColor: [30, 30, 30], textColor: [255, 255, 255],
-                        fontStyle: 'bold', fontSize: 8, halign: 'left'
+                        fillColor: [40, 40, 40],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        fontSize: 8,
                     },
-                    alternateRowStyles: { fillColor: [250, 250, 250] },
                     columnStyles: {
-                        0: { cellWidth: 12, halign: 'center' },
-                        4: { cellWidth: 22, halign: 'right' },
-                        5: { cellWidth: 30 },
-                        6: { cellWidth: 10, halign: 'center' }
+                        0: { cellWidth: 13, halign: 'center' },
+                        1: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
+                        2: { cellWidth: 'auto' },
+                        3: { cellWidth: 35 },
+                        4: { cellWidth: 25, halign: 'center' },
+                        5: { cellWidth: 25, halign: 'center', fontStyle: 'bold', textColor: [120, 120, 120] },
+                    },
+                    didParseCell: (data) => {
+                        if (data.section !== 'body') return;
+                        const row = wanted[data.row.index];
+                        if (!row) return;
+                        // Visually de-emphasize EMPTY rows so the user can scan
+                        // for cards they "have but need to collect" first.
+                        if (row.kind === 'empty') {
+                            data.cell.styles.textColor = [110, 110, 110];
+                            data.cell.styles.fontStyle = 'italic';
+                            if (data.column.index === 1) {
+                                data.cell.styles.textColor = [180, 100, 50];
+                            }
+                        } else if (data.column.index === 1) {
+                            data.cell.styles.textColor = [50, 130, 80];
+                        }
                     },
                     margin: { left: 14, right: 14 },
-                    didDrawPage: (data) => {
+                    didDrawPage: () => {
                         // Footer on each page
-                        const pCount = doc.internal.getNumberOfPages();
-                        const pNum   = data.pageNumber;
                         doc.setFontSize(7);
-                        doc.setTextColor(180, 180, 180);
-                        doc.text(`PokeDexCheck — Wanted List`, 14, doc.internal.pageSize.getHeight() - 6);
-                        doc.text(`Page ${pNum} of ${pCount}`, pageW - 14, doc.internal.pageSize.getHeight() - 6, { align: 'right' });
-                    }
+                        doc.setTextColor(150, 150, 150);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`BinderDéx — Wanted List`, 14, doc.internal.pageSize.getHeight() - 6);
+                    },
                 });
 
-                doc.save(`PokeDexCheck_Wanted_${new Date().toISOString().slice(0,10)}.pdf`);
+                doc.save(`BinderDex_Wanted_${new Date().toISOString().slice(0,10)}.pdf`);
             }
 
-            // Load libs if not already present
-            if (window.jspdf && window.jspdf.jsPDF) {
+            if (window.jspdf) {
                 doGenerate();
             } else {
                 const s1 = document.createElement('script');

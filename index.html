@@ -339,6 +339,269 @@
         body.light #pdfgen-cancel { background: #c0d8ee; color: #445; }
 
         /* ═══════════════════════════════════════════════════════════ */
+        /* ══     Binder Library: side panel with quick-switch       ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+        /* Triggered by the 📚 navbar button. Slides in from the right
+           on desktop, full-screen on mobile. Lists every saved binder
+           with a tap-to-switch + ⋮ for rename/duplicate/delete (rename
+           and friends land in Pass 2; tap-to-switch is Pass 1). */
+
+        #binders-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 220;
+            justify-content: flex-end;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #binders-overlay.open { display: flex; }
+        #binders-panel {
+            background: #1a1a1a; width: 100%; max-width: 440px;
+            height: 100%; display: flex; flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+            animation: bp-slide-in 0.22s ease-out;
+        }
+        @keyframes bp-slide-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .bp-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 18px; border-bottom: 1px solid #2a2a2a;
+            background: #151515;
+        }
+        .bp-header h3 {
+            margin: 0; font-size: 1.05em; color: #fff; font-weight: 800;
+            flex: 1; min-width: 0;
+        }
+        .bp-header .bp-count {
+            font-size: 0.7em; color: #888; font-weight: 400;
+            margin-top: 2px;
+        }
+        .bp-close {
+            background: none; border: 1px solid #333; border-radius: 8px;
+            color: #888; font-size: 1.2em; cursor: pointer;
+            width: 36px; height: 36px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bp-close:active { color: #fff; border-color: #555; }
+
+        .bp-body {
+            flex: 1; overflow-y: auto; padding: 12px 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Binder card */
+        .bp-card {
+            display: flex; gap: 12px; padding: 12px;
+            border: 1px solid #2a2a2a; border-radius: 10px;
+            background: #1e1e1e; margin-bottom: 10px;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .bp-card:hover, .bp-card:active { background: #252525; border-color: #3a3a3a; }
+        .bp-card.active {
+            border-color: #2a4a6a; background: #1a2a3a;
+        }
+        .bp-card.active::before {
+            content: '✓ Current';
+            position: absolute; top: -8px; right: 10px;
+            padding: 2px 7px; border-radius: 10px;
+            background: #007bff; color: #fff;
+            font-size: 0.6em; font-weight: 800;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+
+        .bp-card-thumb {
+            width: 90px; height: 60px; border-radius: 6px;
+            background: #2a2a2a; flex-shrink: 0;
+            object-fit: cover; display: block;
+            border: 1px solid #333;
+        }
+        .bp-card-thumb-fallback {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8em; color: #555;
+        }
+        .bp-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .bp-card-name {
+            font-size: 0.95em; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bp-card-type {
+            font-size: 0.72em; color: #64b5f6;
+            font-weight: 600;
+        }
+        .bp-card-stats {
+            font-size: 0.72em; color: #888;
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .bp-card-stats .bp-stat-num { color: #aaa; font-weight: 700; }
+        .bp-card-date {
+            font-size: 0.66em; color: #666; margin-top: 1px;
+        }
+
+        /* + New binder big button */
+        .bp-new-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 14px;
+            border: 2px dashed #2a4a6a; border-radius: 10px;
+            background: rgba(0,123,255,0.05); color: #64b5f6;
+            font-size: 0.95em; font-weight: 700; cursor: pointer;
+            min-height: 56px; -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .bp-new-btn:active, .bp-new-btn:hover {
+            background: rgba(0,123,255,0.12); border-color: #3a5a7a;
+        }
+
+        /* Empty state */
+        .bp-empty {
+            text-align: center; padding: 40px 20px; color: #666;
+            font-size: 0.88em; line-height: 1.55;
+        }
+
+        /* ⋮ menu button on each binder card (Pass 2) */
+        .bp-card-menu {
+            position: absolute; top: 8px; right: 8px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(0,0,0,0.4); color: #ccc;
+            border: none; cursor: pointer; font-size: 1em;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s;
+            z-index: 2;
+        }
+        .bp-card-menu:active, .bp-card-menu:hover { background: rgba(0,0,0,0.7); color: #fff; }
+        body.light .bp-card-menu { background: rgba(255,255,255,0.6); color: #445; }
+        body.light .bp-card-menu:active, body.light .bp-card-menu:hover { background: rgba(255,255,255,0.9); color: #1a1a1a; }
+        /* When the active "✓ Current" badge is shown, push the menu button left */
+        .bp-card.active .bp-card-menu { right: 84px; }
+        /* The fly-out menu */
+        .bp-card-menu-pop {
+            display: none;
+            position: absolute; top: 40px; right: 8px;
+            min-width: 160px; padding: 4px;
+            background: #1e1e1e; border: 1px solid #333; border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 5; overflow: hidden;
+        }
+        .bp-card-menu-pop.open { display: block; }
+        .bp-card-menu-pop button {
+            display: block; width: 100%; padding: 9px 12px;
+            background: none; border: none; color: #ddd;
+            font-size: 13px; text-align: left; cursor: pointer;
+            min-height: 38px; -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s; border-radius: 4px;
+        }
+        .bp-card-menu-pop button:hover { background: #2a2a2a; }
+        .bp-card-menu-pop button.danger { color: #e57373; }
+        .bp-card-menu-pop button.danger:hover { background: #3a1a1a; }
+        body.light .bp-card-menu-pop { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light .bp-card-menu-pop button { color: #334; }
+        body.light .bp-card-menu-pop button:hover { background: #bcd4f0; }
+        body.light .bp-card-menu-pop button.danger { color: #c62828; }
+        body.light .bp-card-menu-pop button.danger:hover { background: #fbe9e9; }
+
+        /* Filter search bar — appears above cards when 5+ binders */
+        .bp-search {
+            margin: 0 0 10px;
+            padding: 9px 12px; border-radius: 7px;
+            background: #151515; border: 1px solid #2a2a2a;
+            color: #ddd; font-size: 14px; width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        .bp-search:focus { outline: none; border-color: #3a5a7a; }
+        body.light .bp-search { background: #cde2f2; border-color: #b8cfe0; color: #334; }
+
+        /* Rename modal */
+        #rename-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 425;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        #rename-overlay.open { display: flex; }
+        #rename-panel {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 22px; width: 100%; max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            animation: wiz-slide-in 0.22s ease-out;
+        }
+        #rename-panel h3 { margin: 0 0 8px; font-size: 1.05em; color: #fff; font-weight: 800; }
+        #rename-panel p { margin: 0 0 12px; font-size: 0.85em; color: #aaa; }
+        #rename-input {
+            width: 100%; padding: 10px 12px; border-radius: 7px;
+            border: 1px solid #3a3a3a; background: #252525; color: #fff;
+            font-size: 16px; margin-bottom: 14px;
+            box-sizing: border-box;
+        }
+        #rename-input:focus { outline: none; border-color: #007bff; }
+        body.light #rename-panel { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light #rename-panel h3 { color: #1a1a1a; }
+        body.light #rename-panel p { color: #334; }
+        body.light #rename-input { background: #c8dcf0; border-color: #a8c0d8; color: #1a1a1a; }
+        body.light #rename-input:focus { border-color: #1a73e8; }
+
+        /* Light-mode overrides */
+        body.light #binders-panel { background: #d8ecf8; }
+        body.light .bp-header { background: #cde2f2; border-bottom-color: #b8cfe0; }
+        body.light .bp-header h3 { color: #1a1a1a; }
+        body.light .bp-header .bp-count { color: #5a7a99; }
+        body.light .bp-close { border-color: #a8c0d8; color: #5a7a99; }
+        body.light .bp-card { background: #c8dcf0; border-color: #a8c0d8; }
+        body.light .bp-card:hover, body.light .bp-card:active { background: #bcd4f0; border-color: #8aaac5; }
+        body.light .bp-card.active { background: #aeccee; border-color: #1a73e8; }
+        body.light .bp-card.active::before { background: #1a73e8; }
+        body.light .bp-card-thumb { background: #b8cfe0; border-color: #a8c0d8; }
+        body.light .bp-card-name { color: #1a1a1a; }
+        body.light .bp-card-type { color: #1558b0; }
+        body.light .bp-card-stats { color: #5a7a99; }
+        body.light .bp-card-stats .bp-stat-num { color: #334; }
+        body.light .bp-card-date { color: #7a9ab5; }
+        body.light .bp-new-btn { background: rgba(26,115,232,0.06); border-color: #8aaac5; color: #1558b0; }
+        body.light .bp-new-btn:active, body.light .bp-new-btn:hover { background: rgba(26,115,232,0.12); }
+        body.light .bp-empty { color: #7a9ab5; }
+
+        /* Switch-with-backup-prompt overlay */
+        #switch-prompt-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 410;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        #switch-prompt-overlay.open { display: flex; }
+        #switch-prompt {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 22px; width: 100%; max-width: 440px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            animation: wiz-slide-in 0.22s ease-out;
+        }
+        #switch-prompt h3 {
+            margin: 0 0 8px; font-size: 1.05em; color: #fff; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #switch-prompt p {
+            margin: 0 0 14px; font-size: 0.85em; color: #bbb; line-height: 1.55;
+        }
+        #switch-prompt p strong { color: #fff; }
+        .sp-actions {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .sp-btn {
+            flex: 1; padding: 10px 14px; border-radius: 7px; border: none;
+            font-size: 13px; font-weight: bold; cursor: pointer;
+            min-height: 44px; min-width: 110px;
+            -webkit-tap-highlight-color: transparent;
+            transition: filter 0.15s;
+        }
+        .sp-btn:active { filter: brightness(0.85); }
+        .sp-btn-primary { background: #007bff; color: #fff; }
+        .sp-btn-secondary { background: #2e7d32; color: #fff; }
+        .sp-btn-cancel { background: #333; color: #bbb; flex: 0 1 auto; }
+        body.light #switch-prompt { background: #d8ecf8; border-color: #b8cfe0; }
+        body.light #switch-prompt h3 { color: #1a1a1a; }
+        body.light #switch-prompt p { color: #334; }
+        body.light #switch-prompt p strong { color: #1a1a1a; }
+        body.light .sp-btn-cancel { background: #c0d8ee; color: #445; }
+
+        /* ═══════════════════════════════════════════════════════════ */
         /* ══           Monthly Update: banner + progress            ══ */
         /* ═══════════════════════════════════════════════════════════ */
 
@@ -2194,6 +2457,46 @@
         </div>
     </div>
 
+    <!-- Binder Library Panel -->
+    <div id="binders-overlay" onclick="if(event.target===this)closeBindersPanel()">
+        <div id="binders-panel" role="dialog" aria-labelledby="bp-title">
+            <div class="bp-header">
+                <div style="flex:1;min-width:0;">
+                    <h3 id="bp-title">📚 My Binders</h3>
+                    <div class="bp-count" id="bp-count">0 binders</div>
+                </div>
+                <button class="bp-close" onclick="closeBindersPanel()" aria-label="Close">✕</button>
+            </div>
+            <div class="bp-body" id="bp-body"><!-- filled by renderBindersPanel() --></div>
+        </div>
+    </div>
+
+    <!-- Rename binder modal -->
+    <div id="rename-overlay" onclick="if(event.target===this)closeRenameModal()">
+        <div id="rename-panel" role="dialog" aria-labelledby="rn-title">
+            <h3 id="rn-title">Rename binder</h3>
+            <p>Pick a new name for this binder. This is just a label — your data stays put.</p>
+            <input type="text" id="rename-input" maxlength="80" placeholder="Binder name…" autocomplete="off" data-1p-ignore data-lpignore="true">
+            <div class="sp-actions">
+                <button class="sp-btn sp-btn-primary" onclick="confirmRename()">✓ Save</button>
+                <button class="sp-btn sp-btn-cancel" onclick="closeRenameModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Switch-with-backup prompt -->
+    <div id="switch-prompt-overlay" role="dialog" aria-labelledby="sp-title">
+        <div id="switch-prompt">
+            <h3 id="sp-title">📚 Switch binders?</h3>
+            <p id="sp-body">You're about to switch from <strong id="sp-from">—</strong> to <strong id="sp-to">—</strong>. Your current binder's data is already saved. Want to download a JSON backup first?</p>
+            <div class="sp-actions">
+                <button class="sp-btn sp-btn-secondary" onclick="resolveSwitchPrompt('backup')">💾 Backup &amp; Switch</button>
+                <button class="sp-btn sp-btn-primary" onclick="resolveSwitchPrompt('switch')">Switch Now</button>
+                <button class="sp-btn sp-btn-cancel" onclick="resolveSwitchPrompt('cancel')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PDF Generation Progress -->
     <div id="pdfgen-overlay" role="dialog" aria-labelledby="pdfgen-title">
         <div id="pdfgen-panel">
@@ -2714,7 +3017,9 @@
             <div class="nav-actions">
                 <div id="total-value-display" onclick="promptBulkPriceUpdate()" style="cursor:pointer;" title="Tap to bulk-update all prices">💰 <strong id="total-value-amt">$0.00</strong></div>
                 
-                <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()">🖨 Wanted</button>
+                <button class="nav-btn btn-print   hide-mobile" onclick="openBindersPanel()" title="Switch between your saved binders">📚 Binders</button>
+                <button class="nav-btn btn-print   hide-mobile" onclick="printWanted()" title="Wanted list (PDF) — what you still need to collect">🖨 Wanted</button>
+                <button class="nav-btn btn-print   hide-mobile" onclick="printBinder()" title="Printable checklist of this binder for paper use">📋 Print</button>
                 <div class="save-menu-wrap hide-mobile">
                     <button class="nav-btn btn-save" onclick="toggleSaveMenu(event)" aria-haspopup="menu" aria-expanded="false" id="save-menu-btn">⬇ Save<span class="save-caret">▾</span></button>
                     <div class="save-menu" id="save-menu" role="menu">
@@ -2722,7 +3027,14 @@
                             <span class="save-menu-icon">📄</span>
                             <span class="save-menu-text">
                                 <span class="save-menu-title">Save JSON backup</span>
-                                <span class="save-menu-sub">Full data file — restore later with Import</span>
+                                <span class="save-menu-sub">Current binder only — restore later with Import</span>
+                            </span>
+                        </button>
+                        <button class="save-menu-item" role="menuitem" onclick="saveAllBindersJSON(); closeSaveMenu();">
+                            <span class="save-menu-icon">📚</span>
+                            <span class="save-menu-text">
+                                <span class="save-menu-title">Save all binders</span>
+                                <span class="save-menu-sub">Backup every binder in one file</span>
                             </span>
                         </button>
                         <button class="save-menu-item" role="menuitem" onclick="savePDF(); closeSaveMenu();">
@@ -2730,6 +3042,13 @@
                             <span class="save-menu-text">
                                 <span class="save-menu-title">Save as PDF (for sharing)</span>
                                 <span class="save-menu-sub">Visual binder pages with card art</span>
+                            </span>
+                        </button>
+                        <button class="save-menu-item" role="menuitem" onclick="printBinder(); closeSaveMenu();">
+                            <span class="save-menu-icon">📋</span>
+                            <span class="save-menu-text">
+                                <span class="save-menu-title">Print binder (paper checklist)</span>
+                                <span class="save-menu-sub">Black-and-white list with checkboxes</span>
                             </span>
                         </button>
                     </div>
@@ -2745,8 +3064,11 @@
              keeps its original id/onclick so all existing JS continues to work. -->
         <div class="nav-settings-bar" id="nav-settings-bar">
             <div id="mobile-actions">
+                <button class="nav-btn btn-print"   onclick="openBindersPanel()">📚 Binders</button>
                 <button class="nav-btn btn-print"   onclick="printWanted()">🖨 Wanted</button>
+                <button class="nav-btn btn-print"   onclick="printBinder()">📋 Print Binder</button>
                 <button class="nav-btn btn-save"    onclick="saveJSON()">⬇ Save JSON</button>
+                <button class="nav-btn btn-save"    onclick="saveAllBindersJSON()">📚 Save All</button>
                 <button class="nav-btn btn-save"    onclick="savePDF()">📑 Save PDF</button>
                 <button class="nav-btn btn-load"    onclick="document.getElementById('json-file-input').click()">⬆ Import</button>
             </div>
@@ -3186,9 +3508,31 @@
             if (cb) cb.checked = localStorage.getItem('dualPhotos') === '1';
         })();
 
-        let config = JSON.parse(localStorage.getItem('appConfig')) || {
-            total: 1025, rows: 4, cols: 4, bannerUrl: DEFAULT_BANNER
-        };
+        // Active binder ID — declared early so `config` initialization can
+        // reference it. Helpers and full multi-binder support follow below.
+        const BINDER_ID_DEFAULT = 'b1';
+        let _activeBinderId = localStorage.getItem('currentBinderId') || BINDER_ID_DEFAULT;
+
+        // `config` is the active binder's layout config. It's reloaded
+        // from `appConfig-${binderId}` on every binder switch. This default
+        // is only used for a brand-new install before migrateToMultiBinder
+        // has set up the registry.
+        let config = JSON.parse(localStorage.getItem(`appConfig-${_activeBinderId}`)
+                              || localStorage.getItem('appConfig'))  // legacy fallback
+                   || { total: 1025, rows: 4, cols: 4, bannerUrl: DEFAULT_BANNER };
+
+        // Persist the active binder's config to its scoped key AND mirror
+        // the layout fields into the registry entry so the binder list shows
+        // up-to-date totals and banner thumbnails.
+        function persistActiveConfig() {
+            saveBinderConfig(_activeBinderId, config);
+            updateBinder(_activeBinderId, {
+                total: config.total,
+                rows:  config.rows,
+                cols:  config.cols,
+                banner: config.bannerUrl || '',
+            });
+        }
 
         document.getElementById('totalItems').value = config.total;
         document.getElementById('gridRows').value   = config.rows;
@@ -3197,7 +3541,7 @@
 
         /* ── IndexedDB (cached connection) ── */
         let _db = null;
-        const _memoryCache = {};
+        let _memoryCache = {};
 
         function openDB() {
             if (_db) return Promise.resolve(_db);
@@ -3219,10 +3563,17 @@
             return new Promise((resolve) => {
                 const tx = db.transaction(DATA_STORE, 'readonly');
                 const req = tx.objectStore(DATA_STORE).openCursor();
+                const prefix = `${_activeBinderId}::`;
+                _memoryCache = {}; // reset (we may be switching binders)
                 req.onsuccess = (e) => {
                     const cursor = e.target.result;
                     if (cursor) {
-                        _memoryCache[cursor.key] = cursor.value;
+                        const key = cursor.key;
+                        // Only load entries belonging to the active binder; strip the prefix
+                        if (typeof key === 'string' && key.startsWith(prefix)) {
+                            const stripped = key.slice(prefix.length);
+                            _memoryCache[stripped] = cursor.value;
+                        }
                         cursor.continue();
                     } else {
                         resolve();
@@ -3232,7 +3583,7 @@
             });
         }
 
-        // Migrate existing localStorage card data into IndexedDB (one-time)
+        // Migrate existing localStorage card data into IndexedDB (one-time, pre-multi-binder)
         async function migrateLocalStorageToIDB() {
             const migrated = localStorage.getItem('_idb_migrated');
             if (migrated) return;
@@ -3244,8 +3595,9 @@
                 if (raw) {
                     try {
                         const parsed = JSON.parse(raw);
+                        // Write under the legacy unscoped key — migrateToMultiBinder
+                        // will rename it to the prefixed key on the next pass.
                         store.put(parsed, `item-${i}`);
-                        _memoryCache[`item-${i}`] = parsed;
                     } catch(e) {}
                 }
             }
@@ -3258,25 +3610,215 @@
             });
         }
 
-        // Write card to memory + persist to IndexedDB in background
+        /* ── One-time migration from single-binder to multi-binder layout ──
+           When this version of the app first loads, the user has either:
+             (a) no data at all (brand new install) — create the registry
+                 with one empty binder slot
+             (b) legacy data: appConfig + binderMeta in localStorage,
+                 IDB keys like `item-5` and photo keys like `5` — wrap
+                 everything as "Binder 1" and rename keys to add the
+                 `b1::` prefix.
+           This runs idempotently before bootDatabase. */
+        async function migrateToMultiBinder() {
+            if (localStorage.getItem('bindersV1Migrated') === '1') return;
+
+            const existingList = getBindersList();
+            // Check if we have any unscoped data to migrate
+            const hadAppConfig = !!localStorage.getItem('appConfig');
+            const hadMeta      = !!localStorage.getItem('binderMeta');
+
+            // Rename IDB keys: `item-N` → `b1::item-N`, `<num>` photo → `b1::<num>`,
+            //                  `back-N` → `b1::back-N`
+            if (hadAppConfig || hadMeta) {
+                try {
+                    const db = await openDB();
+                    // Card data
+                    await new Promise((res) => {
+                        const tx = db.transaction(DATA_STORE, 'readwrite');
+                        const store = tx.objectStore(DATA_STORE);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cursor = e.target.result;
+                            if (cursor) {
+                                const key = cursor.key;
+                                // Only rename unscoped legacy keys (no `::` separator)
+                                if (typeof key === 'string' && key.startsWith('item-') && !key.includes('::')) {
+                                    const val = cursor.value;
+                                    store.delete(key);
+                                    store.put(val, `${BINDER_ID_DEFAULT}::${key}`);
+                                }
+                                cursor.continue();
+                            } else { res(); }
+                        };
+                        req.onerror = () => res();
+                    });
+                    // Photos
+                    await new Promise((res) => {
+                        const tx = db.transaction(PHOTO_STORE, 'readwrite');
+                        const store = tx.objectStore(PHOTO_STORE);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cursor = e.target.result;
+                            if (cursor) {
+                                const key = cursor.key;
+                                let renameTo = null;
+                                if (typeof key === 'number') {
+                                    renameTo = `${BINDER_ID_DEFAULT}::${key}`;
+                                } else if (typeof key === 'string' && key.startsWith('back-') && !key.includes('::')) {
+                                    renameTo = `${BINDER_ID_DEFAULT}::${key}`;
+                                }
+                                if (renameTo) {
+                                    const val = cursor.value;
+                                    store.delete(key);
+                                    store.put(val, renameTo);
+                                }
+                                cursor.continue();
+                            } else { res(); }
+                        };
+                        req.onerror = () => res();
+                    });
+                } catch(e) { console.warn('IDB migration warn:', e); }
+            }
+
+            // Build the registry entry for the legacy data (or an empty seed)
+            if (!existingList.length) {
+                // Read what we know about the existing binder from legacy storage
+                const cfg  = loadBinderConfig(BINDER_ID_DEFAULT);
+                const meta = loadBinderMeta(BINDER_ID_DEFAULT);
+                let displayName = 'My Binder';
+                let typeLabel = 'General';
+                if (meta) {
+                    if (meta.binderType === 'pokedex') {
+                        displayName = `${meta.dexLabel || 'Pokédex'} Pokédex`;
+                        typeLabel   = `Pokédex · ${meta.dexLabel || ''}`.trim().replace(/·\s*$/, '');
+                    } else if (meta.binderType === 'masterSet' && meta.masterKind === 'set') {
+                        displayName = meta.setName || 'Master Set';
+                        typeLabel   = `Master Set · ${meta.setName || ''}`.trim().replace(/·\s*$/, '');
+                    } else if (meta.binderType === 'masterSet' && meta.masterKind === 'pokemon') {
+                        displayName = `${meta.pokemon} Master Set`;
+                        typeLabel   = `Master Set · ${meta.pokemon || ''}`.trim().replace(/·\s*$/, '');
+                    }
+                }
+                const entry = {
+                    id:    BINDER_ID_DEFAULT,
+                    name:  displayName,
+                    type:  typeLabel,
+                    total: cfg ? cfg.total : 151,
+                    rows:  cfg ? cfg.rows  : 4,
+                    cols:  cfg ? cfg.cols  : 3,
+                    banner: cfg ? cfg.bannerUrl : '',
+                    createdAt: Date.now(),
+                    lastModified: Date.now(),
+                };
+                saveBindersList([entry]);
+
+                // Move the unscoped legacy localStorage values to scoped versions
+                if (cfg)  saveBinderConfig(BINDER_ID_DEFAULT, cfg);
+                if (meta) saveBinderMeta(BINDER_ID_DEFAULT, meta);
+            }
+
+            setActiveBinderId(getBindersList()[0]?.id || BINDER_ID_DEFAULT);
+            localStorage.setItem('bindersV1Migrated', '1');
+        }
+
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══             Multi-Binder support (Pass 1)              ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+        /* All IndexedDB keys are now prefixed with the active binder ID
+           so multiple binders can coexist in the same database without
+           colliding. Existing single-binder data gets auto-migrated to
+           "Binder 1" on first run (see migrateToMultiBinder).
+
+           Storage layout:
+             DATA_STORE   key: `${binderId}::item-${slot}`
+             PHOTO_STORE  key: `${binderId}::${slot}`           (front)
+                          key: `${binderId}::back-${slot}`      (back)
+             localStorage:
+               binders            JSON [{id, name, type, total, rows, cols, banner, ...}]
+               currentBinderId    string, defaults to first binder's id
+               binderMeta-${id}   per-binder wizard metadata (replaces the old singular binderMeta)
+               appConfig-${id}    per-binder layout config (replaces the old singular appConfig)
+        */
+
+        function getActiveBinderId() { return _activeBinderId; }
+        function setActiveBinderId(id) {
+            _activeBinderId = id;
+            localStorage.setItem('currentBinderId', id);
+        }
+        function dataKey(slot)              { return `${_activeBinderId}::item-${slot}`; }
+        function photoStoreKey(slot, side)  {
+            return (side === 'back') ? `${_activeBinderId}::back-${slot}` : `${_activeBinderId}::${slot}`;
+        }
+        // Read the binders registry (always returns an array)
+        function getBindersList() {
+            try {
+                const raw = localStorage.getItem('binders');
+                const list = raw ? JSON.parse(raw) : null;
+                return Array.isArray(list) ? list : [];
+            } catch(e) { return []; }
+        }
+        function saveBindersList(list) {
+            localStorage.setItem('binders', JSON.stringify(list));
+        }
+        function findBinder(id) {
+            return getBindersList().find(b => b.id === id) || null;
+        }
+        function updateBinder(id, patch) {
+            const list = getBindersList();
+            const idx = list.findIndex(b => b.id === id);
+            if (idx < 0) return null;
+            list[idx] = { ...list[idx], ...patch, lastModified: Date.now() };
+            saveBindersList(list);
+            return list[idx];
+        }
+        // Touch the active binder's lastModified (called after any data write)
+        function touchActiveBinder() {
+            updateBinder(_activeBinderId, {});
+        }
+
+        /* Helper: read binder-scoped appConfig and binderMeta from localStorage,
+           with graceful fallback to the legacy unscoped keys for first-run reads
+           (the migration step writes the scoped versions).               */
+        function loadBinderConfig(binderId) {
+            const raw = localStorage.getItem(`appConfig-${binderId}`)
+                     || localStorage.getItem('appConfig'); // legacy fallback
+            try { return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
+        }
+        function saveBinderConfig(binderId, cfg) {
+            localStorage.setItem(`appConfig-${binderId}`, JSON.stringify(cfg));
+        }
+        function loadBinderMeta(binderId) {
+            const raw = localStorage.getItem(`binderMeta-${binderId}`)
+                     || localStorage.getItem('binderMeta'); // legacy fallback
+            try { return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
+        }
+        function saveBinderMeta(binderId, meta) {
+            if (meta) localStorage.setItem(`binderMeta-${binderId}`, JSON.stringify(meta));
+            else localStorage.removeItem(`binderMeta-${binderId}`);
+        }
+
+        // Write card to memory + persist to IndexedDB in background.
+        // Memory cache key stays the short form (`item-${id}`) for backwards
+        // compat with the rest of the app; the prefix is applied at IDB time.
         function saveCardToDB(id, itemData) {
             _memoryCache[`item-${id}`] = itemData;
             openDB().then(db => {
                 const tx = db.transaction(DATA_STORE, 'readwrite');
-                tx.objectStore(DATA_STORE).put(itemData, `item-${id}`);
+                tx.objectStore(DATA_STORE).put(itemData, dataKey(id));
             }).catch(() => {});
+            touchActiveBinder();
         }
         /* ── Photo storage ──
            Storage scheme (no migration required, existing data stays put):
-             Key `id` (a number)         → FRONT photo (legacy, unchanged)
-             Key `back-${id}` (a string) → BACK photo (new, optional)
+             Key `${binderId}::${id}`        → FRONT photo
+             Key `${binderId}::back-${id}`   → BACK photo (only when dual-photos is on)
            The back slot is only written when the user has "Dual Photos" enabled
-           in Settings and explicitly takes a back photo. Existing single-photo
-           collections work unchanged. */
+           in Settings and explicitly takes a back photo. */
         function photoKey(id, side) {
-            return (side === 'back') ? `back-${id}` : Number(id);
+            return photoStoreKey(id, side);
         }
         function savePhoto(id, dataUrl, side) {
+            touchActiveBinder();
             return openDB().then(db => new Promise((res, rej) => {
                 const tx = db.transaction(PHOTO_STORE, 'readwrite');
                 tx.objectStore(PHOTO_STORE).put(dataUrl, photoKey(id, side));
@@ -3292,19 +3834,36 @@
                 req.onerror   = () => res(null);
             }));
         }
+        /* Returns photos for the ACTIVE binder only, keyed by slot id (number)
+           for fronts and string `back-${id}` for backs. The binder prefix is
+           stripped from the returned keys so callers don't need to change. */
         function getAllPhotos() {
             return openDB().then(db => new Promise((res, rej) => {
                 const results = {};
+                const prefix = `${_activeBinderId}::`;
                 const req = db.transaction(PHOTO_STORE, 'readonly').objectStore(PHOTO_STORE).openCursor();
                 req.onsuccess = (e) => {
                     const cursor = e.target.result;
-                    if (cursor) { results[cursor.key] = cursor.value; cursor.continue(); }
+                    if (cursor) {
+                        const key = cursor.key;
+                        if (typeof key === 'string' && key.startsWith(prefix)) {
+                            const stripped = key.slice(prefix.length);
+                            if (stripped.startsWith('back-')) {
+                                results[stripped] = cursor.value;
+                            } else {
+                                const n = parseInt(stripped, 10);
+                                if (!isNaN(n)) results[n] = cursor.value;
+                            }
+                        }
+                        cursor.continue();
+                    }
                     else res(results);
                 };
                 req.onerror = (e) => rej(e.target.error);
             }));
         }
         function deletePhotoFromDB(id, side) {
+            touchActiveBinder();
             return openDB().then(db => new Promise((res, rej) => {
                 const tx = db.transaction(PHOTO_STORE, 'readwrite');
                 tx.objectStore(PHOTO_STORE).delete(photoKey(id, side));
@@ -3314,11 +3873,12 @@
         }
         /* Wipe BOTH sides for a given slot — used by clearCardEntry. */
         function deleteAllPhotosFor(id) {
+            touchActiveBinder();
             return openDB().then(db => new Promise((res) => {
                 const tx = db.transaction(PHOTO_STORE, 'readwrite');
                 const store = tx.objectStore(PHOTO_STORE);
-                store.delete(Number(id));
-                store.delete(`back-${id}`);
+                store.delete(photoStoreKey(id, 'front'));
+                store.delete(photoStoreKey(id, 'back'));
                 tx.oncomplete = res;
                 tx.onerror    = res;
             }));
@@ -4087,22 +4647,44 @@ fetchAllArt();
             if (fixed) updateTotalValue();
         }
 
-        function clearPokedex() {
-            if (!confirm('⚠️ Clear entire Pokédex?\n\nThis will permanently delete all card entries, photos, and saved data. This cannot be undone.')) return;
+        async function clearPokedex() {
+            const activeBinder = findBinder(_activeBinderId);
+            const binderName = activeBinder ? activeBinder.name : 'this binder';
+            if (!confirm(`⚠️ Clear "${binderName}"?\n\nThis will permanently delete all card entries and photos for this binder. Other binders are unaffected. This cannot be undone.`)) return;
             if (!confirm('Are you absolutely sure? All data will be lost.')) return;
             for (let i = 1; i <= config.total; i++) {
                 delete _memoryCache[`item-${i}`];
-                localStorage.removeItem(`item-${i}`);
             }
-            localStorage.removeItem('lastUpdated');
-            localStorage.removeItem('collapsedPages');
-            openDB().then(db => {
-                const tx = db.transaction([PHOTO_STORE, DATA_STORE], 'readwrite');
-                tx.objectStore(PHOTO_STORE).clear();
-                tx.objectStore(DATA_STORE).clear();
-            }).catch(() => {});
+            // Clear ONLY the active binder's keys from IDB — other binders stay
+            try {
+                const db = await openDB();
+                const prefix = `${_activeBinderId}::`;
+                await new Promise(res => {
+                    const tx = db.transaction([PHOTO_STORE, DATA_STORE], 'readwrite');
+                    [PHOTO_STORE, DATA_STORE].forEach(name => {
+                        const store = tx.objectStore(name);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cur = e.target.result;
+                            if (cur) {
+                                const k = cur.key;
+                                if (typeof k === 'string' && k.startsWith(prefix)) store.delete(k);
+                                else if (typeof k === 'number' && name === PHOTO_STORE) {
+                                    // Legacy unscoped photo key — only delete if this is the b1 default
+                                    // (defensive; should never happen post-migration)
+                                    if (_activeBinderId === BINDER_ID_DEFAULT) store.delete(k);
+                                }
+                                cur.continue();
+                            }
+                        };
+                    });
+                    tx.oncomplete = () => res();
+                    tx.onerror    = () => res();
+                });
+            } catch(e) {}
             renderList();
             touchLastUpdated();
+            touchActiveBinder();
             toggleSettings();
         }
 
@@ -4177,7 +4759,7 @@ fetchAllArt();
             config.total = Math.max(1, parseInt(document.getElementById('totalItems').value) || 1);
             config.rows  = Math.max(1, parseInt(document.getElementById('gridRows').value)   || 1);
             config.cols  = Math.max(1, parseInt(document.getElementById('gridCols').value)   || 1);
-            localStorage.setItem('appConfig', JSON.stringify(config));
+            persistActiveConfig();
             renderList();
             applyCardSize(); // re-apply after re-render
         }
@@ -4237,7 +4819,7 @@ fetchAllArt();
                 const url = (document.getElementById('bm-url-input').value || '').trim();
                 if (!url) { alert('Please enter a URL.'); return; }
                 config.bannerUrl = url;
-                localStorage.setItem('appConfig', JSON.stringify(config));
+                persistActiveConfig();
                 applyBanner(url); closeBannerModal();
             } else {
                 const fi = document.getElementById('bm-file-input');
@@ -4245,7 +4827,7 @@ fetchAllArt();
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     config.bannerUrl = e.target.result;
-                    localStorage.setItem('appConfig', JSON.stringify(config));
+                    persistActiveConfig();
                     applyBanner(e.target.result); closeBannerModal();
                 };
                 reader.readAsDataURL(fi.files[0]);
@@ -4566,7 +5148,7 @@ fetchAllArt();
         async function printWanted() {
             // Read binder meta — null if the user never ran the wizard
             let meta = null;
-            try { meta = JSON.parse(localStorage.getItem('binderMeta') || 'null'); } catch(e) {}
+            try { meta = loadBinderMeta(_activeBinderId); } catch(e) {}
 
             // Bucket 1: ENTERED but not collected (existing behavior)
             const entered = [];
@@ -4778,7 +5360,7 @@ fetchAllArt();
                         document.getElementById('totalItems').value = config.total;
                         document.getElementById('gridRows').value   = config.rows;
                         document.getElementById('gridCols').value   = config.cols;
-                        localStorage.setItem('appConfig', JSON.stringify(config));
+                        persistActiveConfig();
                         applyBanner(config.bannerUrl);
                     }
                     for (const [id, item] of Object.entries(data.items)) {
@@ -8631,14 +9213,37 @@ fetchAllArt();
                     config.bannerUrl = WIZ.bannerUrl;
                     applyBanner(WIZ.bannerUrl);
                 }
-                localStorage.setItem('appConfig', JSON.stringify(config));
+                persistActiveConfig();
                 document.getElementById('totalItems').value = config.total;
                 document.getElementById('gridRows').value   = config.rows;
                 document.getElementById('gridCols').value   = config.cols;
 
                 // Save binder metadata (so app can show what this binder is)
                 const meta = wizBuildMeta();
-                localStorage.setItem('binderMeta', JSON.stringify(meta));
+                saveBinderMeta(_activeBinderId, meta);
+
+                // Refine the binder's registry entry with friendly name + type
+                // based on what the user picked in the wizard.
+                let displayName = 'My Binder';
+                let typeLabel = 'Custom';
+                if (meta.binderType === 'pokedex') {
+                    displayName = `${meta.dexLabel || 'Pokédex'} Pokédex`;
+                    typeLabel   = `Pokédex · ${meta.dexLabel || ''}`.replace(/\s·\s$/, '');
+                } else if (meta.binderType === 'masterSet' && meta.masterKind === 'set') {
+                    displayName = meta.setName || 'Master Set';
+                    typeLabel   = `Master Set · ${meta.setName || ''}`.replace(/\s·\s$/, '');
+                } else if (meta.binderType === 'masterSet' && meta.masterKind === 'pokemon') {
+                    displayName = `${meta.pokemon} Master Set`;
+                    typeLabel   = `Master Set · ${meta.pokemon || ''}`.replace(/\s·\s$/, '');
+                }
+                updateBinder(_activeBinderId, {
+                    name: displayName,
+                    type: typeLabel,
+                    total: WIZ.total,
+                    rows:  WIZ.rows,
+                    cols:  WIZ.cols,
+                    banner: (WIZ.bannerMode !== 'keep' && WIZ.bannerUrl) ? WIZ.bannerUrl : undefined,
+                });
 
                 // 3. Pre-populate entries based on binder type
                 if (WIZ.binderType === 'pokedex' && WIZ.prefill) {
@@ -8702,14 +9307,25 @@ fetchAllArt();
             return meta;
         }
 
-        // Clear all card data & photos — same as clearPokedex but without the confirm
+        // Clear active binder's data & photos — same as clearPokedex but without confirms
         async function wizClearAllData() {
             try {
                 const db = await openDB();
+                const prefix = `${_activeBinderId}::`;
                 await new Promise((res) => {
                     const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
-                    tx.objectStore(DATA_STORE).clear();
-                    tx.objectStore(PHOTO_STORE).clear();
+                    [DATA_STORE, PHOTO_STORE].forEach(name => {
+                        const store = tx.objectStore(name);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cur = e.target.result;
+                            if (cur) {
+                                const k = cur.key;
+                                if (typeof k === 'string' && k.startsWith(prefix)) store.delete(k);
+                                cur.continue();
+                            }
+                        };
+                    });
                     tx.oncomplete = () => res();
                     tx.onerror    = () => res();
                 });
@@ -8831,7 +9447,7 @@ fetchAllArt();
                 if (!WIZ.totalOverride && allCards.length > WIZ.total) {
                     WIZ.total = allCards.length;
                     config.total = allCards.length;
-                    localStorage.setItem('appConfig', JSON.stringify(config));
+                    persistActiveConfig();
                     document.getElementById('totalItems').value = allCards.length;
                 }
 
@@ -8876,7 +9492,7 @@ fetchAllArt();
             if (!WIZ.totalOverride && cards.length > WIZ.total) {
                 WIZ.total = cards.length;
                 config.total = cards.length;
-                localStorage.setItem('appConfig', JSON.stringify(config));
+                persistActiveConfig();
                 document.getElementById('totalItems').value = cards.length;
             }
 
@@ -8915,11 +9531,723 @@ fetchAllArt();
             if (e.target && e.target.id === 'wiz-prefill-names') WIZ.prefill = e.target.checked;
         });
 
-        /* ── Init ── */
+        /* ═══════════════════════════════════════════════════════════ */
+        /* ══   Binder Library Panel: open/close, render, switch     ══ */
+        /* ═══════════════════════════════════════════════════════════ */
+
+        function openBindersPanel() {
+            renderBindersPanel();
+            document.getElementById('binders-overlay').classList.add('open');
+        }
+        function closeBindersPanel() {
+            document.getElementById('binders-overlay').classList.remove('open');
+        }
+
+        /* Render the panel body from the binders registry. Each card shows
+           the binder's name, type, layout, last-modified date, and a banner
+           thumbnail. Tapping a card initiates a switch (with backup prompt). */
+        /* In-memory cache of per-binder thumbnails (mapping binderId → dataURL).
+           Computed lazily on first panel render and cached until data changes.
+           Persisted to localStorage so the panel renders quickly without
+           hitting IDB every time. */
+        let _binderThumbCache = (() => {
+            try { return JSON.parse(localStorage.getItem('binderThumbCache') || '{}') || {}; }
+            catch(e) { return {}; }
+        })();
+        function saveBinderThumbCache() {
+            try { localStorage.setItem('binderThumbCache', JSON.stringify(_binderThumbCache)); } catch(e) {}
+        }
+
+        /* Find the highest-value card in a binder. For the active binder we
+           read from _memoryCache; for others we scan the IDB keys with the
+           binder's prefix. */
+        async function findHighestValueCard(binderId) {
+            let best = null;
+            let bestVal = 0;
+            if (binderId === _activeBinderId) {
+                for (const k in _memoryCache) {
+                    if (!k.startsWith('item-')) continue;
+                    const item = _memoryCache[k];
+                    const v = parseFloat(item?.value) || 0;
+                    if (v > bestVal && item.name) {
+                        bestVal = v;
+                        const slot = parseInt(k.replace('item-', ''), 10);
+                        best = { slot, name: item.name, set: item.set, setNumber: item.setNumber, value: v };
+                    }
+                }
+            } else {
+                // Scan IDB scoped to this binder
+                try {
+                    const db = await openDB();
+                    await new Promise(res => {
+                        const tx = db.transaction(DATA_STORE, 'readonly');
+                        const prefix = `${binderId}::item-`;
+                        const req = tx.objectStore(DATA_STORE).openCursor();
+                        req.onsuccess = (e) => {
+                            const cur = e.target.result;
+                            if (cur) {
+                                const key = cur.key;
+                                if (typeof key === 'string' && key.startsWith(prefix)) {
+                                    const item = cur.value;
+                                    const v = parseFloat(item?.value) || 0;
+                                    if (v > bestVal && item.name) {
+                                        bestVal = v;
+                                        const slot = parseInt(key.slice(prefix.length), 10);
+                                        best = { slot, name: item.name, set: item.set, setNumber: item.setNumber, value: v };
+                                    }
+                                }
+                                cur.continue();
+                            } else { res(); }
+                        };
+                        req.onerror = () => res();
+                    });
+                } catch(e) { /* ignore */ }
+            }
+            return best;
+        }
+
+        /* Resolve a thumbnail data-URL for a binder. Priority:
+             1. cached thumbnail in _binderThumbCache (if not stale)
+             2. art for the highest-value card (queries pokemontcg.io if needed)
+             3. user's banner if set
+             4. null (caller falls back to the 📘 emoji)
+        */
+        async function getBinderThumbnail(binderEntry) {
+            const cached = _binderThumbCache[binderEntry.id];
+            if (cached && cached.lastModified === (binderEntry.lastModified || 0)) {
+                return cached.url;
+            }
+            // Compute fresh
+            const top = await findHighestValueCard(binderEntry.id);
+            if (top) {
+                // Look in the active art cache first (fast path)
+                if (binderEntry.id === _activeBinderId && _artCache[top.slot]) {
+                    const url = _artCache[top.slot].small || _artCache[top.slot].large;
+                    if (url) {
+                        _binderThumbCache[binderEntry.id] = { url, lastModified: binderEntry.lastModified || 0 };
+                        saveBinderThumbCache();
+                        return url;
+                    }
+                }
+                // Otherwise fetch via PTCG by name + set + number
+                try {
+                    const cardName = top.name.trim();
+                    const snRaw = (top.setNumber || '').trim();
+                    const cardNum = snRaw.split('/')[0].replace(/^0+/, '') || '';
+                    let q = `name:"${cardName.replace(/"/g, '')}"`;
+                    if (cardNum) q += ` number:${cardNum}`;
+                    const url = `${PTCG_API}?q=${encodeURIComponent(q)}&pageSize=1&select=name,images`;
+                    const r = await ptcgFetch(url);
+                    if (r.ok) {
+                        const j = await r.json();
+                        const card = (j.data || [])[0];
+                        if (card?.images?.small) {
+                            _binderThumbCache[binderEntry.id] = { url: card.images.small, lastModified: binderEntry.lastModified || 0 };
+                            saveBinderThumbCache();
+                            return card.images.small;
+                        }
+                    }
+                } catch(e) { /* fall through */ }
+            }
+            // Fallback: user's banner
+            if (binderEntry.banner) return binderEntry.banner;
+            return null;
+        }
+
+        async function renderBindersPanel() {
+            const list = getBindersList();
+            const body = document.getElementById('bp-body');
+            const countEl = document.getElementById('bp-count');
+            countEl.textContent = `${list.length} binder${list.length !== 1 ? 's' : ''}`;
+
+            if (!list.length) {
+                body.innerHTML = `<div class="bp-empty">No binders yet. Tap the button below to set up your first one.</div>
+                    <button class="bp-new-btn" onclick="newBinder()">＋ New Binder</button>`;
+                return;
+            }
+
+            // Sort: active first, then most-recently-modified
+            const sorted = [...list].sort((a, b) => {
+                if (a.id === _activeBinderId && b.id !== _activeBinderId) return -1;
+                if (b.id === _activeBinderId && a.id !== _activeBinderId) return 1;
+                return (b.lastModified || 0) - (a.lastModified || 0);
+            });
+
+            // Read filter input value (preserves user's typing across rerenders)
+            const filterRaw = (document.getElementById('bp-search')?.value || '').trim();
+            const filter = filterRaw.toLowerCase();
+            const filtered = filter
+                ? sorted.filter(b => (b.name || '').toLowerCase().includes(filter)
+                                  || (b.type || '').toLowerCase().includes(filter))
+                : sorted;
+
+            const showSearch = list.length >= 5;
+            const searchHtml = showSearch
+                ? `<input type="text" class="bp-search" id="bp-search" placeholder="Filter binders…" value="${escapeHtml(filterRaw)}" oninput="renderBindersPanel()">`
+                : '';
+
+            const cards = filtered.map(b => {
+                const isActive = b.id === _activeBinderId;
+                const dateStr = b.lastModified ? new Date(b.lastModified).toLocaleDateString() : '';
+                // Initial thumbnail: cached value or banner fallback. The async
+                // refresh below upgrades stale entries to the highest-value
+                // card art if available.
+                const cached = _binderThumbCache[b.id];
+                const initialThumbUrl = (cached && cached.lastModified === (b.lastModified || 0))
+                    ? cached.url
+                    : (b.banner || '');
+                const thumb = initialThumbUrl
+                    ? `<img class="bp-card-thumb" id="bp-thumb-${escapeHtml(b.id)}" src="${escapeHtml(initialThumbUrl)}" alt="" onerror="this.style.display='none'">`
+                    : `<div class="bp-card-thumb bp-card-thumb-fallback" id="bp-thumb-${escapeHtml(b.id)}">📘</div>`;
+                const layout = `${b.rows || '?'}×${b.cols || '?'} · ${b.total || '?'} slots`;
+                return `<div class="bp-card${isActive ? ' active' : ''}" onclick="onBinderCardClick('${escapeHtml(b.id)}', event)">
+                    ${thumb}
+                    <div class="bp-card-info">
+                        <div class="bp-card-name">${escapeHtml(b.name || 'Unnamed binder')}</div>
+                        <div class="bp-card-type">${escapeHtml(b.type || 'Custom')}</div>
+                        <div class="bp-card-stats"><span><span class="bp-stat-num">${b.total || 0}</span> slots</span><span>${escapeHtml(layout)}</span></div>
+                        ${dateStr ? `<div class="bp-card-date">Last modified: ${escapeHtml(dateStr)}</div>` : ''}
+                    </div>
+                    <button class="bp-card-menu" onclick="event.stopPropagation();toggleBinderMenu('${escapeHtml(b.id)}')" aria-label="Binder options">⋮</button>
+                    <div class="bp-card-menu-pop" id="bp-menu-${escapeHtml(b.id)}">
+                        <button onclick="event.stopPropagation();openRenameModal('${escapeHtml(b.id)}')">✎ Rename</button>
+                        <button onclick="event.stopPropagation();duplicateBinder('${escapeHtml(b.id)}')">⎘ Duplicate</button>
+                        <button onclick="event.stopPropagation();exportBinderJSON('${escapeHtml(b.id)}')">⬇ Export this binder</button>
+                        <button class="danger" onclick="event.stopPropagation();deleteBinder('${escapeHtml(b.id)}')">🗑 Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+            const emptyMsg = !filtered.length && filter
+                ? `<div class="bp-empty">No binders match "${escapeHtml(filterRaw)}".</div>`
+                : '';
+            body.innerHTML = searchHtml + cards + emptyMsg + `<button class="bp-new-btn" onclick="newBinder()">＋ New Binder</button>`;
+
+            // Asynchronously upgrade thumbnails for any binder whose cache
+            // is stale or empty. This runs in the background so the panel
+            // shows up immediately.
+            for (const b of filtered) {
+                const cached = _binderThumbCache[b.id];
+                if (cached && cached.lastModified === (b.lastModified || 0) && cached.url) continue;
+                getBinderThumbnail(b).then(url => {
+                    if (!url) return;
+                    const el = document.getElementById(`bp-thumb-${b.id}`);
+                    if (el && el.tagName === 'IMG') {
+                        el.src = url; el.style.display = '';
+                    } else if (el) {
+                        // Replace placeholder with an <img>
+                        const img = document.createElement('img');
+                        img.className = 'bp-card-thumb';
+                        img.id = `bp-thumb-${b.id}`;
+                        img.src = url;
+                        img.alt = '';
+                        img.onerror = () => { img.style.display = 'none'; };
+                        el.replaceWith(img);
+                    }
+                });
+            }
+        }
+
+        /* Toggle the ⋮ fly-out menu for a specific binder. Closes any other
+           open menu first. */
+        function toggleBinderMenu(id) {
+            document.querySelectorAll('.bp-card-menu-pop').forEach(el => {
+                if (el.id === `bp-menu-${id}`) {
+                    el.classList.toggle('open');
+                } else {
+                    el.classList.remove('open');
+                }
+            });
+        }
+        // Click anywhere else closes any open menu
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.bp-card-menu') || e.target.closest('.bp-card-menu-pop')) return;
+            document.querySelectorAll('.bp-card-menu-pop.open').forEach(el => el.classList.remove('open'));
+        });
+
+        function onBinderCardClick(id, evt) {
+            // Ignore card clicks that originated inside the menu
+            if (evt && (evt.target.closest('.bp-card-menu') || evt.target.closest('.bp-card-menu-pop'))) return;
+            if (id === _activeBinderId) {
+                closeBindersPanel();
+                return;
+            }
+            promptSwitchBinder(id);
+        }
+
+        /* Prompt user before switching binders, offering a JSON backup of
+           the current binder. (Their data is already saved to IDB; the
+           backup is for paranoia / portability.) The choice from the prompt
+           triggers the actual switch. */
+        let _pendingSwitchTargetId = null;
+        function promptSwitchBinder(targetId) {
+            const cur = findBinder(_activeBinderId);
+            const tgt = findBinder(targetId);
+            if (!tgt) return;
+            _pendingSwitchTargetId = targetId;
+            document.getElementById('sp-from').textContent = cur ? cur.name : 'current binder';
+            document.getElementById('sp-to').textContent   = tgt.name;
+            document.getElementById('switch-prompt-overlay').classList.add('open');
+        }
+        async function resolveSwitchPrompt(action) {
+            const overlay = document.getElementById('switch-prompt-overlay');
+            overlay.classList.remove('open');
+            const target = _pendingSwitchTargetId;
+            _pendingSwitchTargetId = null;
+            if (!target || action === 'cancel') return;
+            if (action === 'backup') {
+                try { saveJSON(); } catch(e) {}
+            }
+            await switchToBinder(target);
+        }
+
+        /* Hard switch: persist current state, change active id, reload all
+           binder-scoped state, repaint. */
+        async function switchToBinder(id) {
+            // Persist current config / banner just in case
+            try { persistActiveConfig(); } catch(e) {}
+            // Close panels
+            closeBindersPanel();
+            // Switch
+            setActiveBinderId(id);
+            // Reload config + banner from the new binder's scoped storage
+            const newCfg = loadBinderConfig(id);
+            if (newCfg) {
+                config = { ...config, ...newCfg };
+            }
+            document.getElementById('totalItems').value = config.total;
+            document.getElementById('gridRows').value   = config.rows;
+            document.getElementById('gridCols').value   = config.cols;
+            applyBanner(config.bannerUrl || DEFAULT_BANNER);
+            // Reload _memoryCache from IDB scoped to new binder
+            await bootDatabase();
+            renderList();
+            applyCardSize();
+            updateTotalValue();
+            touchLastUpdated();
+        }
+
+        /* "+ New Binder" button → opens the Setup Wizard in "create new" mode,
+           which generates a fresh binder ID and registers it before the
+           wizard's apply step writes any data. */
+        function newBinder() {
+            closeBindersPanel();
+            // Create a new binder up-front so the wizard's writes go to its
+            // scoped namespace. Name is provisional; the wizard will refine
+            // it from binderType selections.
+            const list = getBindersList();
+            // Generate a new unique ID (b2, b3, …)
+            let n = 2;
+            const existingIds = new Set(list.map(x => x.id));
+            while (existingIds.has(`b${n}`)) n++;
+            const newId = `b${n}`;
+            const entry = {
+                id: newId,
+                name: `New Binder ${n}`,
+                type: 'Custom',
+                total: 151,
+                rows: 4,
+                cols: 3,
+                banner: '',
+                createdAt: Date.now(),
+                lastModified: Date.now(),
+            };
+            saveBindersList([...list, entry]);
+            // Switch to the new binder, then open the wizard
+            switchToBinder(newId).then(() => {
+                openSetupWizard();
+            });
+        }
+
+        /* ─── Rename binder ─── */
+        let _renameTargetId = null;
+        function openRenameModal(id) {
+            const b = findBinder(id);
+            if (!b) return;
+            _renameTargetId = id;
+            const input = document.getElementById('rename-input');
+            input.value = b.name || '';
+            document.getElementById('rename-overlay').classList.add('open');
+            // Close the menu
+            document.querySelectorAll('.bp-card-menu-pop.open').forEach(el => el.classList.remove('open'));
+            // Focus + select on next tick so it works inside an animated modal
+            setTimeout(() => { input.focus(); input.select(); }, 50);
+        }
+        function closeRenameModal() {
+            document.getElementById('rename-overlay').classList.remove('open');
+            _renameTargetId = null;
+        }
+        function confirmRename() {
+            const id = _renameTargetId;
+            const newName = (document.getElementById('rename-input').value || '').trim();
+            if (!id || !newName) { closeRenameModal(); return; }
+            updateBinder(id, { name: newName });
+            closeRenameModal();
+            renderBindersPanel();
+        }
+        // Enter key submits, Esc cancels
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('rename-overlay')?.classList.contains('open')) return;
+            if (e.key === 'Enter') { e.preventDefault(); confirmRename(); }
+            else if (e.key === 'Escape') { e.preventDefault(); closeRenameModal(); }
+        });
+
+        /* ─── Duplicate binder ─── */
+        async function duplicateBinder(id) {
+            const src = findBinder(id);
+            if (!src) return;
+            // Allocate a new id
+            const list = getBindersList();
+            let n = 2;
+            const existing = new Set(list.map(x => x.id));
+            while (existing.has(`b${n}`)) n++;
+            const newId = `b${n}`;
+
+            // Copy the registry entry
+            const newEntry = {
+                ...src,
+                id: newId,
+                name: `${src.name} (Copy)`,
+                createdAt: Date.now(),
+                lastModified: Date.now(),
+            };
+            saveBindersList([...list, newEntry]);
+
+            // Copy the scoped config + meta
+            const cfg = loadBinderConfig(id);
+            if (cfg) saveBinderConfig(newId, cfg);
+            const meta = loadBinderMeta(id);
+            if (meta) saveBinderMeta(newId, meta);
+
+            // Copy IDB entries (data + photos) in the source binder's namespace
+            // to the new binder's namespace. Done in a single transaction so a
+            // crash mid-copy can't leave half-copied data.
+            try {
+                const db = await openDB();
+                await new Promise(res => {
+                    const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
+                    const srcPrefix = `${id}::`;
+                    [DATA_STORE, PHOTO_STORE].forEach(name => {
+                        const store = tx.objectStore(name);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cur = e.target.result;
+                            if (cur) {
+                                const k = cur.key;
+                                if (typeof k === 'string' && k.startsWith(srcPrefix)) {
+                                    const newKey = `${newId}::${k.slice(srcPrefix.length)}`;
+                                    store.put(cur.value, newKey);
+                                }
+                                cur.continue();
+                            }
+                        };
+                    });
+                    tx.oncomplete = () => res();
+                    tx.onerror    = () => res();
+                });
+            } catch(e) { console.warn('Duplicate IDB copy warn:', e); }
+
+            // Bump duplicate's lastModified so its thumbnail recomputes
+            updateBinder(newId, {});
+            renderBindersPanel();
+        }
+
+        /* ─── Delete binder ─── */
+        async function deleteBinder(id) {
+            const b = findBinder(id);
+            if (!b) return;
+            const list = getBindersList();
+            // Don't let the user delete the only binder — would leave the
+            // app with no active binder. Tell them gently.
+            if (list.length <= 1) {
+                alert('You can\'t delete your only binder. Create another one first, or use Settings → Clear Pokédex to wipe its data.');
+                return;
+            }
+            if (!confirm(`Delete "${b.name}"?\n\nThis permanently removes the binder and all of its cards and photos. Other binders are unaffected.\n\nThis cannot be undone.`)) return;
+
+            // Remove from registry
+            const newList = list.filter(x => x.id !== id);
+            saveBindersList(newList);
+
+            // Remove scoped localStorage
+            localStorage.removeItem(`appConfig-${id}`);
+            localStorage.removeItem(`binderMeta-${id}`);
+            // Drop from thumbnail cache
+            delete _binderThumbCache[id];
+            saveBinderThumbCache();
+
+            // Remove all IDB keys with this prefix
+            try {
+                const db = await openDB();
+                const prefix = `${id}::`;
+                await new Promise(res => {
+                    const tx = db.transaction([DATA_STORE, PHOTO_STORE], 'readwrite');
+                    [DATA_STORE, PHOTO_STORE].forEach(name => {
+                        const store = tx.objectStore(name);
+                        const req = store.openCursor();
+                        req.onsuccess = (e) => {
+                            const cur = e.target.result;
+                            if (cur) {
+                                const k = cur.key;
+                                if (typeof k === 'string' && k.startsWith(prefix)) store.delete(k);
+                                cur.continue();
+                            }
+                        };
+                    });
+                    tx.oncomplete = () => res();
+                    tx.onerror    = () => res();
+                });
+            } catch(e) {}
+
+            // If we just deleted the active binder, switch to the first remaining one
+            if (id === _activeBinderId) {
+                const fallback = newList[0]?.id;
+                if (fallback) await switchToBinder(fallback);
+            }
+            renderBindersPanel();
+        }
+
+        /* ─── Export single binder as JSON ─── */
+        function exportBinderJSON(id) {
+            const b = findBinder(id);
+            if (!b) return;
+            const cfg = loadBinderConfig(id) || {};
+            const meta = loadBinderMeta(id);
+            // Read all card data for this binder from memory (if active) or IDB
+            const exportPayload = async () => {
+                const items = {};
+                if (id === _activeBinderId) {
+                    for (const k in _memoryCache) {
+                        if (k.startsWith('item-')) items[k] = _memoryCache[k];
+                    }
+                } else {
+                    try {
+                        const db = await openDB();
+                        await new Promise(res => {
+                            const tx = db.transaction(DATA_STORE, 'readonly');
+                            const prefix = `${id}::item-`;
+                            const req = tx.objectStore(DATA_STORE).openCursor();
+                            req.onsuccess = (e) => {
+                                const cur = e.target.result;
+                                if (cur) {
+                                    if (typeof cur.key === 'string' && cur.key.startsWith(prefix)) {
+                                        items[cur.key.slice(`${id}::`.length)] = cur.value;
+                                    }
+                                    cur.continue();
+                                } else { res(); }
+                            };
+                            req.onerror = () => res();
+                        });
+                    } catch(e) {}
+                }
+                const out = {
+                    binder: b,
+                    config: cfg,
+                    meta,
+                    items,
+                    exportedAt: new Date().toISOString(),
+                };
+                const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `BinderDex_${(b.name || id).replace(/[^a-zA-Z0-9_-]/g, '_')}.json`;
+                document.body.appendChild(a); a.click(); a.remove();
+                URL.revokeObjectURL(url);
+            };
+            exportPayload();
+            // Close any open menu
+            document.querySelectorAll('.bp-card-menu-pop.open').forEach(el => el.classList.remove('open'));
+        }
+
+        /* ─── Save ALL binders ─── */
+        async function saveAllBindersJSON() {
+            const list = getBindersList();
+            const out = { schema: 'binderdex-multi-v1', exportedAt: new Date().toISOString(), binders: [] };
+            for (const b of list) {
+                const cfg  = loadBinderConfig(b.id) || {};
+                const meta = loadBinderMeta(b.id);
+                const items = {};
+                if (b.id === _activeBinderId) {
+                    for (const k in _memoryCache) {
+                        if (k.startsWith('item-')) items[k] = _memoryCache[k];
+                    }
+                } else {
+                    try {
+                        const db = await openDB();
+                        await new Promise(res => {
+                            const tx = db.transaction(DATA_STORE, 'readonly');
+                            const prefix = `${b.id}::item-`;
+                            const req = tx.objectStore(DATA_STORE).openCursor();
+                            req.onsuccess = (e) => {
+                                const cur = e.target.result;
+                                if (cur) {
+                                    if (typeof cur.key === 'string' && cur.key.startsWith(prefix)) {
+                                        items[cur.key.slice(`${b.id}::`.length)] = cur.value;
+                                    }
+                                    cur.continue();
+                                } else { res(); }
+                            };
+                        });
+                    } catch(e) {}
+                }
+                out.binders.push({ binder: b, config: cfg, meta, items });
+            }
+            const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BinderDex_All_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        /* ─── Print Binder: physical-paper checklist ───
+           Generates a black-and-white-friendly PDF of the active binder
+           organized by page. Each entry has:
+             - Slot number
+             - A square checkbox (filled if collected)
+             - Card name, set, number
+             - A "value" column the user can fill in by hand
+           This is distinct from "Save PDF" (which is the visual binder
+           pages with art for digital sharing). */
+        function printBinder() {
+            const ensure = (cb) => {
+                if (window.jspdf && window.jspdf.jsPDF) { cb(); return; }
+                const s1 = document.createElement('script');
+                s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                s1.onload = () => {
+                    const s2 = document.createElement('script');
+                    s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+                    s2.onload = cb;
+                    document.head.appendChild(s2);
+                };
+                document.head.appendChild(s1);
+            };
+            ensure(async () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageW = doc.internal.pageSize.getWidth();
+                const pageH = doc.internal.pageSize.getHeight();
+                const binder = findBinder(_activeBinderId);
+                const binderName = binder ? binder.name : 'My Binder';
+                const meta = loadBinderMeta(_activeBinderId);
+
+                // Resolve expected slots from meta if available so empty slots
+                // show their species/card name (mirrors printWanted's logic).
+                let expected = null;
+                try {
+                    if (meta && (meta.binderType === 'pokedex' || meta.binderType === 'masterSet')) {
+                        expected = await getExpectedSlots(meta);
+                    }
+                } catch(e) { expected = null; }
+
+                // Header
+                doc.setFillColor(20, 20, 20);
+                doc.rect(0, 0, pageW, 22, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+                doc.setTextColor(255, 255, 255);
+                doc.text('BinderDéx', 14, 13);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+                doc.setTextColor(180, 180, 180);
+                doc.text(binderName, 14, 19);
+                doc.setFontSize(8);
+                doc.text(new Date().toLocaleDateString(), pageW - 14, 13, { align: 'right' });
+                doc.text(`${config.total} slot${config.total !== 1 ? 's' : ''}`, pageW - 14, 19, { align: 'right' });
+
+                // Build the row data
+                const rows = [];
+                let collectedCount = 0;
+                for (let i = 1; i <= config.total; i++) {
+                    const saved = _memoryCache[`item-${i}`];
+                    const exp = expected ? expected[i - 1] : null;
+                    const hasName = saved && saved.name && saved.name.trim();
+                    const collected = saved && saved.collected;
+                    if (collected) collectedCount++;
+                    const name   = hasName ? saved.name : (exp ? exp.name : '');
+                    const setSt  = (saved && saved.set) || (exp ? exp.set : '');
+                    const numSt  = (saved && saved.setNumber) || (exp ? exp.number : '');
+                    rows.push([
+                        String(i),
+                        collected ? '✓' : '☐',
+                        name || '—',
+                        setSt || '',
+                        numSt || '',
+                        saved && saved.value ? `$${parseFloat(saved.value).toFixed(2)}` : '',
+                    ]);
+                }
+
+                // Summary band
+                doc.setFillColor(245, 245, 245);
+                doc.rect(0, 22, pageW, 12, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+                doc.setTextColor(60, 60, 60);
+                doc.text(`COLLECTED: ${collectedCount} / ${config.total}`, 14, 29);
+                doc.text(`PAGES: ${Math.ceil(config.total / (config.rows * config.cols))}`, 80, 29);
+                doc.text(`LAYOUT: ${config.rows}×${config.cols}`, 130, 29);
+
+                // Table
+                doc.autoTable({
+                    startY: 36,
+                    head: [['#', '✓', 'Name', 'Set', 'Card #', 'Value']],
+                    body: rows,
+                    theme: 'grid',
+                    styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.6, textColor: [40,40,40], lineColor: [180,180,180] },
+                    headStyles: { fillColor: [40,40,40], textColor: [255,255,255], fontStyle: 'bold' },
+                    columnStyles: {
+                        0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
+                        1: { cellWidth: 9, halign: 'center', fontSize: 11 },
+                        2: { cellWidth: 'auto' },
+                        3: { cellWidth: 38 },
+                        4: { cellWidth: 22, halign: 'center' },
+                        5: { cellWidth: 22, halign: 'right' },
+                    },
+                    didParseCell: (data) => {
+                        if (data.section !== 'body') return;
+                        const row = rows[data.row.index];
+                        const isCollected = row && row[1] === '✓';
+                        // Strikethrough collected rows so they're easy to scan past
+                        if (isCollected) {
+                            data.cell.styles.textColor = [120, 120, 120];
+                        }
+                        // Make the checkbox column bold and dark when checked
+                        if (data.column.index === 1 && isCollected) {
+                            data.cell.styles.textColor = [40, 130, 60];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    },
+                    margin: { left: 14, right: 14 },
+                    didDrawPage: (data) => {
+                        doc.setFontSize(7);
+                        doc.setTextColor(150, 150, 150);
+                        doc.setFont('helvetica', 'normal');
+                        const num = doc.getCurrentPageInfo().pageNumber;
+                        doc.text(`${binderName} — printable checklist`, 14, pageH - 6);
+                        doc.text(`Page ${num}`, pageW - 14, pageH - 6, { align: 'right' });
+                    },
+                });
+
+                doc.save(`BinderDex_Print_${(binderName || 'binder').replace(/[^a-zA-Z0-9_-]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+            });
+        }
         applyPriceSourceUI();
         loadApiKeyInputs();
         (async () => {
             await migrateLocalStorageToIDB();
+            // First-time multi-binder migration — wraps existing data into
+            // "Binder 1" if needed, idempotent thereafter.
+            await migrateToMultiBinder();
+
+            // Now that the registry exists and _activeBinderId is set, reload
+            // config from the scoped key (overwrites any default).
+            const cfg = loadBinderConfig(_activeBinderId);
+            if (cfg) {
+                config = cfg;
+                document.getElementById('totalItems').value = config.total;
+                document.getElementById('gridRows').value   = config.rows;
+                document.getElementById('gridCols').value   = config.cols;
+                if (config.bannerUrl) applyBanner(config.bannerUrl);
+            }
+
             await bootDatabase();
             renderList();
             applyCardSize();

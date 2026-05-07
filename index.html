@@ -10924,7 +10924,7 @@ fetchAllArt();
             }
         }
 
-                /* ── Decision point: Gemini → OCR.Space → manual ── */
+        /* ── Decision point: Gemini → OCR.Space → manual ── */
         function escalateToGeminiOrManual(imageDataUrl, fallbackName, fallbackNum) {
             const geminiKey   = localStorage.getItem('gemini_api_key')   || '';
             const ocrSpaceKey = localStorage.getItem('ocrspace_api_key') || '';
@@ -10936,6 +10936,20 @@ fetchAllArt();
                 runOcrSpaceOCR(imageDataUrl, ocrSpaceKey, fallbackName, fallbackNum);
             } else {
                 // No AI/OCR keys configured — go straight to manual entry
+                showOcrResult(fallbackName, '', fallbackNum, 'manual');
+            }
+        }
+
+        /* ── Helper: what to do after Gemini fails or returns nothing usable.
+           If an OCR.Space key is configured, try that as a secondary fallback;
+           otherwise drop to manual entry. Without this, having both keys set
+           is functionally identical to having only Gemini set. ── */
+        function fallbackAfterGemini(imageDataUrl, fallbackName, fallbackNum) {
+            const ocrSpaceKey = localStorage.getItem('ocrspace_api_key') || '';
+            if (ocrSpaceKey) {
+                setOcrStatus('🔤 Step 2 of 2 — AI scan unavailable, trying OCR.Space…');
+                runOcrSpaceOCR(imageDataUrl, ocrSpaceKey, fallbackName, fallbackNum);
+            } else {
                 showOcrResult(fallbackName, '', fallbackNum, 'manual');
             }
         }
@@ -11032,7 +11046,7 @@ fetchAllArt();
                 const base64  = resized.split(',')[1];
 
                 const resp = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -11069,13 +11083,15 @@ fetchAllArt();
                 if (finalName) {
                     showOcrResult(finalName, finalSet, detectedNum, 'success');
                 } else {
-                    showOcrResult('', '', detectedNum, 'manual');
+                    // Gemini ran but couldn't read the card — try OCR.Space if available
+                    fallbackAfterGemini(imageDataUrl, fallbackName, detectedNum || fallbackNum);
                 }
 
             } catch(err) {
                 console.error('Gemini Vision error:', err);
-                // Gemini failed — drop to manual with whatever Tesseract found (if anything)
-                showOcrResult(fallbackName, '', fallbackNum, 'manual');
+                // Gemini errored (e.g. bad key, deprecated model, network) —
+                // cascade to OCR.Space if configured, otherwise drop to manual.
+                fallbackAfterGemini(imageDataUrl, fallbackName, fallbackNum);
             }
         }
 
